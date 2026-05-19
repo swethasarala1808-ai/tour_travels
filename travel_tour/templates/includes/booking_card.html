@@ -1,0 +1,104 @@
+{% set pkg = b.package_info or {} %}
+<div class="booking-card {% if b.is_upcoming %}upcoming{% else %}past{% endif %}"
+     id="bcard-{{ b.name }}"
+     data-pkg="{{ b.tour_package }}"
+     onclick="toggleCard('bcard-{{ b.name }}')">
+
+  <div class="card-header">
+    <div class="card-header-left">
+      <div class="card-pkg-icon">
+        {% if pkg.tour_type == 'International' %}🌍{% else %}🇮🇳{% endif %}
+      </div>
+      <div>
+        <div class="card-pkg-name">{{ pkg.package_name or b.tour_package }}</div>
+        <div class="card-pkg-meta">
+          {% if b.departure_date %}
+          <span>📅 {{ frappe.utils.formatdate(b.departure_date, 'dd MMM yyyy') }}</span>
+          {% endif %}
+          {% if pkg.destination %}<span>📍 {{ pkg.destination }}</span>{% endif %}
+          <span>👥 {{ b.total_pax }} Pax</span>
+          {% if pkg.duration_nights %}<span>🌙 {{ pkg.duration_nights }}N / {{ pkg.duration_days }}D</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="card-header-right">
+      <div>
+        {% if b.docstatus == 1 %}
+        <span class="status-badge badge-confirmed">Confirmed</span>
+        {% else %}
+        <span class="status-badge badge-draft">Pending</span>
+        {% endif %}
+        {% if b.is_upcoming %}
+        <span class="status-badge badge-upcoming" style="margin-left:6px;">Upcoming</span>
+        {% else %}
+        <span class="status-badge badge-past" style="margin-left:6px;">Completed</span>
+        {% endif %}
+      </div>
+      {% if b.grand_total %}
+      <div class="card-amount">₹{{ "{:,.0f}".format(b.grand_total) }}</div>
+      {% endif %}
+      <div class="card-expand-btn">View Details ▼</div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-grid">
+
+      <!-- Passengers -->
+      <div class="detail-section">
+        <h4>👥 Passengers ({{ b.pax_list | length }})</h4>
+        <div class="pax-list">
+          {% if b.pax_list %}
+          {% for pax in b.pax_list %}
+          <div class="pax-item">
+            <div class="pax-avatar">{{ pax.pax_name[0] | upper }}</div>
+            <div>
+              <div class="pax-name">{{ pax.pax_name }}</div>
+              <div class="pax-sub">
+                {{ pax.pax_gender or '' }} {% if pax.pax_age %}, {{ pax.pax_age }} yrs{% endif %}
+                {% if pax.passport_number %} · 🛂 {{ pax.passport_number }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p style="font-size:13px; color:var(--text-3);">Passenger details not added yet.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Addons -->
+      {% if b.addons_list %}
+      <div class="detail-section">
+        <h4>🎁 Add-ons</h4>
+        {% for addon in b.addons_list %}
+        <div class="addon-item">
+          <span>{{ addon.addon_name }} {% if addon.qty > 1 %}×{{ addon.qty }}{% endif %}</span>
+          <span class="addon-price">₹{{ "{:,.0f}".format(addon.amount) }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Totals -->
+      <div class="detail-section">
+        <h4>💰 Payment Summary</h4>
+        <div class="visa-meta">
+          <div class="visa-meta-item"><span class="k">Booking ID</span><span class="v" style="font-size:12px; color:var(--text-3);">{{ b.name }}</span></div>
+          {% if b.grand_total %}
+          <div class="visa-meta-item"><span class="k">Grand Total</span><span class="v" style="color: var(--gold-light);">₹{{ "{:,.0f}".format(b.grand_total) }}</span></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Itinerary -->
+      <div class="detail-section">
+        <h4>🗺️ Itinerary</h4>
+        <div class="itinerary-list">
+          <p style="font-size:13px; color:var(--text-3);">Loading itinerary...</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

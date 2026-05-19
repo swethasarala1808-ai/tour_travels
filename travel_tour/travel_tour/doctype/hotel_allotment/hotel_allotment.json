@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_events_in_timeline": 0,
+ "allow_guest_to_view": 0,
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "ALOT-.#####",
+ "creation": "2024-04-10 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "supplier",
+  "supplier_name",
+  "section_break_3",
+  "from_date",
+  "to_date",
+  "column_break_6",
+  "total_rooms",
+  "section_break_8",
+  "rooms",
+  "section_break_10",
+  "blackout_dates",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Supplier",
+   "options": "Supplier",
+   "reqd": 1
+  },
+  {
+   "fieldname": "supplier_name",
+   "fieldtype": "Data",
+   "label": "Supplier Name",
+   "fetch_from": "supplier.supplier_name"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_rooms",
+   "fieldtype": "Int",
+   "label": "Total Rooms",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Room Breakdown"
+  },
+  {
+   "fieldname": "rooms",
+   "fieldtype": "Table",
+   "label": "Room Inventory",
+   "options": "Allotment Room",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break",
+   "label": "Blackout Dates"
+  },
+  {
+   "fieldname": "blackout_dates",
+   "fieldtype": "Table",
+   "label": "Blackout Dates",
+   "options": "Blackout Date"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Hotel Allotment",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-04-10 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Travel Tour",
+ "name": "Hotel Allotment",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

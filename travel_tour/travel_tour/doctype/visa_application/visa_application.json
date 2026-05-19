@@ -1,0 +1,173 @@
+{
+ "actions": [],
+ "allow_events_in_timeline": 1,
+ "allow_guest_to_view": 0,
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "VISA-.#####",
+ "creation": "2024-04-10 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "booking",
+  "applicant_name",
+  "section_break_3",
+  "passport_number",
+  "passport_expiry",
+  "column_break_6",
+  "destination_country",
+  "visa_type",
+  "departure_date",
+  "section_break_10",
+  "status",
+  "submission_deadline",
+  "all_docs_collected",
+  "section_break_14",
+  "document_checklist",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "booking",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Booking",
+   "options": "Booking",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicant_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Applicant Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Identity Information"
+  },
+  {
+   "fieldname": "passport_number",
+   "fieldtype": "Data",
+   "label": "Passport Number"
+  },
+  {
+   "fieldname": "passport_expiry",
+   "fieldtype": "Date",
+   "label": "Passport Expiry"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "destination_country",
+   "fieldtype": "Link",
+   "label": "Destination Country",
+   "options": "Country"
+  },
+  {
+   "fieldname": "visa_type",
+   "fieldtype": "Select",
+   "label": "Visa Type",
+   "options": "Tourist\nBusiness\nStudent\nWork\nTransit"
+  },
+  {
+   "fieldname": "departure_date",
+   "fieldtype": "Date",
+   "label": "Departure Date"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break",
+   "label": "Status & Tracking"
+  },
+  {
+   "default": "Pending Documents",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending Documents\nDocuments Collected\nSubmitted\nApproved\nRejected\nDelivered"
+  },
+  {
+   "fieldname": "submission_deadline",
+   "fieldtype": "Date",
+   "label": "Submission Deadline"
+  },
+  {
+   "default": "0",
+   "fieldname": "all_docs_collected",
+   "fieldtype": "Check",
+   "label": "All Documents Collected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_14",
+   "fieldtype": "Section Break",
+   "label": "Document Checklist"
+  },
+  {
+   "fieldname": "document_checklist",
+   "fieldtype": "Table",
+   "label": "Document Checklist",
+   "options": "Visa Document Checklist"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Visa Application",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-04-10 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Travel Tour",
+ "name": "Visa Application",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "email": 1,
+   "print": 1,
+   "role": "Customer"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "submit": 1,
+   "email": 1,
+   "role": "Visa Officer"
+  },
+  {
+   "read": 1,
+   "write": 1,
+   "email": 1,
+   "role": "Travel Consultant"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

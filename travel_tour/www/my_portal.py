@@ -1,151 +1,150 @@
-"""
-travel_tour/www/my_portal.py
-Customer Portal — Mobile + Password login (no OTP)
-"""
 import frappe
-import hashlib
-import random
-import string
-
+from frappe.utils import now
 
 def get_context(context):
+    """Customer Portal — requires login. Shows bookings, visa, upcoming trips."""
+    if frappe.session.user == 'Guest':
+        frappe.local.flags.redirect_location = '/login?redirect-to=/my-portal'
+        raise frappe.Redirect
+
     context.no_cache = 1
-    context.show_sidebar = False
-    if frappe.session.user and frappe.session.user != "Guest":
-        mobile = frappe.db.get_value("User", frappe.session.user, "mobile_no")
-        if mobile and frappe.db.exists("Travel Lead", {"mobile": mobile}):
-            frappe.local.flags.redirect_location = "/travel_enquiry"
-            raise frappe.Redirect
 
-
-@frappe.whitelist(allow_guest=True)
-def portal_login(mobile, password):
-    """Authenticate portal customer by mobile + password."""
-    mobile   = (mobile or "").strip()
-    password = (password or "").strip()
-
-    if not mobile or not password:
-        return {"success": False, "error": "Mobile and password are required."}
-
-    lead = frappe.db.get_value(
-        "Travel Lead", {"mobile": mobile},
-        ["name", "lead_name", "portal_password_hash"],
-        as_dict=True,
+    # Find customer linked to this user
+    customer = frappe.db.get_value(
+        'Customer',
+        {'email_id': frappe.session.user},
+        ['name', 'customer_name', 'mobile_no', 'email_id'],
+        as_dict=True
     )
-    if not lead:
-        return {"success": False, "error": "Mobile number not registered. Please contact us."}
 
-    stored_hash = lead.get("portal_password_hash")
-    if not stored_hash:
-        # Default password = last 4 digits of mobile (first-time login)
-        if password != mobile[-4:]:
-            return {"success": False, "error": "Incorrect password. Default is last 4 digits of your mobile number."}
-    else:
-        if _hash_pw(password) != stored_hash:
-            return {"success": False, "error": "Incorrect password."}
+    if not customer:
+        # Try fallback by portal user link
+        customer = frappe.db.get_value(
+            'Contact',
+            {'email_id': frappe.session.user, 'is_primary_contact': 1},
+            ['customer'],
+            as_dict=True
+        )
 
-    user = _get_or_create_portal_user(mobile, lead.lead_name)
-    if not user:
-        return {"success": False, "error": "Account setup error. Please contact support."}
+    context.customer = customer
 
-    frappe.local.login_manager.login_as(user)
-    return {"success": True}
+    if not customer:
+        context.no_customer = True
+        context.user_email = frappe.session.user
+        context.user_name = frappe.db.get_value('User', frappe.session.user, 'full_name')
+        return
 
+    cname = customer.name
 
-@frappe.whitelist(allow_guest=True)
-def reset_portal_password(mobile):
-    """Generate a new password and send via WhatsApp."""
-    mobile = (mobile or "").strip()
-    lead = frappe.db.get_value(
-        "Travel Lead", {"mobile": mobile},
-        ["name", "lead_name"], as_dict=True,
+    # Active / upcoming bookings
+    bookings = frappe.get_all(
+        'Booking',
+        filters={'customer': cname, 'docstatus': ['!=', 2]},
+        fields=['name', 'tour_package', 'departure_date', 'total_pax',
+                'grand_total', 'docstatus', 'creation'],
+        order_by='departure_date asc'
     )
-    if not lead:
-        return {"success": False, "error": "Mobile number not registered."}
 
-    new_pw = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    frappe.db.set_value("Travel Lead", lead.name, "portal_password_hash", _hash_pw(new_pw))
-    frappe.db.commit()
+    today = frappe.utils.today()
+    for b in bookings:
+        b.status_label = 'Confirmed' if b.docstatus == 1 else 'Draft'
+        b.is_upcoming = b.departure_date and str(b.departure_date) >= today
+        b.is_past = b.departure_date and str(b.departure_date) < today
 
-    try:
-        settings = frappe.get_single("Travel Tour Settings")
-        if getattr(settings, "whatsapp_enabled", False):
-            from travel_tour.api.whatsapp import send_message
-            send_message(mobile, "portal_password_reset", {
-                "name": lead.lead_name,
-                "password": new_pw,
-            })
-        else:
-            # Dev fallback: log to error log so admin can retrieve it
-            frappe.log_error(
-                f"Portal PW Reset — Mobile: {mobile} | New Password: {new_pw}",
-                "Portal Password Reset (WhatsApp not configured)",
+        # Load pax details
+        b.pax_list = frappe.get_all(
+            'Booking Pax',
+            filters={'parent': b.name},
+            fields=['pax_name', 'pax_age', 'pax_gender', 'passport_number', 'passport_expiry']
+        )
+
+        # Load addons
+        b.addons_list = frappe.get_all(
+            'Booking Addon',
+            filters={'parent': b.name},
+            fields=['addon_name', 'qty', 'amount']
+        )
+
+        # Package details
+        if b.tour_package:
+            pkg = frappe.db.get_value(
+                'Tour Package',
+                b.tour_package,
+                ['package_name', 'tour_type', 'destination', 'duration_nights', 'duration_days', 'visa_required'],
+                as_dict=True
             )
-    except Exception as e:
-        frappe.log_error(str(e), "Portal PW Reset Error")
+            b.package_info = pkg
 
-    return {"success": True}
+    context.upcoming_bookings = [b for b in bookings if b.is_upcoming]
+    context.past_bookings = [b for b in bookings if not b.is_upcoming]
+    context.all_bookings = bookings
 
+    # Visa applications
+    booking_names = [b.name for b in bookings]
+    visa_apps = []
+    if booking_names:
+        visa_apps = frappe.get_all(
+            'Visa Application',
+            filters={'booking': ['in', booking_names]},
+            fields=['name', 'booking', 'applicant_name', 'visa_type', 'destination_country',
+                    'departure_date', 'status', 'submission_deadline', 'all_docs_collected',
+                    'passport_number', 'passport_expiry'],
+            order_by='creation desc'
+        )
 
-@frappe.whitelist()
-def change_portal_password(old_password, new_password):
-    """Logged-in customer changes their portal password."""
-    if frappe.session.user == "Guest":
-        return {"success": False}
+    for v in visa_apps:
+        v.status_class = {
+            'Pending Documents': 'status-pending',
+            'Documents Collected': 'status-collected',
+            'Submitted': 'status-submitted',
+            'Approved': 'status-approved',
+            'Rejected': 'status-rejected',
+            'Delivered': 'status-delivered'
+        }.get(v.status, 'status-pending')
 
-    mobile = frappe.db.get_value("User", frappe.session.user, "mobile_no")
-    if not mobile:
-        return {"success": False}
+    context.visa_applications = visa_apps
 
-    lead = frappe.db.get_value(
-        "Travel Lead", {"mobile": mobile},
-        ["name", "portal_password_hash"], as_dict=True,
-    )
-    if not lead:
-        return {"success": False}
-
-    stored = lead.portal_password_hash or _hash_pw(mobile[-4:])
-    if _hash_pw(old_password) != stored:
-        return {"success": False, "error": "Current password is incorrect."}
-
-    if len(new_password) < 6:
-        return {"success": False, "error": "New password must be at least 6 characters."}
-
-    frappe.db.set_value("Travel Lead", lead.name, "portal_password_hash", _hash_pw(new_password))
-    frappe.db.commit()
-    return {"success": True}
-
-
-# ── helpers ────────────────────────────────────────────────────────────────────
-
-def _hash_pw(password):
-    return hashlib.sha256(("tt_portal_salt_2024_" + password).encode()).hexdigest()
+    # Travel checklist / alerts for upcoming trips
+    context.travel_alerts = build_travel_alerts(context.upcoming_bookings, visa_apps)
 
 
-def _get_or_create_portal_user(mobile, name):
-    existing = frappe.db.get_value("User", {"mobile_no": mobile}, "name")
-    if existing:
-        frappe.db.set_value("User", existing, "enabled", 1)
-        return existing
+def build_travel_alerts(upcoming_bookings, visa_apps):
+    """Build actionable items for the customer."""
+    alerts = []
+    today = frappe.utils.today()
+    days_30 = frappe.utils.add_days(today, 30)
 
-    email = f"portal_{mobile}@tourtravel.internal"
-    try:
-        user = frappe.get_doc({
-            "doctype": "User",
-            "email": email,
-            "first_name": (name or "Customer").split()[0],
-            "last_name": " ".join((name or "Customer").split()[1:]) or "",
-            "mobile_no": mobile,
-            "user_type": "Website User",
-            "enabled": 1,
-            "send_welcome_email": 0,
-            "new_password": frappe.generate_hash(length=20),
-            "roles": [{"role": "Customer"}],
-        })
-        user.flags.ignore_permissions = True
-        user.insert()
-        frappe.db.commit()
-        return user.name
-    except Exception as e:
-        frappe.log_error(str(e), "Portal user creation error")
-        return None
+    for b in upcoming_bookings:
+        dep = str(b.departure_date) if b.departure_date else ''
+        if dep and dep <= str(days_30):
+            days_left = (frappe.utils.getdate(dep) - frappe.utils.getdate(today)).days
+            alerts.append({
+                'type': 'trip_soon',
+                'icon': '✈️',
+                'title': f'Trip in {days_left} days!',
+                'msg': f'Your {b.tour_package} is {days_left} days away. Ensure all documents are ready.',
+                'booking': b.name,
+                'level': 'warning' if days_left <= 7 else 'info'
+            })
+
+    for v in visa_apps:
+        if v.status == 'Pending Documents':
+            alerts.append({
+                'type': 'visa_docs',
+                'icon': '📄',
+                'title': f'Documents Needed for {v.applicant_name}',
+                'msg': f'Visa application for {v.destination_country or "your destination"} is waiting for documents.',
+                'booking': v.booking,
+                'level': 'warning'
+            })
+        if v.status == 'Approved':
+            alerts.append({
+                'type': 'visa_approved',
+                'icon': '✅',
+                'title': f'Visa Approved!',
+                'msg': f'{v.applicant_name}\'s visa for {v.destination_country} has been approved.',
+                'booking': v.booking,
+                'level': 'success'
+            })
+
+    return alerts

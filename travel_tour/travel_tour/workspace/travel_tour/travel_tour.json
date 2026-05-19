@@ -1,0 +1,322 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"cb-crm\", \"type\": \"card\", \"data\": {\"card_name\": \"CRM & Leads\", \"col\": 12}}, {\"id\": \"cb-bookings\", \"type\": \"card\", \"data\": {\"card_name\": \"Bookings\", \"col\": 12}}, {\"id\": \"cb-visa\", \"type\": \"card\", \"data\": {\"card_name\": \"Visa Processing\", \"col\": 12}}, {\"id\": \"cb-ops\", \"type\": \"card\", \"data\": {\"card_name\": \"Operations\", \"col\": 12}}, {\"id\": \"cb-config\", \"type\": \"card\", \"data\": {\"card_name\": \"Configuration\", \"col\": 12}}]",
+ "creation": "2024-01-01 00:00:00.000000",
+ "developer_mode_only": 0,
+ "disable_user_customization": 0,
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "travel",
+ "idx": 0,
+ "is_default": 0,
+ "is_hidden": 0,
+ "label": "Tour Travels",
+ "links": [
+  {
+   "hidden": 0,
+   "idx": 1,
+   "is_query_report": 0,
+   "label": "CRM & Leads",
+   "link_count": 0,
+   "onboard": 1,
+   "title": "CRM & Leads",
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 2,
+   "is_query_report": 0,
+   "label": "Travel Lead",
+   "link_count": 0,
+   "link_to": "Travel Lead",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 3,
+   "is_query_report": 0,
+   "label": "Destination",
+   "link_count": 0,
+   "link_to": "Destination",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "idx": 4,
+   "is_query_report": 0,
+   "label": "Bookings",
+   "link_count": 0,
+   "onboard": 1,
+   "title": "Bookings",
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 5,
+   "is_query_report": 0,
+   "label": "Booking",
+   "link_count": 0,
+   "link_to": "Booking",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 6,
+   "is_query_report": 0,
+   "label": "Tour Package",
+   "link_count": 0,
+   "link_to": "Tour Package",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 7,
+   "is_query_report": 0,
+   "label": "Cancellation Policy",
+   "link_count": 0,
+   "link_to": "Cancellation Policy",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "idx": 8,
+   "is_query_report": 0,
+   "label": "Visa Processing",
+   "link_count": 0,
+   "onboard": 0,
+   "title": "Visa Processing",
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 9,
+   "is_query_report": 0,
+   "label": "Visa Application",
+   "link_count": 0,
+   "link_to": "Visa Application",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 10,
+   "is_query_report": 0,
+   "label": "Visa Country Config",
+   "link_count": 0,
+   "link_to": "Visa Country Config",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 11,
+   "is_query_report": 0,
+   "label": "Visa Agent",
+   "link_count": 0,
+   "link_to": "Visa Agent",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 12,
+   "is_query_report": 0,
+   "label": "Visa Fee Billing",
+   "link_count": 0,
+   "link_to": "Visa Fee Billing",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 13,
+   "is_query_report": 0,
+   "label": "Visa Delivery Log",
+   "link_count": 0,
+   "link_to": "Visa Delivery Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "idx": 14,
+   "is_query_report": 0,
+   "label": "Operations",
+   "link_count": 0,
+   "onboard": 0,
+   "title": "Operations",
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 15,
+   "is_query_report": 0,
+   "label": "Hotel Allotment",
+   "link_count": 0,
+   "link_to": "Hotel Allotment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 16,
+   "is_query_report": 0,
+   "label": "Trip Run Sheet",
+   "link_count": 0,
+   "link_to": "Trip Run Sheet",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 17,
+   "is_query_report": 0,
+   "label": "Guide Allocation",
+   "link_count": 0,
+   "link_to": "Guide Allocation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 18,
+   "is_query_report": 0,
+   "label": "Supplier Contract",
+   "link_count": 0,
+   "link_to": "Supplier Contract",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "idx": 19,
+   "is_query_report": 0,
+   "label": "Configuration",
+   "link_count": 0,
+   "onboard": 0,
+   "title": "Configuration",
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "idx": 20,
+   "is_query_report": 0,
+   "label": "Travel Tour Settings",
+   "link_count": 0,
+   "link_to": "Travel Tour Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Travel Tour",
+ "name": "Tour Travels",
+ "owner": "Administrator",
+ "public": 1,
+ "restrict_to_domain": "",
+ "roles": [],
+ "sequence_id": 1.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "format": "{} Open",
+   "label": "Travel Lead",
+   "link_to": "Travel Lead",
+   "stats_filter": "{\"status\": [\"!=\", \"Converted\"]}",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "format": "{} Confirmed",
+   "label": "Booking",
+   "link_to": "Booking",
+   "stats_filter": "{\"status\": \"Confirmed\"}",
+   "type": "DocType"
+  },
+  {
+   "color": "Purple",
+   "format": "{} Active",
+   "label": "Tour Package",
+   "link_to": "Tour Package",
+   "stats_filter": "{\"is_active\": 1}",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "format": "{} Pending",
+   "label": "Visa Application",
+   "link_to": "Visa Application",
+   "stats_filter": "{\"status\": [\"in\", [\"Draft\", \"Documents Collecting\", \"Submitted to Embassy\"]]}",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "label": "Hotel Allotment",
+   "link_to": "Hotel Allotment",
+   "type": "DocType"
+  },
+  {
+   "color": "Teal",
+   "label": "Trip Run Sheet",
+   "link_to": "Trip Run Sheet",
+   "type": "DocType"
+  },
+  {
+   "color": "Gray",
+   "label": "Guide Allocation",
+   "link_to": "Guide Allocation",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "label": "Visa Fee Billing",
+   "link_to": "Visa Fee Billing",
+   "type": "DocType"
+  },
+  {
+   "color": "Gray",
+   "label": "Supplier Contract",
+   "link_to": "Supplier Contract",
+   "type": "DocType"
+  }
+ ],
+ "title": "Tour Travels"
+}.   create like this structure for this git workspace 

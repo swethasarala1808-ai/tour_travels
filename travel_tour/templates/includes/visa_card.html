@@ -1,0 +1,95 @@
+{% set progress_map = {
+    'Pending Documents': 15,
+    'Documents Collected': 40,
+    'Submitted': 65,
+    'Approved': 90,
+    'Delivered': 100,
+    'Rejected': 100
+} %}
+{% set color_map = {
+    'Pending Documents': '#fb923c',
+    'Documents Collected': '#38bdf8',
+    'Submitted': '#a78bfa',
+    'Approved': '#34d399',
+    'Delivered': '#f0b429',
+    'Rejected': '#f87171'
+} %}
+{% set pct = progress_map.get(v.status, 15) %}
+{% set clr = color_map.get(v.status, '#fb923c') %}
+
+<div class="visa-card">
+  <div class="visa-card-top">
+    <div>
+      <div class="visa-applicant">{{ v.applicant_name }}</div>
+      <div class="visa-sub">
+        {{ v.visa_type or 'Tourist' }} Visa · {{ v.destination_country or 'N/A' }}
+      </div>
+    </div>
+    <div class="status-badge {{ v.status_class }}" style="white-space:nowrap;">{{ v.status }}</div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="visa-progress">
+    <div class="visa-progress-label">
+      <span>Application Progress</span>
+      <span>{{ pct }}%</span>
+    </div>
+    <div class="visa-bar-track">
+      <div class="visa-bar-fill" style="width: {{ pct }}%; background: {{ clr }};"></div>
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div class="visa-meta">
+    <div class="visa-meta-item">
+      <span class="k">Booking Ref</span>
+      <span class="v" style="font-size:12px;">{{ v.booking }}</span>
+    </div>
+    {% if v.departure_date %}
+    <div class="visa-meta-item">
+      <span class="k">Departure</span>
+      <span class="v">{{ frappe.utils.formatdate(v.departure_date, 'dd MMM yyyy') }}</span>
+    </div>
+    {% endif %}
+    {% if v.submission_deadline %}
+    <div class="visa-meta-item">
+      <span class="k">Doc Deadline</span>
+      <span class="v" style="color: var(--orange);">{{ frappe.utils.formatdate(v.submission_deadline, 'dd MMM yyyy') }}</span>
+    </div>
+    {% endif %}
+    {% if v.passport_number %}
+    <div class="visa-meta-item">
+      <span class="k">Passport</span>
+      <span class="v">{{ v.passport_number }}</span>
+    </div>
+    {% endif %}
+    <div class="visa-meta-item">
+      <span class="k">Docs Collected</span>
+      <span class="v" style="color: {% if v.all_docs_collected %}var(--green){% else %}var(--orange){% endif %};">
+        {{ '✅ Yes' if v.all_docs_collected else '⏳ Pending' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Update Passport / Docs (only if pending) -->
+  {% if v.status in ['Pending Documents', 'Documents Collected'] %}
+  <div class="doc-update-form" style="margin-top:16px;">
+    <h5>📤 Update Passport Details</h5>
+    <div class="du-row">
+      <div>
+        <label for="pp_num_{{ v.name }}">Passport Number</label>
+        <input type="text" id="pp_num_{{ v.name }}" value="{{ v.passport_number or '' }}" placeholder="e.g. A1234567">
+      </div>
+      <div>
+        <label for="pp_exp_{{ v.name }}">Passport Expiry Date</label>
+        <input type="date" id="pp_exp_{{ v.name }}" value="{{ v.passport_expiry or '' }}">
+      </div>
+      <div>
+        <button class="btn-update" onclick="updatePassport('{{ v.name }}'); event.stopPropagation();">
+          📤 Submit Details
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>

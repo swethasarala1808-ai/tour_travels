@@ -1,41 +1,61 @@
-### travel_tour
+# Travel Tour Management System
 
-tour
+A comprehensive ERPNext v15+ custom application for travel agencies, tour operators, and visa consultants. This app provides a unified platform to manage tour packages, bookings, supplier allotments, CRM leads, and a full-scale visa management operation.
 
-### Installation
+## 🚀 Key Modules
 
-You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+### 1. Package & Itinerary Management
+- Create beautiful tour packages with slab-based price variants.
+- Build detailed daily itineraries with meal plans and activities.
+- Manage destinations as master data.
+
+### 2. Booking & Reservation System
+- Professional Booking engine with Pax (passenger) management.
+- Automated calculation of totals, taxes (GST), and TCS (Tax Collected at Source) for international travel.
+- Integration for addons and discounts.
+
+### 3. Visa Management (Pro)
+- End-to-end visa lifecycle tracking (Pending -> Submitted -> Approved -> Delivered).
+- Country-specific document checklists and processing time tracking.
+- Automated visa billing and integration with Sales Invoices.
+- Embassy appointment scheduling and delivery logs.
+
+### 4. Supplier & Operations
+- Manage hotel allotments and room inventory.
+- Track supplier contracts and costs.
+- Operational "Run Sheets" and Guide Allocation with conflict detection.
+
+### 5. CRM & Finance
+- Lead management with round-robin consultant assignment.
+- Dedicated "Travel Tour" Workspace for real-time visibility.
+- Singleton settings for global configuration (API keys, commission rates).
+
+## 🛠 Tech Stack
+- **Framework**: Frappe v15+
+- **Application**: ERPNext v15+
+- **Database**: MariaDB
+- **UI**: Frappe Desk (Custom Workspace)
+
+## 📦 Installation
+
+To install this app on your Frappe bench:
 
 ```bash
-cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch develop
-bench install-app travel_tour
+# Get the app
+bench get-app https://github.com/balaji-001-gif/tour_travels.git
+
+# Install on your site
+bench --site [your-site-name] install-app travel_tour
+
+# Run migrations
+bench migrate
 ```
 
-### Contributing
+## ⚙️ Configuration
+1. Navigate to **Travel Tour Settings**.
+2. Configure your Operations Email and site URL.
+3. (Optional) Provide Razorpay API keys for payment gateway integration.
+4. Set up **Visa Country Config** for each destination you handle.
 
-This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
-
-```bash
-cd apps/travel_tour
-pre-commit install
-```
-
-Pre-commit is configured to use the following tools for checking and formatting your code:
-
-- ruff
-- eslint
-- prettier
-- pyupgrade
-
-### CI
-
-This app can use GitHub Actions for CI. The following workflows are configured:
-
-- CI: Installs this app and runs unit tests on every push to `develop` branch.
-- Linters: Runs [Frappe Semgrep Rules](https://github.com/frappe/semgrep-rules) and [pip-audit](https://pypi.org/project/pip-audit/) on every pull request.
-
-
-### License
-
-mit
+## 📝 License
+This project is licensed under the MIT License.
