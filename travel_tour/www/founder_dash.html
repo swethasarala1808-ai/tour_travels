@@ -1643,7 +1643,7 @@ let D = {
 let curBk = null;
 
 /* ── INIT ── */
-frappe.ready(function() {
+document.addEventListener("DOMContentLoaded", function() {
   loadData();
   document.addEventListener('click', e => {
     if (!e.target.closest('.notif-panel') && !e.target.closest('.tb-btn[onclick*="toggleNotif"]'))
@@ -1654,7 +1654,8 @@ frappe.ready(function() {
 });
 
 function loadData() {
-  frappe.call({
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
     method: 'travel_tour.www.founder_dash.get_founder_data',
     callback(r) {
       if (r.message) { D = r.message; renderAll(); }
@@ -2011,7 +2012,8 @@ function saveLead() {
   const mobile = document.getElementById('l-mobile').value.trim();
   if (!name||!mobile) { showToast('❌','Name and mobile are required.'); return; }
 
-  frappe.call({
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
     method: id
       ? 'travel_tour.www.founder_dash.update_lead'
       : 'travel_tour.www.founder_dash.create_lead',
@@ -2165,7 +2167,8 @@ function editBooking() { if(curBk) openBkEdit(curBk.name); closeModal('mo-bk-det
 function cancelBooking() {
   if (!curBk) return;
   if (confirm(`Cancel booking ${curBk.name}?`)) {
-    frappe.call({
+    // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
       method:'travel_tour.www.founder_dash.update_booking_status',
       args:{booking_name:curBk.name, status:'Cancelled'},
       callback(r){ if(r.message?.success){closeModal('mo-bk-detail');loadData();showToast('✅','Booking cancelled.');}},
@@ -2176,7 +2179,8 @@ function cancelBooking() {
 
 function saveBooking() {
   const id = document.getElementById('bk-edit-id').value;
-  frappe.call({
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
     method: id
       ? 'travel_tour.www.founder_dash.update_booking'
       : 'travel_tour.www.founder_dash.create_booking',
@@ -2246,7 +2250,8 @@ function recordPayment() {
   const bk  = document.getElementById('rp-bk').value.trim();
   const amt = document.getElementById('rp-amt').value;
   if (!bk||!amt) { showToast('❌','Booking ID and amount are required.'); return; }
-  frappe.call({
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
     method:'travel_tour.www.founder_dash.record_payment',
     args:{booking_name:bk,amount:amt,payment_date:document.getElementById('rp-date').value,mode:document.getElementById('rp-mode').value,reference:document.getElementById('rp-ref').value,notes:document.getElementById('rp-notes').value},
     callback(r){if(r.message?.success){closeModal('mo-record-pay');loadData();showToast('✅','Payment recorded!');}else showToast('❌',r.message?.error||'Error');},
@@ -2303,7 +2308,8 @@ function openPkgEdit(id) {
 }
 
 function savePackage() {
-  frappe.call({
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
     method:'travel_tour.www.founder_dash.save_package',
     args:{
       pkg_id:document.getElementById('pkg-edit-id').value||null,
@@ -2435,7 +2441,8 @@ function updateVisaStatus(bk,pax) {
   const statuses = ['Not Applied','Applied','Approved','Rejected'];
   const val = prompt(`Visa status for ${pax}:\n(${statuses.join(' / ')})`, 'Applied');
   if (!val||!statuses.includes(val)) return;
-  frappe.call({
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
     method:'travel_tour.www.founder_dash.update_visa_status',
     args:{booking_name:bk,pax_name:pax,visa_status:val},
     callback(r){if(r.message?.success){loadData();showToast('✅','Visa status updated!');}},
@@ -2481,7 +2488,8 @@ function renderTeam() {
 }
 
 function saveTeamMember() {
-  frappe.call({
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
     method:'travel_tour.www.founder_dash.save_team_member',
     args:{
       employee_name:document.getElementById('tm-name').value,
@@ -2503,7 +2511,8 @@ function saveSettings(section) {
 function confirmDelete(type, id, name) {
   document.getElementById('mo-confirm-msg').textContent = `Delete ${type}: ${name} (${id})?`;
   document.getElementById('mo-confirm-btn').onclick = () => {
-    frappe.call({
+    // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",
       method: 'travel_tour.www.founder_dash.delete_record',
       args: { doctype: type, record_name: id },
       callback(r) { closeModal('mo-confirm'); if(r.message?.success){loadData();showToast('✅','Deleted.');}},
@@ -2536,7 +2545,8 @@ function openModal(id) { document.getElementById(id).classList.add('open') }
 function closeModal(id){ document.getElementById(id).classList.remove('open') }
 
 function doLogout() {
-  frappe.call({method:'logout',callback(){window.location.href='/login';}});
+  // frappe.call replaced:
+  fetch("/api/method/frappe.client.get_list", {method:"POST",method:'logout',callback(){window.location.href='/login';}});
 }
 
 /* ── UTILS ── */

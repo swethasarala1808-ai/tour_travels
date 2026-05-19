@@ -6,38 +6,44 @@ def get_context(context):
         raise frappe.Redirect
 
     context.no_cache = 1
+    context.user_email = frappe.session.user
+    context.user_name = frappe.db.get_value('User', frappe.session.user, 'full_name') or 'Traveller'
 
-    # Find Travel Lead linked to this user's email
+    # Use ERPNext's built-in Lead doctype
     lead = frappe.db.get_value(
-        'Travel Lead',
+        'Lead',
         {'email_id': frappe.session.user},
-        ['name', 'full_name', 'email_id', 'mobile_no', 'status'],
+        ['name', 'lead_name', 'email_id', 'mobile_no', 'status', 'lead_owner'],
         as_dict=True
     )
 
-    context.lead = lead
-    context.user_email = frappe.session.user
-    context.user_name = frappe.db.get_value('User', frappe.session.user, 'full_name')
+    if lead:
+        context.lead = lead
+        context.no_lead = False
+        context.full_name = lead.lead_name
+        context.mobile = lead.mobile_no
+    else:
+        # Also check Customer doctype
+        customer = frappe.db.get_value(
+            'Customer',
+            {'email_id': frappe.session.user},
+            ['name', 'customer_name', 'mobile_no'],
+            as_dict=True
+        )
+        if customer:
+            context.lead = frappe._dict({
+                'name': customer.name,
+                'lead_name': customer.customer_name,
+                'email_id': frappe.session.user,
+                'mobile_no': customer.mobile_no,
+                'status': 'Customer'
+            })
+            context.no_lead = False
+            context.full_name = customer.customer_name
+        else:
+            context.lead = None
+            context.no_lead = True
+            context.full_name = context.user_name
 
-    if not lead:
-        context.no_lead = True
-        return
-
-    # Get bookings for this lead
-    bookings = frappe.get_all(
-        'Booking',
-        filters={'travel_lead': lead.name},
-        fields=['name', 'tour_package', 'travel_date', 'status', 'total_amount'],
-        order_by='creation desc',
-        limit=10
-    )
-    context.bookings = bookings
-
-    # Get visa applications
-    visas = frappe.get_all(
-        'Visa Application',
-        filters={'booking': ['in', [b.name for b in bookings]]},
-        fields=['name', 'pax_name', 'destination', 'status', 'passport_no'],
-        limit=20
-    ) if bookings else []
-    context.visas = visas
+    context.bookings = []
+    context.visas = []

@@ -2,11 +2,12 @@ import frappe
 
 def get_context(context):
     context.no_cache = 1
-    context.show_sidebar = False
-    # Allow guest access
-    context.packages = frappe.get_all(
-        'Tour Package',
-        fields=['name', 'package_name', 'tour_type', 'destination', 'duration_days', 'duration_nights'],
-        order_by='package_name asc',
-        ignore_permissions=True
-    )
+    context.user = frappe.session.user
+    context.is_guest = frappe.session.user == 'Guest'
+
+    if not context.is_guest:
+        context.user_name = frappe.db.get_value('User', frappe.session.user, 'full_name') or ''
+        context.user_email = frappe.session.user
+    else:
+        context.user_name = ''
+        context.user_email = ''
