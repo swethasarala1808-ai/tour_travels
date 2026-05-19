@@ -455,7 +455,7 @@
   </div>
 </nav>
 
-{% if no_customer %}
+{% if no_lead %}
 <!-- ── No Customer Linked ── -->
 <div class="portal-body">
   <div class="no-customer-state">
@@ -479,7 +479,7 @@
   <!-- Welcome -->
   <div class="welcome-bar">
     <div class="welcome-text">
-      <h1>Welcome back, {{ customer.customer_name.split()[0] }}! 👋</h1>
+      <h1>Welcome back, {{ lead.full_name.split()[0] }}! 👋</h1>
       <p>Here's everything about your trips, visas and upcoming travels.</p>
     </div>
     <a href="/travel-enquiry" class="btn-enquiry">✈️ Plan Another Trip</a>
@@ -645,19 +645,19 @@
         <div class="visa-meta">
           <div class="visa-meta-item">
             <span class="k">Customer Name</span>
-            <span class="v">{{ customer.customer_name }}</span>
+            <span class="v">{{ lead.full_name }}</span>
           </div>
           <div class="visa-meta-item">
             <span class="k">Mobile</span>
-            <span class="v">{{ customer.mobile_no or 'Not set' }}</span>
+            <span class="v">{{ lead.mobile_no or 'Not set' }}</span>
           </div>
           <div class="visa-meta-item">
             <span class="k">Email</span>
-            <span class="v">{{ customer.email_id or frappe.session.user }}</span>
+            <span class="v">{{ lead.email_id or frappe.session.user }}</span>
           </div>
           <div class="visa-meta-item">
             <span class="k">Customer ID</span>
-            <span class="v" style="color: var(--text-3); font-size:12px;">{{ customer.name }}</span>
+            <span class="v" style="color: var(--text-3); font-size:12px;">{{ lead.name }}</span>
           </div>
         </div>
       </div>
