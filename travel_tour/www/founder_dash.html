@@ -1643,7 +1643,7 @@ let D = {
 let curBk = null;
 
 /* ── INIT ── */
-document.addEventListener('DOMContentLoaded', () => {
+frappe.ready(function() {
   loadData();
   document.addEventListener('click', e => {
     if (!e.target.closest('.notif-panel') && !e.target.closest('.tb-btn[onclick*="toggleNotif"]'))
