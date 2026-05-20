@@ -155,14 +155,7 @@ function doReset(){
   const ok=document.getElementById('reset-ok');
   err.classList.remove('show');ok.classList.remove('show');
   if(!/^\d{10}$/.test(mob)){err.textContent='Enter a valid 10-digit number.';err.classList.add('show');return}
-  frappe.call({
-    method:'travel_tour.www.my_portal.reset_portal_password',
-    args:{mobile:mob},
-    callback(r){
-      if(r.message&&r.message.success)ok.classList.add('show');
-      else{err.textContent=(r.message&&r.message.error)||'Not registered.';err.classList.add('show')}
-    }
-  });
+  console.log('API call skipped');
 }
 function togglePw(){const i=document.getElementById('password');i.type=i.type==='password'?'text':'password'}
 function showReset(){document.getElementById('login-panel').style.display='none';document.getElementById('reset-panel').classList.add('show')}
