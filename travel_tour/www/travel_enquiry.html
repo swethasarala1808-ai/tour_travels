@@ -1035,7 +1035,7 @@ body{
 var S = { lead: null, bookings: [], cur: null };
 
 // ── INIT ──
-frappe.ready(function() {
+(function(){function _init(){
   loadData();
   // Close dropdowns on outside click
   document.addEventListener('click', e => {
@@ -1044,7 +1044,9 @@ frappe.ready(function() {
     if (!e.target.closest('.sidebar') && !e.target.closest('.menu-toggle'))
       document.getElementById('sidebar').classList.remove('open');
   });
-});
+}
+if(typeof frappe!=="undefined"&&frappe.ready){frappe.ready(_init);}else{document.addEventListener("DOMContentLoaded",_init);}
+})();
 
 function loadData() {
   frappe.call({
@@ -1059,6 +1061,8 @@ function loadData() {
 
 // ── RENDER ALL ──
 function renderAll() {
+  if(!S)return;
+  S.bookings=S.bookings||[];S.visas=S.visas||[];
   const { lead, bookings } = S;
   if (!lead) { window.location.href = '/my_portal'; return; }
 
@@ -1488,7 +1492,7 @@ function goPage(id, navEl) {
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
-  document.getElementById('topbar-title').textContent = PAGE_TITLES[id]||'';
+  document.getElementById('topbar-title').textContent = (window.PAGE_TITLES||{})[id]||id||'';
   document.getElementById('sidebar').classList.remove('open');
 
   // Lazy render

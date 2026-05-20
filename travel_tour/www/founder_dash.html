@@ -1643,7 +1643,7 @@ var D = {
 var curBk = null;
 
 /* ── INIT ── */
-frappe.ready(function() {
+(function(){function _init(){
   loadData();
   document.addEventListener('click', e => {
     if (!e.target.closest('.notif-panel') && !e.target.closest('.tb-btn[onclick*="toggleNotif"]'))
@@ -1651,7 +1651,9 @@ frappe.ready(function() {
     if (!e.target.closest('.sb') && !e.target.closest('.hamburger'))
       document.getElementById('sb').classList.remove('open');
   });
-});
+}
+if(typeof frappe!=="undefined"&&frappe.ready){frappe.ready(_init);}else{document.addEventListener("DOMContentLoaded",_init);}
+})();
 
 function loadData() {
   frappe.call({
@@ -1722,6 +1724,7 @@ function renderMockData() {
 
 /* ── RENDER ALL ── */
 function renderAll() {
+  D.leads=D.leads||[];D.bookings=D.bookings||[];D.packages=D.packages||[];D.customers=D.customers||[];D.team=D.team||[];
   const f = D.founder || {};
   const fn = f.first_name || f.full_name?.split(' ')[0] || 'Founder';
   const ini = fn[0]?.toUpperCase() || 'T';
@@ -2514,7 +2517,7 @@ function confirmDelete(type, id, name) {
 }
 
 /* ── NAV ── */
-var PAGE_TITLES = {
+window.PAGE_TITLES = window.PAGE_TITLES || {
   overview:'Overview', leads:'Leads & Enquiries', bookings:'Bookings',
   payments:'Payments', packages:'Tour Packages', customers:'Customers',
   departures:'Departures', visa:'Visa Tracker', team:'My Team',
@@ -2526,7 +2529,7 @@ function goPage(id, navEl) {
   document.getElementById('pg-'+id).classList.add('active');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
-  document.getElementById('tb-title').textContent = PAGE_TITLES[id]||'';
+  document.getElementById('tb-title').textContent = (window.PAGE_TITLES||{})[id]||'';
   document.getElementById('sb').classList.remove('open');
 }
 
