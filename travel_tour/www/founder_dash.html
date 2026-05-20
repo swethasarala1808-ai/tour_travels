@@ -1667,8 +1667,8 @@ function loadData() {
     if (r.message) { D = r.message; renderAll(); }
       else { window.location.href = '/login'; }
     },
-    error() { renderMockData(); } // Preview fallback
-  });
+  })
+  .catch(() => { renderMockData(); });
 }
 
 /* ══════════════════════════════════════════
