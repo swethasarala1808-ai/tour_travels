@@ -1643,13 +1643,8 @@ let D = {
 let curBk = null;
 
 /* ── INIT ── */
-document.addEventListener("DOMContentLoaded", function() {
-  // Wait for frappe to be ready before loading data
-  if (typeof frappe !== "undefined" && frappe.ready) {
-    frappe.ready(function() { loadData(); });
-  } else {
-    setTimeout(loadData, 500);
-  }
+frappe.ready(function() {
+  loadData();
   document.addEventListener('click', e => {
     if (!e.target.closest('.notif-panel') && !e.target.closest('.tb-btn[onclick*="toggleNotif"]'))
       document.getElementById('notif-panel').classList.remove('open');
@@ -1659,21 +1654,14 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function loadData() {
-  fetch("/api/method/travel_tour.api.founder.get_founder_data", {
-    frappe.call({
-      method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Frappe-CSRF-Token": (typeof frappe !== 'undefined' ? frappe.csrf_token : '') || document.cookie.split('; ').find(r=>r.startsWith('csrf_token='))?.split('=')[1] || ''  
-    },
-    body: JSON.stringify({})
-  })
-  .then(r => r.json())
-  .then(r => {
-    if (r.message) { D = r.message; renderAll(); }
+  frappe.call({
+    method: 'travel_tour.www.founder_dash.get_founder_data',
+    callback(r) {
+      if (r.message) { D = r.message; renderAll(); }
       else { window.location.href = '/login'; }
-  })
-  .catch(() => { renderMockData(); });
+    },
+    error() { renderMockData(); } // Preview fallback
+  });
 }
 
 /* ══════════════════════════════════════════
@@ -2023,8 +2011,8 @@ function saveLead() {
   const mobile = document.getElementById('l-mobile').value.trim();
   if (!name||!mobile) { showToast('❌','Name and mobile are required.'); return; }
 
-      frappe.call({
-        method: id
+  frappe.call({
+    method: id
       ? 'travel_tour.www.founder_dash.update_lead'
       : 'travel_tour.www.founder_dash.create_lead',
     args: {
@@ -2177,8 +2165,8 @@ function editBooking() { if(curBk) openBkEdit(curBk.name); closeModal('mo-bk-det
 function cancelBooking() {
   if (!curBk) return;
   if (confirm(`Cancel booking ${curBk.name}?`)) {
-        frappe.call({
-          method:'travel_tour.www.founder_dash.update_booking_status',
+    frappe.call({
+      method:'travel_tour.www.founder_dash.update_booking_status',
       args:{booking_name:curBk.name, status:'Cancelled'},
       callback(r){ if(r.message?.success){closeModal('mo-bk-detail');loadData();showToast('✅','Booking cancelled.');}},
       error(){ closeModal('mo-bk-detail'); showToast('✅','Cancelled (preview).'); }
@@ -2188,8 +2176,8 @@ function cancelBooking() {
 
 function saveBooking() {
   const id = document.getElementById('bk-edit-id').value;
-      frappe.call({
-        method: id
+  frappe.call({
+    method: id
       ? 'travel_tour.www.founder_dash.update_booking'
       : 'travel_tour.www.founder_dash.create_booking',
     args: {
@@ -2258,8 +2246,8 @@ function recordPayment() {
   const bk  = document.getElementById('rp-bk').value.trim();
   const amt = document.getElementById('rp-amt').value;
   if (!bk||!amt) { showToast('❌','Booking ID and amount are required.'); return; }
-      frappe.call({
-        method:'travel_tour.www.founder_dash.record_payment',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.record_payment',
     args:{booking_name:bk,amount:amt,payment_date:document.getElementById('rp-date').value,mode:document.getElementById('rp-mode').value,reference:document.getElementById('rp-ref').value,notes:document.getElementById('rp-notes').value},
     callback(r){if(r.message?.success){closeModal('mo-record-pay');loadData();showToast('✅','Payment recorded!');}else showToast('❌',r.message?.error||'Error');},
     error(){closeModal('mo-record-pay');showToast('✅','Payment recorded (preview).');}
@@ -2315,8 +2303,8 @@ function openPkgEdit(id) {
 }
 
 function savePackage() {
-      frappe.call({
-        method: 'travel_tour.api.founder.save_package',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.save_package',
     args:{
       pkg_id:document.getElementById('pkg-edit-id').value||null,
       package_name:document.getElementById('pkg-name').value,
@@ -2447,8 +2435,8 @@ function updateVisaStatus(bk,pax) {
   const statuses = ['Not Applied','Applied','Approved','Rejected'];
   const val = prompt(`Visa status for ${pax}:\n(${statuses.join(' / ')})`, 'Applied');
   if (!val||!statuses.includes(val)) return;
-      frappe.call({
-        method:'travel_tour.www.founder_dash.update_visa_status',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.update_visa_status',
     args:{booking_name:bk,pax_name:pax,visa_status:val},
     callback(r){if(r.message?.success){loadData();showToast('✅','Visa status updated!');}},
     error(){showToast('✅','Updated (preview).');}
@@ -2493,8 +2481,8 @@ function renderTeam() {
 }
 
 function saveTeamMember() {
-      frappe.call({
-        method:'travel_tour.www.founder_dash.save_team_member',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.save_team_member',
     args:{
       employee_name:document.getElementById('tm-name').value,
       mobile:document.getElementById('tm-mobile').value,
@@ -2515,8 +2503,8 @@ function saveSettings(section) {
 function confirmDelete(type, id, name) {
   document.getElementById('mo-confirm-msg').textContent = `Delete ${type}: ${name} (${id})?`;
   document.getElementById('mo-confirm-btn').onclick = () => {
-        frappe.call({
-          method: 'travel_tour.www.founder_dash.delete_record',
+    frappe.call({
+      method: 'travel_tour.www.founder_dash.delete_record',
       args: { doctype: type, record_name: id },
       callback(r) { closeModal('mo-confirm'); if(r.message?.success){loadData();showToast('✅','Deleted.');}},
       error(){ closeModal('mo-confirm'); showToast('✅','Deleted (preview).'); }
@@ -2548,6 +2536,7 @@ function openModal(id) { document.getElementById(id).classList.add('open') }
 function closeModal(id){ document.getElementById(id).classList.remove('open') }
 
 function doLogout() {
+  frappe.call({method:'logout',callback(){window.location.href='/login';}});
 }
 
 /* ── UTILS ── */

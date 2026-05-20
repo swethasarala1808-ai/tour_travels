@@ -1035,7 +1035,7 @@ body{
 let S = { lead: null, bookings: [], cur: null };
 
 // ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
+frappe.ready(function() {
   loadData();
   // Close dropdowns on outside click
   document.addEventListener('click', e => {

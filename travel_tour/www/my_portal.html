@@ -4,162 +4,541 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tour Travels – Customer Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--navy:#05133c;--teal:#14f1b1;--white:#fff;--muted:#8fa3cc;--error:#ff4d6d}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--navy);min-height:100vh;display:flex;overflow:hidden}
-.left{flex:1;background:linear-gradient(145deg,#05133c,#071d5c,#051840);position:relative;display:flex;flex-direction:column;justify-content:center;padding:60px;overflow:hidden}
-.left::before{content:'';position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(20,241,177,0.10) 0%,transparent 65%);top:-100px;right:-100px;border-radius:50%}
-.grid-ov{position:absolute;inset:0;background-image:linear-gradient(rgba(20,241,177,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(20,241,177,0.04) 1px,transparent 1px);background-size:48px 48px}
-.lc{position:relative;z-index:2}
-.brand{display:flex;align-items:center;gap:14px;margin-bottom:52px}
-.brand-ico{width:52px;height:52px;background:var(--teal);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 8px 24px rgba(20,241,177,0.35)}
-.brand-name{font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px}
-.brand-sub{font-size:11px;color:var(--teal);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-.hero{font-family:'Sora',sans-serif;font-size:42px;font-weight:800;color:#fff;line-height:1.1;letter-spacing:-1.5px;margin-bottom:20px}
-.hero span{color:var(--teal)}
-.hero-sub{font-size:16px;color:rgba(255,255,255,0.45);line-height:1.6;max-width:380px;margin-bottom:48px}
-.pills{display:flex;flex-direction:column;gap:12px}
-.pill{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:13px 18px;transition:all .25s}
-.pill:hover{background:rgba(20,241,177,0.06);border-color:rgba(20,241,177,0.2)}
-.pill-ico{font-size:20px;width:28px;text-align:center}
-.pill-txt{font-size:13px;color:rgba(255,255,255,0.65);font-weight:600}
-.right{width:460px;background:#fff;display:flex;flex-direction:column;justify-content:center;padding:56px 52px;position:relative}
-.right::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--teal),transparent)}
-.login-tag{display:inline-flex;align-items:center;gap:7px;background:rgba(20,241,177,0.1);border:1px solid rgba(20,241,177,0.25);color:#0aab7d;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border-radius:20px;padding:5px 14px;margin-bottom:24px}
-.login-tag::before{content:'●';font-size:8px;color:var(--teal)}
-h1{font-family:'Sora',sans-serif;font-size:28px;font-weight:800;color:var(--navy);margin-bottom:6px;letter-spacing:-.8px}
-.sub{font-size:14px;color:#6b7fa0;margin-bottom:36px;line-height:1.5}
-.fg{margin-bottom:20px}
-.fg label{display:block;font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
-.inp-wrap{position:relative}
-.inp-pre{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--navy);pointer-events:none;border-right:1.5px solid rgba(5,19,60,0.15);padding-right:10px}
-input[type=tel],input[type=password]{width:100%;border:1.5px solid rgba(5,19,60,0.14);border-radius:12px;padding:14px 14px 14px 72px;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:600;color:var(--navy);background:#fff;transition:border-color .2s,box-shadow .2s;outline:none}
-input[type=password]{padding-left:14px;letter-spacing:3px}
-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(20,241,177,0.12)}
-.pw-wrap{position:relative}
-.pw-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;color:#aab;background:none;border:none;transition:color .2s}
-.pw-eye:hover{color:var(--navy)}
-.err{background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.2);color:var(--error);font-size:13px;font-weight:600;border-radius:8px;padding:10px 14px;margin-bottom:18px;display:none}
-.err.show{display:block}
-.forgot-row{display:flex;justify-content:flex-end;margin-top:-12px;margin-bottom:24px}
-.forgot{font-size:12px;font-weight:700;color:var(--teal);text-decoration:none;background:none;border:none;cursor:pointer;transition:color .2s}
-.forgot:hover{color:var(--navy)}
-.btn-login{width:100%;padding:15px;background:var(--navy);color:#fff;border:none;border-radius:12px;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
-.btn-login:hover{background:#071d5c;transform:translateY(-1px);box-shadow:0 8px 28px rgba(5,19,60,0.22)}
-.btn-login:active{transform:translateY(0)}
-.reg-note{text-align:center;margin-top:24px;font-size:13px;color:#8fa0c0}
-.reg-note strong{color:var(--navy)}
-#reset-panel{display:none}
-#reset-panel.show{display:block}
-.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#8fa0c0;font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-bottom:20px;transition:color .2s}
-.back-btn:hover{color:var(--navy)}
-.ok-box{background:rgba(20,241,177,0.08);border:1px solid rgba(20,241,177,0.25);border-radius:10px;padding:14px 18px;font-size:13px;font-weight:600;color:#0aab7d;display:none;margin-bottom:16px}
-.ok-box.show{display:block}
-@media(max-width:900px){.left{display:none}.right{width:100%;padding:48px 32px}}
+  :root {
+    --navy:    #05133c;
+    --navy2:   #071d5c;
+    --teal:    #14f1b1;
+    --teal2:   #0fd49a;
+    --white:   #ffffff;
+    --muted:   #8fa3cc;
+    --error:   #ff4d6d;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Mulish', sans-serif;
+    background: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    flex: 1;
+    background: linear-gradient(145deg, #05133c 0%, #071d5c 50%, #051840 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    overflow: hidden;
+  }
+  .left-panel::before {
+    content:'';
+    position:absolute;
+    width:600px; height:600px;
+    background: radial-gradient(circle, rgba(20,241,177,0.09) 0%, transparent 65%);
+    top:-150px; right:-150px;
+    border-radius:50%;
+    animation: breathe 8s ease-in-out infinite;
+  }
+  .left-panel::after {
+    content:'';
+    position:absolute;
+    width:400px; height:400px;
+    background: radial-gradient(circle, rgba(20,241,177,0.05) 0%, transparent 65%);
+    bottom:0; left:-50px;
+    border-radius:50%;
+    animation: breathe 10s ease-in-out infinite reverse;
+  }
+  @keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+
+  .grid-overlay {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(20,241,177,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20,241,177,0.035) 1px, transparent 1px);
+    background-size:52px 52px;
+  }
+
+  /* floating dots */
+  .dot {
+    position:absolute;
+    border-radius:50%;
+    animation: floatDot linear infinite;
+    opacity:0;
+  }
+  @keyframes floatDot {
+    0%   { transform:translateY(0) scale(1);   opacity:0; }
+    10%  { opacity:1; }
+    90%  { opacity:0.5; }
+    100% { transform:translateY(-120px) scale(0.5); opacity:0; }
+  }
+
+  .left-content { position:relative; z-index:2; }
+
+  .brand-mark { display:flex; align-items:center; gap:14px; margin-bottom:56px; }
+  .brand-icon {
+    width:54px; height:54px;
+    background: var(--teal);
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:28px;
+    box-shadow: 0 8px 28px rgba(20,241,177,0.4);
+    animation: iconPulse 3s ease-in-out infinite;
+  }
+  @keyframes iconPulse {
+    0%,100% { box-shadow:0 8px 28px rgba(20,241,177,0.4); }
+    50%     { box-shadow:0 8px 40px rgba(20,241,177,0.65); }
+  }
+  .brand-name {
+    font-family:'Sora',sans-serif;
+    font-size:22px; font-weight:800; color:var(--white);
+  }
+  .brand-sub { font-size:11px; color:var(--teal); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+
+  .hero-headline {
+    font-family:'Sora',sans-serif;
+    font-size:48px; font-weight:800;
+    color:var(--white); line-height:1.08;
+    letter-spacing:-2px; margin-bottom:20px;
+    animation: slideUp 0.7s ease both;
+  }
+  .hero-headline span { color:var(--teal); }
+  @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero-sub {
+    font-size:16px; color:rgba(255,255,255,0.42);
+    line-height:1.7; max-width:380px; margin-bottom:52px;
+    animation: slideUp 0.7s 0.1s ease both;
+  }
+
+  .feature-pills { display:flex; flex-direction:column; gap:10px; }
+  .pill {
+    display:flex; align-items:center; gap:14px;
+    background:rgba(255,255,255,0.035);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:12px; padding:14px 18px;
+    transition:all 0.25s;
+    animation: slideLeft 0.5s ease both;
+  }
+  .pill:nth-child(1){animation-delay:0.2s}
+  .pill:nth-child(2){animation-delay:0.3s}
+  .pill:nth-child(3){animation-delay:0.4s}
+  .pill:nth-child(4){animation-delay:0.5s}
+  @keyframes slideLeft { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+  .pill:hover { background:rgba(20,241,177,0.06); border-color:rgba(20,241,177,0.18); transform:translateX(4px); }
+  .pill-icon { font-size:20px; width:26px; text-align:center; }
+  .pill-text { font-size:13px; color:rgba(255,255,255,0.6); font-weight:600; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    width:480px;
+    background:var(--white);
+    display:flex; flex-direction:column;
+    justify-content:center;
+    padding:56px 52px;
+    position:relative;
+    overflow:hidden;
+  }
+  .right-panel::before {
+    content:'';
+    position:absolute; top:0; left:0;
+    width:4px; height:100%;
+    background:linear-gradient(180deg, var(--teal) 0%, rgba(20,241,177,0.1) 100%);
+  }
+  /* decorative arc */
+  .right-panel::after {
+    content:'';
+    position:absolute;
+    width:300px; height:300px;
+    background:radial-gradient(circle, rgba(20,241,177,0.06) 0%, transparent 65%);
+    top:-80px; right:-80px;
+    border-radius:50%;
+  }
+
+  .rp-inner { position:relative; z-index:1; }
+
+  .login-tag {
+    display:inline-flex; align-items:center; gap:7px;
+    background:rgba(20,241,177,0.1);
+    border:1px solid rgba(20,241,177,0.22);
+    color:#0aab7d;
+    font-size:11px; font-weight:700;
+    letter-spacing:1.2px; text-transform:uppercase;
+    border-radius:20px; padding:5px 14px;
+    margin-bottom:24px;
+  }
+  .login-tag::before { content:'●'; font-size:7px; color:var(--teal); }
+
+  h1 {
+    font-family:'Sora',sans-serif;
+    font-size:30px; font-weight:800;
+    color:var(--navy); margin-bottom:6px;
+    letter-spacing:-0.8px;
+  }
+  .login-sub { font-size:14px; color:#6b7fa0; margin-bottom:36px; line-height:1.55; }
+
+  .form-group { margin-bottom:20px; }
+  .form-group label {
+    display:block;
+    font-size:11px; font-weight:700;
+    color:var(--navy); letter-spacing:0.8px;
+    text-transform:uppercase; margin-bottom:8px;
+  }
+  .input-wrap { position:relative; }
+  .input-prefix {
+    position:absolute; left:14px; top:50%;
+    transform:translateY(-50%);
+    font-size:14px; font-weight:700; color:var(--navy);
+    pointer-events:none;
+    border-right:1.5px solid rgba(5,19,60,0.14);
+    padding-right:10px;
+  }
+
+  input[type="tel"],
+  input[type="password"],
+  input[type="text"] {
+    width:100%;
+    border:1.5px solid rgba(5,19,60,0.13);
+    border-radius:12px;
+    padding:14px 14px 14px 72px;
+    font-size:15px;
+    font-family:'Mulish',sans-serif;
+    font-weight:600; color:var(--navy);
+    background:var(--white);
+    transition:border-color 0.2s, box-shadow 0.2s;
+    outline:none;
+  }
+  input[type="password"] { padding-left:14px; letter-spacing:3px; }
+  input.no-prefix       { padding-left:14px; letter-spacing:0; }
+  input:focus {
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(20,241,177,0.13);
+  }
+  input::placeholder { color:rgba(5,19,60,0.22); letter-spacing:0; font-weight:400; }
+
+  .pw-wrap { position:relative; }
+  .pw-toggle {
+    position:absolute; right:14px; top:50%;
+    transform:translateY(-50%);
+    cursor:pointer; font-size:18px; color:#aab;
+    background:none; border:none; transition:color 0.2s;
+  }
+  .pw-toggle:hover { color:var(--navy); }
+
+  .error-msg {
+    background:rgba(255,77,109,0.07);
+    border:1px solid rgba(255,77,109,0.2);
+    color:var(--error);
+    font-size:13px; font-weight:600;
+    border-radius:9px; padding:10px 14px;
+    margin-bottom:18px; display:none;
+  }
+  .error-msg.show { display:block; animation:shake 0.3s ease; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-5px)}
+    75%{transform:translateX(5px)}
+  }
+
+  .forgot-row { display:flex; justify-content:flex-end; margin-top:-10px; margin-bottom:26px; }
+  .forgot-link {
+    font-size:12px; font-weight:700; color:var(--teal);
+    background:none; border:none; cursor:pointer; transition:color 0.2s;
+  }
+  .forgot-link:hover { color:var(--navy); }
+
+  .btn-primary {
+    width:100%; padding:15px;
+    background:var(--navy); color:var(--white);
+    border:none; border-radius:12px;
+    font-family:'Sora',sans-serif;
+    font-size:15px; font-weight:700;
+    cursor:pointer; transition:all 0.25s;
+    position:relative; overflow:hidden;
+    letter-spacing:0.3px;
+  }
+  .btn-primary::after {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent, rgba(20,241,177,0.15), transparent);
+    transform:translateX(-100%); transition:transform 0.5s;
+  }
+  .btn-primary:hover { background:var(--navy2); transform:translateY(-1px); box-shadow:0 8px 28px rgba(5,19,60,0.22); }
+  .btn-primary:hover::after { transform:translateX(100%); }
+  .btn-primary:active { transform:translateY(0); }
+  .btn-primary.loading { pointer-events:none; opacity:0.8; }
+
+  .spinner {
+    display:inline-block; width:16px; height:16px;
+    border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff; border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    margin-right:8px; vertical-align:middle;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  .divider {
+    display:flex; align-items:center; gap:12px;
+    margin:22px 0;
+  }
+  .divider::before, .divider::after {
+    content:''; flex:1;
+    height:1px; background:rgba(5,19,60,0.1);
+  }
+  .divider span { font-size:11px; color:#aab; font-weight:600; }
+
+  .register-note {
+    text-align:center; margin-top:20px;
+    font-size:13px; color:#8fa0c0; line-height:1.6;
+  }
+  .register-note strong { color:var(--navy); }
+
+  /* RESET PANEL */
+  #reset-panel { display:none; }
+  #reset-panel.show { display:block; animation:fadeUp 0.3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .back-btn {
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none; color:#8fa0c0;
+    font-size:13px; font-weight:600;
+    cursor:pointer; padding:0; margin-bottom:22px; transition:color 0.2s;
+  }
+  .back-btn:hover { color:var(--navy); }
+
+  .success-box {
+    background:rgba(20,241,177,0.09);
+    border:1px solid rgba(20,241,177,0.25);
+    border-radius:10px; padding:12px 16px;
+    font-size:13px; font-weight:600; color:#0aab7d;
+    display:none; margin-bottom:16px;
+  }
+  .success-box.show { display:block; }
+
+  /* hint text */
+  .hint { font-size:11px; color:#8fa0c0; margin-top:6px; }
+
+  @media (max-width:900px) {
+    .left-panel { display:none; }
+    .right-panel { width:100%; padding:48px 28px; }
+  }
 </style>
 </head>
 <body>
-<div class="left">
-  <div class="grid-ov"></div>
-  <div class="lc">
-    <div class="brand">
-      <div class="brand-ico">✈️</div>
-      <div><div class="brand-name">Tour Travels</div><div class="brand-sub">Customer Portal</div></div>
+
+<!-- ── LEFT PANEL ── -->
+<div class="left-panel">
+  <div class="grid-overlay"></div>
+  <!-- floating dots injected by JS -->
+  <div class="left-content">
+    <div class="brand-mark">
+      <div class="brand-icon">✈️</div>
+      <div>
+        <div class="brand-name">Tour Travels</div>
+        <div class="brand-sub">Customer Portal</div>
+      </div>
     </div>
-    <h2 class="hero">Your journeys,<br><span>all in one place.</span></h2>
-    <p class="hero-sub">Track bookings, view itineraries, manage visa documents, and pay balances — anytime.</p>
-    <div class="pills">
-      <div class="pill"><span class="pill-ico">🎫</span><span class="pill-txt">View &amp; manage all your bookings</span></div>
-      <div class="pill"><span class="pill-ico">🗺️</span><span class="pill-txt">Day-by-day itinerary access</span></div>
-      <div class="pill"><span class="pill-ico">🛂</span><span class="pill-txt">Visa &amp; document tracker</span></div>
-      <div class="pill"><span class="pill-ico">💳</span><span class="pill-txt">Pay balances securely online</span></div>
+
+    <h2 class="hero-headline">Your journeys,<br><span>all in one place.</span></h2>
+    <p class="hero-sub">Track bookings, view itineraries, manage visa documents, and pay balances — anytime, anywhere.</p>
+
+    <div class="feature-pills">
+      <div class="pill"><span class="pill-icon">🎫</span><span class="pill-text">View & manage all your bookings</span></div>
+      <div class="pill"><span class="pill-icon">🗺️</span><span class="pill-text">Day-by-day itinerary access</span></div>
+      <div class="pill"><span class="pill-icon">🛂</span><span class="pill-text">Visa & document tracker</span></div>
+      <div class="pill"><span class="pill-icon">💳</span><span class="pill-text">Secure online balance payments</span></div>
     </div>
   </div>
 </div>
-<div class="right">
-  <div id="login-panel">
-    <div class="login-tag">Registered Customers Only</div>
-    <h1>Welcome back</h1>
-    <p class="sub">Enter your registered mobile number and password to continue.</p>
-    <div class="err" id="login-err">Invalid mobile or password.</div>
-    <div class="fg">
-      <label>Mobile Number</label>
-      <div class="inp-wrap">
-        <span class="inp-pre">+91</span>
-        <input type="tel" id="mobile" placeholder="98765 43210" maxlength="10" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('password').focus()">
+
+<!-- ── RIGHT PANEL ── -->
+<div class="right-panel">
+  <div class="rp-inner">
+
+    <!-- LOGIN -->
+    <div id="login-panel">
+      <div class="login-tag">Registered Customers Only</div>
+      <h1>Welcome back 👋</h1>
+      <p class="login-sub">Enter your registered mobile number and password to access your travel dashboard.</p>
+
+      <div class="error-msg" id="login-error"></div>
+
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <div class="input-wrap">
+          <span class="input-prefix">+91</span>
+          <input type="tel" id="mobile" placeholder="98765 43210" maxlength="10"
+            onkeydown="if(event.key==='Enter')document.getElementById('password').focus()"
+            oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+        <div class="hint">Use the mobile number you registered with us.</div>
       </div>
-    </div>
-    <div class="fg">
-      <label>Password</label>
-      <div class="pw-wrap">
-        <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-        <button class="pw-eye" onclick="togglePw()">👁</button>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="password" placeholder="Enter your password"
+            class="no-prefix"
+            onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="pw-toggle" onclick="togglePw()" title="Show / hide">👁</button>
+        </div>
+        <div class="hint">Default: last 4 digits of your mobile (first login).</div>
       </div>
-    </div>
-    <div class="forgot-row"><button class="forgot" onclick="showReset()">Forgot password?</button></div>
-    <button class="btn-login" id="login-btn" onclick="doLogin()">Sign In to My Portal</button>
-    <p class="reg-note">Not registered? Contact us at<br><strong>our team</strong> to get access.</p>
-  </div>
-  <div id="reset-panel">
-    <button class="back-btn" onclick="showLogin()">← Back to login</button>
-    <h1>Reset Password</h1>
-    <p class="sub">Enter your registered mobile. We'll log the new password for our team to share with you.</p>
-    <div class="ok-box" id="reset-ok">✓ Password reset requested! Our team will contact you.</div>
-    <div class="err" id="reset-err">Mobile not registered.</div>
-    <div class="fg">
-      <label>Mobile Number</label>
-      <div class="inp-wrap">
-        <span class="inp-pre">+91</span>
-        <input type="tel" id="reset-mobile" placeholder="98765 43210" maxlength="10">
+
+      <div class="forgot-row">
+        <button class="forgot-link" onclick="showReset()">Forgot password?</button>
       </div>
+
+      <button class="btn-primary" id="login-btn" onclick="doLogin()">
+        Sign In to My Portal →
+      </button>
+
+      <p class="register-note">
+        Not registered yet?<br>
+        Call us at <strong>+91 98765 43210</strong> and we'll set you up.
+      </p>
     </div>
-    <button class="btn-login" onclick="doReset()">Request Password Reset</button>
+
+    <!-- RESET PASSWORD -->
+    <div id="reset-panel">
+      <button class="back-btn" onclick="showLogin()">← Back to login</button>
+      <div class="login-tag">Reset Password</div>
+      <h1>Forgot password?</h1>
+      <p class="login-sub">Enter your registered mobile. We'll send a new password via WhatsApp.</p>
+
+      <div class="success-box" id="reset-success">✅ New password sent to your WhatsApp! Check your messages.</div>
+      <div class="error-msg" id="reset-error"></div>
+
+      <div class="form-group">
+        <label>Registered Mobile Number</label>
+        <div class="input-wrap">
+          <span class="input-prefix">+91</span>
+          <input type="tel" id="reset-mobile" placeholder="98765 43210" maxlength="10"
+            oninput="this.value=this.value.replace(/\D/g,'')"
+            onkeydown="if(event.key==='Enter')doReset()">
+        </div>
+      </div>
+
+      <button class="btn-primary" id="reset-btn" onclick="doReset()">Send New Password via WhatsApp</button>
+    </div>
+
   </div>
 </div>
+
 <script>
-async function doLogin(){
-  const mob=document.getElementById('mobile').value.replace(/\s/g,'');
-  const pw=document.getElementById('password').value;
-  const err=document.getElementById('login-err');
-  const btn=document.getElementById('login-btn');
-  err.classList.remove('show');
-  if(!/^\d{10}$/.test(mob)){err.textContent='Enter a valid 10-digit mobile number.';err.classList.add('show');return}
-  if(!pw){err.textContent='Please enter your password.';err.classList.add('show');return}
-  btn.disabled=true;btn.textContent='Signing in…';
-  try{
-    const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrf_token='))?.split('=')[1]||'';
-    const res=await fetch('/api/method/travel_tour.api.portal.portal_login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Frappe-CSRF-Token':decodeURIComponent(csrf)},
-      body:JSON.stringify({mobile:mob,password:pw})
-    });
-    const data=await res.json();
-    btn.disabled=false;btn.textContent='Sign In to My Portal';
-    if(data.message&&data.message.success){
-      btn.textContent='✓ Redirecting…';btn.style.background='#0aab7d';
-      sessionStorage.setItem('portal_mobile', mob); setTimeout(()=>{window.location.href='/travel_enquiry'},800);
-    }else{
-      err.textContent=(data.message&&data.message.error)||'Invalid credentials.';
-      err.classList.add('show');
-    }
-  }catch(e){
-    btn.disabled=false;btn.textContent='Sign In to My Portal';
-    err.textContent='Connection error. Try again.';err.classList.add('show');
+// ── floating dots ──
+(function() {
+  const panel = document.querySelector('.left-panel');
+  const colors = ['rgba(20,241,177,0.25)','rgba(20,241,177,0.15)','rgba(255,255,255,0.1)'];
+  for (let i = 0; i < 18; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    const sz = Math.random() * 6 + 3;
+    d.style.cssText = `
+      width:${sz}px; height:${sz}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      left:${Math.random()*100}%;
+      bottom:${Math.random()*20}%;
+      animation-duration:${Math.random()*10+8}s;
+      animation-delay:${Math.random()*8}s;
+    `;
+    panel.appendChild(d);
   }
+})();
+
+// ── login ──
+function doLogin() {
+  const mobile = document.getElementById('mobile').value.replace(/\s/g,'');
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  errEl.classList.remove('show');
+
+  if (!/^\d{10}$/.test(mobile)) {
+    showError(errEl, 'Please enter a valid 10-digit mobile number.');
+    return;
+  }
+  if (!password) {
+    showError(errEl, 'Please enter your password.');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner"></span>Signing in...';
+
+  frappe.call({
+    method: 'travel_tour.www.my_portal.portal_login',
+    args: { mobile, password },
+    callback(r) {
+      btn.classList.remove('loading');
+      if (r.message && r.message.success) {
+        btn.innerHTML = '✓ Success! Redirecting...';
+        btn.style.background = '#0aab7d';
+        setTimeout(() => { window.location.href = '/travel_enquiry'; }, 900);
+      } else {
+        btn.textContent = 'Sign In to My Portal →';
+        showError(errEl, (r.message && r.message.error) || 'Invalid credentials. Please try again.');
+      }
+    },
+    error() {
+      btn.classList.remove('loading');
+      btn.textContent = 'Sign In to My Portal →';
+      showError(errEl, 'Server error. Please try again shortly.');
+    }
+  });
 }
-function doReset(){
-  const mob=document.getElementById('reset-mobile').value.replace(/\s/g,'');
-  const err=document.getElementById('reset-err');
-  const ok=document.getElementById('reset-ok');
-  err.classList.remove('show');ok.classList.remove('show');
-  if(!/^\d{10}$/.test(mob)){err.textContent='Enter a valid 10-digit number.';err.classList.add('show');return}
-  console.log('API call skipped');
+
+function doReset() {
+  const mobile = document.getElementById('reset-mobile').value.replace(/\s/g,'');
+  const errEl = document.getElementById('reset-error');
+  const succEl = document.getElementById('reset-success');
+  const btn = document.getElementById('reset-btn');
+  errEl.classList.remove('show'); succEl.classList.remove('show');
+
+  if (!/^\d{10}$/.test(mobile)) {
+    showError(errEl, 'Please enter a valid 10-digit mobile number.');
+    return;
+  }
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner"></span>Sending...';
+
+  frappe.call({
+    method: 'travel_tour.www.my_portal.reset_portal_password',
+    args: { mobile },
+    callback(r) {
+      btn.classList.remove('loading');
+      btn.textContent = 'Send New Password via WhatsApp';
+      if (r.message && r.message.success) {
+        succEl.classList.add('show');
+      } else {
+        showError(errEl, (r.message && r.message.error) || 'Mobile not registered.');
+      }
+    }
+  });
 }
-function togglePw(){const i=document.getElementById('password');i.type=i.type==='password'?'text':'password'}
-function showReset(){document.getElementById('login-panel').style.display='none';document.getElementById('reset-panel').classList.add('show')}
-function showLogin(){document.getElementById('login-panel').style.display='';document.getElementById('reset-panel').classList.remove('show')}
+
+function showError(el, msg) { el.textContent = msg; el.classList.add('show'); }
+function togglePw() {
+  const i = document.getElementById('password');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+function showReset() {
+  document.getElementById('login-panel').style.display = 'none';
+  document.getElementById('reset-panel').classList.add('show');
+  document.getElementById('reset-panel').style.display = 'block';
+}
+function showLogin() {
+  document.getElementById('login-panel').style.display = '';
+  document.getElementById('reset-panel').classList.remove('show');
+  document.getElementById('reset-panel').style.display = 'none';
+  document.getElementById('login-error').classList.remove('show');
+}
 </script>
 </body>
 </html>
