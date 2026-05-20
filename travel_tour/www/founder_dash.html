@@ -1636,11 +1636,11 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 ═══════════════════════════════════════════════════════ -->
 <script>
 /* ── STATE ── */
-let D = {
+var D = {
   leads:[],bookings:[],packages:[],team:[],customers:[],
   settings:{},stats:{},founder:null,
 };
-let curBk = null;
+var curBk = null;
 
 /* ── INIT ── */
 frappe.ready(function() {
@@ -2514,7 +2514,7 @@ function confirmDelete(type, id, name) {
 }
 
 /* ── NAV ── */
-const PAGE_TITLES = {
+var PAGE_TITLES = {
   overview:'Overview', leads:'Leads & Enquiries', bookings:'Bookings',
   payments:'Payments', packages:'Tour Packages', customers:'Customers',
   departures:'Departures', visa:'Visa Tracker', team:'My Team',
