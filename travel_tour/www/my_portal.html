@@ -144,6 +144,10 @@ async function doLogin(){
       err.textContent=(data.message&&data.message.error)||'Invalid credentials.';
       err.classList.add('show');
     }
+  }catch(e){
+    btn.disabled=false;btn.textContent='Sign In to My Portal';
+    err.textContent='Connection error. Try again.';err.classList.add('show');
+  }
     },
     error(){btn.disabled=false;btn.textContent='Sign In to My Portal';err.textContent='Server error. Try again.';err.classList.add('show')}
   });
