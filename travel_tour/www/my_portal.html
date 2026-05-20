@@ -119,7 +119,7 @@ input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(20,241,177,0.12)}
   </div>
 </div>
 <script>
-function doLogin(){
+async function doLogin(){
   const mob=document.getElementById('mobile').value.replace(/\s/g,'');
   const pw=document.getElementById('password').value;
   const err=document.getElementById('login-err');
@@ -128,18 +128,22 @@ function doLogin(){
   if(!/^\d{10}$/.test(mob)){err.textContent='Enter a valid 10-digit mobile number.';err.classList.add('show');return}
   if(!pw){err.textContent='Please enter your password.';err.classList.add('show');return}
   btn.disabled=true;btn.textContent='Signing in…';
-  frappe.call({
-    method:'travel_tour.www.my_portal.portal_login',
-    args:{mobile:mob,password:pw},
-    callback(r){
-      btn.disabled=false;btn.textContent='Sign In to My Portal';
-      if(r.message&&r.message.success){
-        btn.textContent='✓ Redirecting…';btn.style.background='#0aab7d';
-        setTimeout(()=>{window.location.href='/travel_enquiry'},800);
-      }else{
-        err.textContent=(r.message&&r.message.error)||'Invalid credentials.';
-        err.classList.add('show');
-      }
+  try{
+    const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrf_token='))?.split('=')[1]||'';
+    const res=await fetch('/api/method/travel_tour.api.portal.portal_login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Frappe-CSRF-Token':decodeURIComponent(csrf)},
+      body:JSON.stringify({mobile:mob,password:pw})
+    });
+    const data=await res.json();
+    btn.disabled=false;btn.textContent='Sign In to My Portal';
+    if(data.message&&data.message.success){
+      btn.textContent='✓ Redirecting…';btn.style.background='#0aab7d';
+      setTimeout(()=>{window.location.href='/travel_enquiry'},800);
+    }else{
+      err.textContent=(data.message&&data.message.error)||'Invalid credentials.';
+      err.classList.add('show');
+    }
     },
     error(){btn.disabled=false;btn.textContent='Sign In to My Portal';err.textContent='Server error. Try again.';err.classList.add('show')}
   });
