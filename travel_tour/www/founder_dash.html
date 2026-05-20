@@ -2023,8 +2023,7 @@ function saveLead() {
   if (!name||!mobile) { showToast('❌','Name and mobile are required.'); return; }
 
   // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method: id
+      method: id
       ? 'travel_tour.www.founder_dash.update_lead'
       : 'travel_tour.www.founder_dash.create_lead',
     args: {
@@ -2178,8 +2177,7 @@ function cancelBooking() {
   if (!curBk) return;
   if (confirm(`Cancel booking ${curBk.name}?`)) {
     // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-      method:'travel_tour.www.founder_dash.update_booking_status',
+        method:'travel_tour.www.founder_dash.update_booking_status',
       args:{booking_name:curBk.name, status:'Cancelled'},
       callback(r){ if(r.message?.success){closeModal('mo-bk-detail');loadData();showToast('✅','Booking cancelled.');}},
       error(){ closeModal('mo-bk-detail'); showToast('✅','Cancelled (preview).'); }
@@ -2190,8 +2188,7 @@ function cancelBooking() {
 function saveBooking() {
   const id = document.getElementById('bk-edit-id').value;
   // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method: id
+      method: id
       ? 'travel_tour.www.founder_dash.update_booking'
       : 'travel_tour.www.founder_dash.create_booking',
     args: {
@@ -2261,8 +2258,7 @@ function recordPayment() {
   const amt = document.getElementById('rp-amt').value;
   if (!bk||!amt) { showToast('❌','Booking ID and amount are required.'); return; }
   // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method:'travel_tour.www.founder_dash.record_payment',
+      method:'travel_tour.www.founder_dash.record_payment',
     args:{booking_name:bk,amount:amt,payment_date:document.getElementById('rp-date').value,mode:document.getElementById('rp-mode').value,reference:document.getElementById('rp-ref').value,notes:document.getElementById('rp-notes').value},
     callback(r){if(r.message?.success){closeModal('mo-record-pay');loadData();showToast('✅','Payment recorded!');}else showToast('❌',r.message?.error||'Error');},
     error(){closeModal('mo-record-pay');showToast('✅','Payment recorded (preview).');}
@@ -2319,8 +2315,7 @@ function openPkgEdit(id) {
 
 function savePackage() {
   // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method: 'travel_tour.api.founder.save_package',
+      method: 'travel_tour.api.founder.save_package',
     args:{
       pkg_id:document.getElementById('pkg-edit-id').value||null,
       package_name:document.getElementById('pkg-name').value,
@@ -2452,8 +2447,7 @@ function updateVisaStatus(bk,pax) {
   const val = prompt(`Visa status for ${pax}:\n(${statuses.join(' / ')})`, 'Applied');
   if (!val||!statuses.includes(val)) return;
   // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method:'travel_tour.www.founder_dash.update_visa_status',
+      method:'travel_tour.www.founder_dash.update_visa_status',
     args:{booking_name:bk,pax_name:pax,visa_status:val},
     callback(r){if(r.message?.success){loadData();showToast('✅','Visa status updated!');}},
     error(){showToast('✅','Updated (preview).');}
@@ -2499,8 +2493,7 @@ function renderTeam() {
 
 function saveTeamMember() {
   // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method:'travel_tour.www.founder_dash.save_team_member',
+      method:'travel_tour.www.founder_dash.save_team_member',
     args:{
       employee_name:document.getElementById('tm-name').value,
       mobile:document.getElementById('tm-mobile').value,
@@ -2522,8 +2515,7 @@ function confirmDelete(type, id, name) {
   document.getElementById('mo-confirm-msg').textContent = `Delete ${type}: ${name} (${id})?`;
   document.getElementById('mo-confirm-btn').onclick = () => {
     // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-      method: 'travel_tour.www.founder_dash.delete_record',
+        method: 'travel_tour.www.founder_dash.delete_record',
       args: { doctype: type, record_name: id },
       callback(r) { closeModal('mo-confirm'); if(r.message?.success){loadData();showToast('✅','Deleted.');}},
       error(){ closeModal('mo-confirm'); showToast('✅','Deleted (preview).'); }

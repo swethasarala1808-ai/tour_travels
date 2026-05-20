@@ -1,651 +1,1561 @@
-{% extends "templates/web.html" %}
-
-{% block title %}Register Your Travel Interest | Travel Tour{% endblock %}
-
-{% block head_include %}
-<meta name="description" content="Tell us your dream destination. Register your interest and our consultants will reach out to plan the perfect trip for you.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Travels – Tour Travels Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-deep: #0a0e1a;
-    --bg-card: rgba(255,255,255,0.04);
-    --bg-card-hover: rgba(255,255,255,0.07);
-    --border: rgba(255,255,255,0.10);
-    --border-focus: rgba(99,179,237,0.6);
-    --gold: #f0b429;
-    --gold-light: #ffd764;
-    --teal: #38bdf8;
-    --teal-light: #7dd3fc;
-    --green: #34d399;
-    --text-primary: #f0f4f8;
-    --text-secondary: rgba(240,244,248,0.60);
-    --text-muted: rgba(240,244,248,0.38);
-    --gradient-hero: linear-gradient(135deg, #0a0e1a 0%, #0c1a2e 50%, #0a1628 100%);
-    --gradient-gold: linear-gradient(135deg, #f0b429, #e8870a);
-    --gradient-teal: linear-gradient(135deg, #38bdf8, #0ea5e9);
-    --shadow-card: 0 24px 48px rgba(0,0,0,0.5);
-    --radius: 16px;
-    --radius-sm: 10px;
-  }
+/* ══════════════════════════════════════════
+   CSS VARIABLES
+══════════════════════════════════════════ */
+:root {
+  --navy:        #05133c;
+  --navy-mid:    #0a1f5c;
+  --navy-card:   #0d2468;
+  --teal:        #14f1b1;
+  --teal-glow:   rgba(20,241,177,0.18);
+  --teal-border: rgba(20,241,177,0.22);
+  --white:       #ffffff;
+  --off:         #f4f7ff;
+  --text:        #1a2a4a;
+  --muted:       #6b7fa0;
+  --light:       #9fb0cc;
+  --sidebar-w:   268px;
+  --error:       #ff4d6d;
+  --warning:     #ffb547;
+  --success:     #14f1b1;
+  --info:        #4dabf7;
+  --radius:      14px;
+  --shadow:      0 4px 24px rgba(5,19,60,0.08);
+  --shadow-lg:   0 12px 40px rgba(5,19,60,0.14);
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ══════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--off);
+  color:var(--text);
+  display:flex;
+  min-height:100vh;
+}
 
-  body {
-    font-family: 'Outfit', sans-serif;
-    background: var(--bg-deep);
-    color: var(--text-primary);
-    min-height: 100vh;
-  }
+/* ══════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════ */
+.sidebar{
+  width:var(--sidebar-w);
+  background:var(--navy);
+  min-height:100vh;
+  position:fixed;left:0;top:0;
+  display:flex;flex-direction:column;
+  z-index:100;
+  transition:transform .3s ease;
+}
+.sidebar-brand{
+  padding:26px 22px 20px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.brand-row{display:flex;align-items:center;gap:12px}
+.brand-icon{
+  width:42px;height:42px;
+  background:var(--teal);border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+  box-shadow:0 4px 16px rgba(20,241,177,0.35);
+}
+.brand-name{
+  font-family:'Sora',sans-serif;
+  font-size:16px;font-weight:700;color:var(--white);line-height:1.2;
+}
+.brand-badge{font-size:10px;color:var(--teal);letter-spacing:1.2px;text-transform:uppercase}
 
-  /* ── Hero Section ── */
-  .enq-hero {
-    position: relative;
-    min-height: 380px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 80px 24px 60px;
-    overflow: hidden;
-    background: var(--gradient-hero);
-  }
+.sidebar-user{
+  margin:12px;padding:14px 16px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;
+}
+.user-avatar-row{display:flex;align-items:center;gap:10px}
+.user-avatar{
+  width:36px;height:36px;
+  background:var(--teal);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Sora',sans-serif;font-weight:700;font-size:14px;
+  color:var(--navy);flex-shrink:0;
+}
+.user-name{
+  font-family:'Sora',sans-serif;font-weight:600;
+  color:var(--white);font-size:13px;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.user-mobile{font-size:11px;color:var(--light);letter-spacing:.3px}
 
-  .enq-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 60% at 20% 30%, rgba(56,189,248,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 80% 70%, rgba(240,180,41,0.10) 0%, transparent 60%);
-  }
+.sidebar-nav{flex:1;padding:8px 10px;overflow-y:auto}
+.nav-group-label{
+  font-size:10px;font-weight:700;
+  color:rgba(255,255,255,0.22);
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:14px 8px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 12px;border-radius:10px;
+  cursor:pointer;color:rgba(255,255,255,0.5);
+  font-size:13.5px;font-weight:500;
+  transition:all .18s;margin-bottom:2px;
+  text-decoration:none;position:relative;
+}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:var(--white)}
+.nav-item.active{background:var(--teal);color:var(--navy);font-weight:700}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;background:var(--error);color:#fff;
+  font-size:10px;font-weight:700;border-radius:20px;
+  padding:1px 7px;min-width:18px;text-align:center;
+}
+.nav-item.active .nav-badge{background:rgba(5,19,60,0.25);color:var(--navy)}
 
-  .hero-orbit {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(56,189,248,0.12);
-    animation: rotate 30s linear infinite;
-  }
-  .hero-orbit:nth-child(1) { width: 500px; height: 500px; top: -200px; right: -150px; }
-  .hero-orbit:nth-child(2) { width: 300px; height: 300px; bottom: -100px; left: -80px; animation-direction: reverse; animation-duration: 20s; }
+.sidebar-footer{
+  padding:14px 10px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.logout-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:10px;
+  color:rgba(255,255,255,0.35);font-size:13px;
+  cursor:pointer;transition:all .2s;
+  background:none;border:none;width:100%;
+}
+.logout-btn:hover{background:rgba(255,77,109,0.1);color:var(--error)}
 
-  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* ══════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════ */
+.main{
+  margin-left:var(--sidebar-w);
+  flex:1;display:flex;flex-direction:column;min-height:100vh;
+}
 
-  .hero-content { position: relative; z-index: 2; max-width: 700px; }
+/* TOPBAR */
+.topbar{
+  background:var(--white);
+  border-bottom:1px solid rgba(5,19,60,0.07);
+  padding:0 30px;height:62px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.menu-toggle{
+  display:none;
+  width:36px;height:36px;
+  background:var(--teal-glow);
+  border:1px solid var(--teal-border);
+  border-radius:8px;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;color:var(--navy);
+}
+.page-title{
+  font-family:'Sora',sans-serif;
+  font-size:17px;font-weight:700;color:var(--navy);
+}
+.topbar-right{display:flex;align-items:center;gap:10px;position:relative}
+.notif-btn{
+  width:38px;height:38px;
+  background:var(--teal-glow);border:1px solid var(--teal-border);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:17px;position:relative;transition:all .2s;
+}
+.notif-btn:hover{background:var(--teal)}
+.notif-dot{
+  position:absolute;top:7px;right:7px;
+  width:8px;height:8px;
+  background:var(--error);border-radius:50%;
+  border:2px solid var(--white);
+}
+.tb-avatar{
+  width:38px;height:38px;
+  background:var(--navy);color:var(--teal);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Sora',sans-serif;font-weight:700;font-size:14px;
+  cursor:pointer;
+}
 
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(240,180,41,0.15);
-    border: 1px solid rgba(240,180,41,0.30);
-    border-radius: 100px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--gold-light);
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
-  }
+/* NOTIFICATION PANEL */
+.notif-panel{
+  position:absolute;top:52px;right:0;
+  width:310px;background:var(--white);
+  border-radius:14px;border:1px solid rgba(5,19,60,0.1);
+  box-shadow:var(--shadow-lg);z-index:200;
+  display:none;overflow:hidden;
+}
+.notif-panel.open{display:block;animation:fadeIn .2s ease}
+.notif-ph{padding:13px 16px;border-bottom:1px solid rgba(5,19,60,0.07);font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--navy)}
+.notif-item{
+  padding:12px 16px;border-bottom:1px solid rgba(5,19,60,0.06);
+  display:flex;gap:10px;cursor:pointer;transition:background .15s;
+}
+.notif-item:hover{background:var(--off)}
+.notif-item:last-child{border-bottom:none}
+.ni-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ni-title{font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.ni-sub{font-size:11px;color:var(--muted)}
 
-  .hero-title {
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    font-weight: 800;
-    line-height: 1.15;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, #f0f4f8 30%, var(--teal-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* CONTENT */
+.content{padding:28px 30px;flex:1}
 
-  .hero-sub {
-    font-size: 1.05rem;
-    color: var(--text-secondary);
-    line-height: 1.7;
-  }
+/* PAGES */
+.page{display:none}
+.page.active{display:block;animation:fadeIn .22s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-  /* ── Destinations Strip ── */
-  .dest-strip {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 24px;
-    border-bottom: 1px solid var(--border);
-  }
+/* ══════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════ */
+.greeting{margin-bottom:26px}
+.greeting h2{
+  font-family:'Sora',sans-serif;
+  font-size:26px;font-weight:800;color:var(--navy);margin-bottom:3px;
+}
+.greeting p{color:var(--muted);font-size:14px}
 
-  .dest-chip {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 8px 18px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.25s ease;
-  }
+/* STATS */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:14px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--white);border-radius:var(--radius);
+  padding:20px 18px;border:1px solid rgba(5,19,60,0.07);
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;cursor:default;
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.stat-card::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:3px;
+  background:var(--accent,var(--teal));
+  border-radius:0 0 var(--radius) var(--radius);
+}
+.sc-teal{--accent:var(--teal)}
+.sc-navy{--accent:var(--navy)}
+.sc-warn{--accent:var(--warning)}
+.sc-info{--accent:var(--info)}
 
-  .dest-chip:hover {
-    background: rgba(56,189,248,0.10);
-    border-color: rgba(56,189,248,0.30);
-    color: var(--teal-light);
-    transform: translateY(-2px);
-  }
+.stat-label{
+  font-size:10.5px;font-weight:700;color:var(--muted);
+  letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;
+}
+.stat-value{
+  font-family:'Sora',sans-serif;
+  font-size:30px;font-weight:800;color:var(--navy);
+  line-height:1;margin-bottom:5px;
+}
+.stat-sub{font-size:12px;color:var(--muted)}
+.stat-icon{position:absolute;right:16px;top:16px;font-size:26px;opacity:.1}
 
-  /* ── Main Layout ── */
-  .enq-main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 60px 24px 80px;
-    display: grid;
-    grid-template-columns: 1fr 420px;
-    gap: 48px;
-    align-items: start;
-  }
+/* CONTENT GRID */
+.content-grid{
+  display:grid;grid-template-columns:1fr 336px;
+  gap:18px;margin-bottom:22px;
+}
 
-  @media (max-width: 900px) {
-    .enq-main { grid-template-columns: 1fr; }
-    .enq-sidebar { display: none; }
-  }
+/* CARD */
+.card{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid rgba(5,19,60,0.07);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.card-header{
+  padding:16px 20px 13px;
+  border-bottom:1px solid rgba(5,19,60,0.07);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{
+  font-family:'Sora',sans-serif;
+  font-size:14.5px;font-weight:700;color:var(--navy);
+}
+.card-action{
+  font-size:12px;color:var(--teal);cursor:pointer;
+  font-weight:700;background:none;border:none;
+  padding:4px 10px;border-radius:6px;transition:background .2s;
+}
+.card-action:hover{background:var(--teal-glow)}
+.card-body{padding:16px 20px}
 
-  /* ── Form Card ── */
-  .enq-form-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 40px;
-    box-shadow: var(--shadow-card);
-    backdrop-filter: blur(12px);
-  }
+/* BOOKING ITEMS (mini list) */
+.bk-item{
+  display:flex;align-items:center;gap:14px;
+  padding:11px;margin:0 -11px;
+  border-radius:9px;cursor:pointer;
+  transition:background .15s;
+  border-bottom:1px solid rgba(5,19,60,0.05);
+}
+.bk-item:last-child{border-bottom:none}
+.bk-item:hover{background:rgba(5,19,60,0.03)}
+.bk-thumb{
+  width:42px;height:42px;
+  background:var(--navy);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:19px;flex-shrink:0;
+}
+.bk-info{flex:1;min-width:0}
+.bk-name{
+  font-weight:600;font-size:13.5px;color:var(--navy);
+  margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bk-meta{font-size:11.5px;color:var(--muted)}
+.bk-right{text-align:right;flex-shrink:0}
+.bk-amount{font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;color:var(--navy)}
 
-  .form-heading {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--text-primary);
-  }
+/* UPCOMING TRIP CARD */
+.upcoming-card{
+  background:var(--navy);border-radius:var(--radius);
+  padding:20px;color:var(--white);
+  margin-bottom:14px;position:relative;overflow:hidden;
+  cursor:pointer;transition:transform .2s;
+}
+.upcoming-card:hover{transform:translateY(-2px)}
+.upcoming-card::before{
+  content:'';position:absolute;
+  top:-40px;right:-40px;
+  width:130px;height:130px;
+  background:rgba(20,241,177,0.07);
+  border-radius:50%;
+}
+.uc-label{
+  font-size:10px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--teal);margin-bottom:8px;
+}
+.uc-name{
+  font-family:'Sora',sans-serif;
+  font-size:18px;font-weight:700;margin-bottom:12px;
+}
+.uc-details{display:flex;gap:20px;font-size:12px;color:rgba(255,255,255,0.55)}
+.uc-detail strong{display:block;color:var(--white);font-size:12.5px;margin-bottom:2px}
+.uc-countdown{
+  background:var(--teal);color:var(--navy);
+  border-radius:8px;padding:7px 12px;
+  margin-top:12px;font-size:12.5px;font-weight:700;
+  display:flex;align-items:center;gap:7px;
+}
 
-  .form-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
+/* TIMELINE */
+.timeline{padding:4px 0}
+.tl-item{display:flex;gap:14px;padding:9px 0;position:relative}
+.tl-item:not(:last-child)::after{
+  content:'';position:absolute;
+  left:14px;top:34px;
+  width:2px;height:calc(100% - 14px);
+  background:rgba(5,19,60,0.08);
+}
+.tl-dot{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0;
+  background:var(--teal-glow);border:2px solid var(--teal-border);
+}
+.tl-dot.done{background:var(--teal);border-color:var(--teal);color:var(--navy)}
+.tl-text{flex:1;padding-top:3px}
+.tl-title{font-weight:600;font-size:12.5px;color:var(--navy)}
+.tl-time{font-size:11px;color:var(--muted);margin-top:1px}
 
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+/* ══════════════════════════════════════════
+   BOOKINGS PAGE
+══════════════════════════════════════════ */
+.page-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:22px;
+}
+.page-header h2{
+  font-family:'Sora',sans-serif;
+  font-size:21px;font-weight:700;color:var(--navy);
+}
 
-  .form-group { margin-bottom: 20px; }
-  .form-group.full { grid-column: 1 / -1; }
+.filter-tabs{
+  display:flex;gap:5px;
+  background:rgba(5,19,60,0.05);
+  border-radius:10px;padding:4px;
+  margin-bottom:18px;
+}
+.filter-tab{
+  padding:7px 15px;border-radius:7px;
+  font-size:12.5px;font-weight:600;
+  cursor:pointer;color:var(--muted);
+  border:none;background:none;transition:all .18s;
+}
+.filter-tab.active{
+  background:var(--white);color:var(--navy);
+  box-shadow:0 2px 8px rgba(5,19,60,0.08);
+}
 
-  .form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    letter-spacing: 0.3px;
-  }
+.booking-card{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid rgba(5,19,60,0.07);
+  box-shadow:var(--shadow);margin-bottom:12px;
+  overflow:hidden;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+}
+.booking-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.bc-header{
+  padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(5,19,60,0.06);
+}
+.bc-id{
+  font-family:'Sora',sans-serif;
+  font-size:13px;font-weight:700;color:var(--navy);margin-bottom:1px;
+}
+.bc-pkg{font-size:12.5px;color:var(--muted)}
+.bc-body{
+  padding:14px 18px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+}
+.bc-field label{
+  font-size:10px;font-weight:700;
+  letter-spacing:.7px;text-transform:uppercase;
+  color:var(--light);display:block;margin-bottom:3px;
+}
+.bc-field span{font-size:13.5px;font-weight:600;color:var(--navy)}
+.bc-footer{
+  padding:10px 18px;background:rgba(5,19,60,0.02);
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid rgba(5,19,60,0.06);
+}
+.prog-wrap{flex:1;margin:0 14px}
+.prog-labels{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-bottom:3px}
+.prog-bar{height:5px;background:rgba(5,19,60,0.08);border-radius:10px;overflow:hidden}
+.prog-fill{
+  height:100%;background:linear-gradient(90deg,var(--teal),#0fd49a);
+  border-radius:10px;transition:width .5s ease;
+}
 
-  .form-control {
-    width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 16px;
-    font-size: 14px;
-    font-family: 'Outfit', sans-serif;
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
-  }
+/* ══════════════════════════════════════════
+   BADGES
+══════════════════════════════════════════ */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:600;
+  padding:3px 9px;border-radius:20px;letter-spacing:.3px;
+}
+.badge::before{content:'●';font-size:7px}
+.badge-confirmed {background:rgba(20,241,177,0.12);color:#0aab7d}
+.badge-pending   {background:rgba(255,181,71,0.12);color:#d4880a}
+.badge-cancelled {background:rgba(255,77,109,0.12);color:var(--error)}
+.badge-completed {background:rgba(75,171,247,0.12);color:#1a7fd4}
+.badge-draft     {background:rgba(5,19,60,0.07);color:var(--muted)}
+.badge-approved  {background:rgba(20,241,177,0.12);color:#0aab7d}
+.badge-rejected  {background:rgba(255,77,109,0.12);color:var(--error)}
+.badge-applied   {background:rgba(75,171,247,0.12);color:#1a7fd4}
+.badge-new       {background:rgba(75,171,247,0.12);color:#1a7fd4}
+.badge-paid      {background:rgba(20,241,177,0.12);color:#0aab7d}
+.badge-partial   {background:rgba(255,181,71,0.12);color:#d4880a}
 
-  .form-control::placeholder { color: var(--text-muted); }
+/* ══════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(5,19,60,0.55);
+  backdrop-filter:blur(5px);
+  z-index:200;display:none;
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--white);border-radius:20px;
+  width:100%;max-width:700px;max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 32px 80px rgba(5,19,60,0.25);
+  animation:modalIn .28s cubic-bezier(.175,.885,.32,1.1);
+}
+.modal-sm{max-width:480px}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{
+  padding:20px 24px 16px;
+  border-bottom:1px solid rgba(5,19,60,0.07);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--white);z-index:1;
+}
+.modal-title{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--navy)}
+.modal-close{
+  width:30px;height:30px;border-radius:8px;
+  background:rgba(5,19,60,0.06);border:none;cursor:pointer;
+  font-size:17px;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.modal-close:hover{background:rgba(255,77,109,0.1);color:var(--error)}
+.modal-body{padding:22px 24px}
+.modal-footer{
+  padding:14px 24px 20px;
+  display:flex;gap:8px;justify-content:flex-end;
+  border-top:1px solid rgba(5,19,60,0.07);
+}
 
-  .form-control:focus {
-    border-color: var(--border-focus);
-    background: rgba(56,189,248,0.05);
-    box-shadow: 0 0 0 3px rgba(56,189,248,0.10);
-  }
+/* MODAL SECTIONS */
+.ms-title{
+  font-family:'Sora',sans-serif;
+  font-size:11px;font-weight:700;color:var(--muted);
+  letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:12px;padding-bottom:7px;
+  border-bottom:1px solid rgba(5,19,60,0.07);
+}
+.ms{margin-bottom:22px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail-field label{
+  font-size:10.5px;font-weight:700;
+  letter-spacing:.7px;text-transform:uppercase;
+  color:var(--light);display:block;margin-bottom:4px;
+}
+.detail-field span{font-size:14.5px;font-weight:600;color:var(--navy)}
 
-  select.form-control option { background: #131c30; }
+/* PAYMENT ROWS */
+.pay-row{
+  display:flex;justify-content:space-between;
+  padding:7px 0;font-size:13.5px;
+  border-bottom:1px solid rgba(5,19,60,0.05);
+}
+.pay-row:last-child{border-bottom:none}
+.pay-row.total{
+  font-family:'Sora',sans-serif;font-weight:700;
+  font-size:15.5px;color:var(--navy);padding-top:10px;
+}
+.pay-row.paid{color:#0aab7d;font-weight:600}
+.pay-row.bal{color:var(--warning);font-weight:600}
 
-  textarea.form-control { resize: vertical; min-height: 100px; }
+/* PAX TABLE */
+.pax-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.pax-table th{
+  background:rgba(5,19,60,0.04);padding:8px 10px;text-align:left;
+  font-size:10.5px;font-weight:700;color:var(--muted);
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.pax-table td{
+  padding:9px 10px;border-bottom:1px solid rgba(5,19,60,0.05);
+  color:var(--navy);font-weight:500;
+}
+.pax-table tr:last-child td{border-bottom:none}
 
-  /* ── Interest Tags ── */
-  .interest-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 4px;
-  }
+/* FORM FIELDS */
+.form-field{margin-bottom:16px}
+.form-field label{
+  font-size:11px;font-weight:700;color:var(--navy);
+  letter-spacing:.5px;text-transform:uppercase;
+  display:block;margin-bottom:6px;
+}
+.form-field input,
+.form-field select,
+.form-field textarea{
+  width:100%;border:1.5px solid rgba(5,19,60,0.12);
+  border-radius:10px;padding:11px 13px;
+  font-size:14px;font-family:'DM Sans',sans-serif;
+  color:var(--navy);background:var(--white);
+  transition:border-color .2s;outline:none;
+}
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus{
+  border-color:var(--teal);
+  background:rgba(20,241,177,0.02);
+}
+.form-field textarea{resize:vertical;min-height:75px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
-  .interest-tag {
-    cursor: pointer;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 7px 16px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    user-select: none;
-  }
+/* BUTTONS */
+.btn{
+  padding:10px 20px;border-radius:10px;
+  font-size:13.5px;font-weight:600;cursor:pointer;
+  border:none;transition:all .2s;
+  font-family:'DM Sans',sans-serif;
+}
+.btn-teal{background:var(--teal);color:var(--navy)}
+.btn-teal:hover{background:#0fd49a;transform:translateY(-1px)}
+.btn-outline{
+  background:transparent;color:var(--navy);
+  border:1.5px solid rgba(5,19,60,0.14);
+}
+.btn-outline:hover{background:rgba(5,19,60,0.04)}
+.btn-danger{background:rgba(255,77,109,0.1);color:var(--error);border:1px solid rgba(255,77,109,0.2)}
+.btn-danger:hover{background:rgba(255,77,109,0.18)}
 
-  .interest-tag:hover { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.25); }
-  .interest-tag.selected {
-    background: rgba(56,189,248,0.15);
-    border-color: rgba(56,189,248,0.50);
-    color: var(--teal-light);
-  }
+/* EMPTY & LOADING */
+.empty-state{text-align:center;padding:44px 20px}
+.es-icon{font-size:48px;margin-bottom:14px;opacity:.35}
+.es-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:600;color:var(--navy);margin-bottom:5px}
+.es-sub{font-size:13px;color:var(--muted)}
 
-  /* ── Submit Button ── */
-  .btn-submit {
-    width: 100%;
-    padding: 16px 24px;
-    background: var(--gradient-gold);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: 'Outfit', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: #1a1000;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 8px;
-    letter-spacing: 0.3px;
-    position: relative;
-    overflow: hidden;
-  }
+/* VISA */
+.visa-item{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 0;border-bottom:1px solid rgba(5,19,60,0.06);
+}
+.visa-item:last-child{border-bottom:none}
+.visa-flag{font-size:28px}
+.visa-info{flex:1}
+.visa-name{font-weight:600;color:var(--navy);font-size:13.5px}
+.visa-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
 
-  .btn-submit::after {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-    transition: left 0.5s ease;
-  }
+/* ENQUIRY HERO */
+.enq-hero{
+  background:var(--navy);border-radius:var(--radius);
+  padding:26px;margin-bottom:22px;
+  position:relative;overflow:hidden;
+}
+.enq-hero::after{
+  content:'✈️';position:absolute;
+  right:24px;top:50%;transform:translateY(-50%) rotate(-25deg);
+  font-size:72px;opacity:.07;
+}
+.enq-hero h3{
+  font-family:'Sora',sans-serif;
+  font-size:21px;font-weight:700;color:var(--white);margin-bottom:5px;
+}
+.enq-hero p{color:rgba(255,255,255,0.45);font-size:13.5px}
 
-  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(240,180,41,0.40); }
-  .btn-submit:hover::after { left: 100%; }
-  .btn-submit:active { transform: translateY(0); }
+/* PROFILE CARD */
+.profile-header{
+  background:var(--navy);border-radius:var(--radius);
+  padding:28px;margin-bottom:20px;
+  display:flex;align-items:center;gap:20px;
+}
+.profile-avatar-big{
+  width:72px;height:72px;border-radius:16px;
+  background:var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Sora',sans-serif;font-weight:800;font-size:28px;
+  color:var(--navy);flex-shrink:0;
+}
+.profile-name{
+  font-family:'Sora',sans-serif;
+  font-size:22px;font-weight:700;color:var(--white);margin-bottom:4px;
+}
+.profile-meta{font-size:13px;color:rgba(255,255,255,0.45)}
 
-  .btn-submit.loading { opacity: 0.8; pointer-events: none; }
+/* CHANGE PW */
+.pw-change-wrap{max-width:420px}
 
-  /* ── Divider ── */
-  .form-divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 24px 0;
-    color: var(--text-muted);
-    font-size: 13px;
-  }
-  .form-divider::before, .form-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+/* SUCCESS TOAST */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:var(--navy);color:var(--white);
+  padding:14px 20px;border-radius:12px;
+  font-size:13.5px;font-weight:600;
+  box-shadow:var(--shadow-lg);
+  z-index:1000;transform:translateY(100px);opacity:0;
+  transition:all .3s cubic-bezier(.175,.885,.32,1.2);
+  display:flex;align-items:center;gap:10px;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-icon{font-size:18px}
 
-  .login-link-row {
-    text-align: center;
-    font-size: 14px;
-    color: var(--text-secondary);
-  }
-  .login-link-row a {
-    color: var(--teal);
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s;
-  }
-  .login-link-row a:hover { color: var(--teal-light); }
-
-  /* ── Sidebar ── */
-  .enq-sidebar { display: flex; flex-direction: column; gap: 20px; }
-
-  .info-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 28px;
-    transition: background 0.25s, transform 0.25s;
-  }
-
-  .info-card:hover { background: var(--bg-card-hover); transform: translateY(-3px); }
-
-  .info-icon {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    margin-bottom: 16px;
-  }
-
-  .info-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
-  .info-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
-
-  .steps-card { padding: 28px; }
-  .steps-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 20px; }
-
-  .step-item {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    margin-bottom: 20px;
-  }
-
-  .step-num {
-    min-width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(240,180,41,0.15);
-    border: 1px solid rgba(240,180,41,0.30);
-    color: var(--gold);
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .step-text strong { display: block; font-size: 14px; margin-bottom: 3px; }
-  .step-text span { font-size: 12px; color: var(--text-muted); }
-
-  /* ── Success State ── */
-  .success-state {
-    display: none;
-    text-align: center;
-    padding: 48px 24px;
-  }
-
-  .success-icon {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: rgba(52,211,153,0.15);
-    border: 2px solid rgba(52,211,153,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    margin: 0 auto 24px;
-    animation: pulseGreen 1.5s ease infinite;
-  }
-
-  @keyframes pulseGreen {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.3); }
-    50% { box-shadow: 0 0 0 16px rgba(52,211,153,0); }
-  }
-
-  .success-state h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
-  .success-state p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
-  .success-ref {
-    display: inline-block;
-    margin: 16px auto;
-    background: rgba(52,211,153,0.1);
-    border: 1px solid rgba(52,211,153,0.25);
-    border-radius: 8px;
-    padding: 8px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--green);
-  }
-
-  .alert-msg {
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-bottom: 16px;
-    display: none;
-  }
-  .alert-msg.error {
-    background: rgba(248,113,113,0.12);
-    border: 1px solid rgba(248,113,113,0.3);
-    color: #fca5a5;
-  }
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media(max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .content-grid{grid-template-columns:1fr}
+  .bc-body{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-toggle{display:flex}
+  .content{padding:18px 14px}
+  .topbar{padding:0 14px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .bc-body{grid-template-columns:1fr 1fr}
+  .detail-grid,.form-row{grid-template-columns:1fr}
+}
 </style>
-{% endblock %}
+</head>
+<body>
 
-{% block page_content %}
-<!-- Hero -->
-<section class="enq-hero">
-  <div class="hero-orbit"></div>
-  <div class="hero-orbit"></div>
-  <div class="hero-content">
-    <div class="hero-badge">✈️ Your Journey Begins Here</div>
-    <h1 class="hero-title">Tell Us Your Dream Destination</h1>
-    <p class="hero-sub">
-      Register your travel interest — no account needed. Our consultants will craft a personalised plan just for you.
-    </p>
-  </div>
-</section>
-
-<!-- Destinations Strip -->
-<div class="dest-strip">
-  <div class="dest-chip">🗼 Paris</div>
-  <div class="dest-chip">🏝️ Bali</div>
-  <div class="dest-chip">🏔️ Switzerland</div>
-  <div class="dest-chip">🗽 New York</div>
-  <div class="dest-chip">🦁 Kenya Safari</div>
-  <div class="dest-chip">🍜 Thailand</div>
-  <div class="dest-chip">🌸 Japan</div>
-  <div class="dest-chip">🏟️ Dubai</div>
-</div>
-
-<!-- Main -->
-<div class="enq-main">
-  <!-- Form -->
-  <div class="enq-form-card" id="formWrapper">
-    <div class="alert-msg error" id="errorMsg"></div>
-
-    <div id="formView">
-      <h2 class="form-heading">Register Your Interest</h2>
-      <p class="form-sub">Fill the form below. No login required — we'll contact you shortly.</p>
-
-      <form id="enquiryForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="fullName">Full Name *</label>
-            <input class="form-control" type="text" id="fullName" placeholder="e.g. Ramesh Kumar" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="mobileNo">Mobile Number *</label>
-            <input class="form-control" type="tel" id="mobileNo" placeholder="+91 98765 43210" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="emailId">Email Address *</label>
-            <input class="form-control" type="email" id="emailId" placeholder="you@email.com" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="paxCount">Number of Travellers *</label>
-            <input class="form-control" type="number" id="paxCount" min="1" max="50" placeholder="e.g. 2" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="tourPackage">Interested Package</label>
-            <select class="form-control" id="tourPackage">
-              <option value="">-- Select if you have one in mind --</option>
-              {% for pkg in packages %}
-              <option value="{{ pkg.name }}">{{ pkg.package_name }} ({{ pkg.tour_type }})</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="travelMonth">Preferred Travel Month</label>
-            <select class="form-control" id="travelMonth">
-              <option value="">-- Select Month --</option>
-              <option>January</option><option>February</option><option>March</option>
-              <option>April</option><option>May</option><option>June</option>
-              <option>July</option><option>August</option><option>September</option>
-              <option>October</option><option>November</option><option>December</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">What are you looking for?</label>
-          <div class="interest-grid">
-            <div class="interest-tag" data-val="Beach & Relaxation">🏖️ Beach & Relax</div>
-            <div class="interest-tag" data-val="Adventure & Trekking">🧗 Adventure</div>
-            <div class="interest-tag" data-val="Cultural & Heritage">🏛️ Culture</div>
-            <div class="interest-tag" data-val="Honeymoon">💑 Honeymoon</div>
-            <div class="interest-tag" data-val="Family Trip">👨‍👩‍👧 Family</div>
-            <div class="interest-tag" data-val="Visa Assistance">🛂 With Visa Help</div>
-            <div class="interest-tag" data-val="Budget Travel">💰 Budget</div>
-            <div class="interest-tag" data-val="Luxury Travel">✨ Luxury</div>
-          </div>
-          <input type="hidden" id="interestTags">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="message">Additional Message</label>
-          <textarea class="form-control" id="message" placeholder="Tell us more — any special requirements, destinations dreamed of, budget range..."></textarea>
-        </div>
-
-        <button type="submit" class="btn-submit" id="submitBtn">
-          <span>✈️ Submit My Interest</span>
-        </button>
-      </form>
-
-      <div class="form-divider">Already have a booking?</div>
-      <div class="login-link-row">
-        <a href="/login?redirect-to=/my-portal">Login to Your Customer Portal →</a>
+<!-- ════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-row">
+      <div class="brand-icon">✈️</div>
+      <div>
+        <div class="brand-name">Tour Travels</div>
+        <div class="brand-badge">Customer Portal</div>
       </div>
-    </div>
-
-    <!-- Success State -->
-    <div class="success-state" id="successView">
-      <div class="success-icon">✅</div>
-      <h3>You're on our radar!</h3>
-      <p>Your travel interest has been registered. Our consultant will reach out within 24 hours to plan your perfect trip.</p>
-      <div class="success-ref" id="leadRef"></div>
-      <p style="margin-top:12px; font-size:13px;">
-        Once your booking is confirmed, you'll receive login credentials to access the
-        <a href="/my-portal" style="color: var(--teal); font-weight:600;">Customer Portal</a>.
-      </p>
     </div>
   </div>
 
-  <!-- Sidebar -->
-  <aside class="enq-sidebar">
-    <div class="info-card steps-card">
-      <h4>🗺️ How It Works</h4>
-      <div class="step-item">
-        <div class="step-num">1</div>
-        <div class="step-text">
-          <strong>Submit Interest</strong>
-          <span>Fill this form — takes 2 minutes, no account needed.</span>
+  <div class="sidebar-user">
+    <div class="user-avatar-row">
+      <div class="user-avatar" id="sb-avatar">?</div>
+      <div>
+        <div class="user-name" id="sb-name">Loading...</div>
+        <div class="user-mobile" id="sb-mobile">+91 —</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a class="nav-item active" onclick="goPage('dashboard',this)">
+      <span class="nav-icon">🏠</span>Dashboard
+    </a>
+
+    <div class="nav-group-label">My Travel</div>
+    <a class="nav-item" onclick="goPage('bookings',this)">
+      <span class="nav-icon">🎫</span>My Bookings
+      <span class="nav-badge" id="nb-bookings">0</span>
+    </a>
+    <a class="nav-item" onclick="goPage('itinerary',this)">
+      <span class="nav-icon">🗺️</span>Itinerary
+    </a>
+    <a class="nav-item" onclick="goPage('visa',this)">
+      <span class="nav-icon">🛂</span>Visa &amp; Docs
+    </a>
+    <a class="nav-item" onclick="goPage('payments',this)">
+      <span class="nav-icon">💳</span>Payments
+    </a>
+
+    <div class="nav-group-label">Support</div>
+    <a class="nav-item" onclick="goPage('enquiry',this)">
+      <span class="nav-icon">🔍</span>New Enquiry
+    </a>
+    <a class="nav-item" onclick="goPage('profile',this)">
+      <span class="nav-icon">👤</span>My Profile
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="doLogout()">
+      <span>🚪</span>Sign Out
+    </button>
+  </div>
+</aside>
+
+<!-- ════════════════════════════════════════
+     MAIN
+════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+      <div class="page-title" id="topbar-title">Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div class="notif-btn" onclick="toggleNotif()">
+        🔔<span class="notif-dot" id="notif-dot"></span>
+      </div>
+      <div class="notif-panel" id="notif-panel">
+        <div class="notif-ph">Notifications</div>
+        <div id="notif-list">
+          <div class="notif-item">
+            <div class="ni-icon" style="background:var(--teal-glow)">📋</div>
+            <div><div class="ni-title">All caught up!</div><div class="ni-sub">No new notifications.</div></div>
+          </div>
         </div>
       </div>
-      <div class="step-item">
-        <div class="step-num">2</div>
-        <div class="step-text">
-          <strong>Consultant Calls</strong>
-          <span>Our expert will call you within 24 hours to understand your needs.</span>
+      <div class="tb-avatar" id="tb-avatar">?</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="greeting">
+        <h2>Hello, <span id="user-fname">Traveller</span> 👋</h2>
+        <p>Here's your travel overview</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card sc-teal">
+          <div class="stat-label">Total Bookings</div>
+          <div class="stat-value" id="st-bookings">—</div>
+          <div class="stat-sub">All time</div>
+          <div class="stat-icon">🎫</div>
+        </div>
+        <div class="stat-card sc-navy">
+          <div class="stat-label">Upcoming Trips</div>
+          <div class="stat-value" id="st-upcoming">—</div>
+          <div class="stat-sub">Next 90 days</div>
+          <div class="stat-icon">✈️</div>
+        </div>
+        <div class="stat-card sc-warn">
+          <div class="stat-label">Balance Due</div>
+          <div class="stat-value" id="st-balance">—</div>
+          <div class="stat-sub">Across all bookings</div>
+          <div class="stat-icon">💰</div>
+        </div>
+        <div class="stat-card sc-info">
+          <div class="stat-label">Destinations</div>
+          <div class="stat-value" id="st-dest">—</div>
+          <div class="stat-sub">Explored</div>
+          <div class="stat-icon">🌍</div>
         </div>
       </div>
-      <div class="step-item">
-        <div class="step-num">3</div>
-        <div class="step-text">
-          <strong>Get a Tailored Quote</strong>
-          <span>We curate an itinerary and pricing just for your group.</span>
+
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Bookings</div>
+            <button class="card-action" onclick="goPage('bookings',null)">View all →</button>
+          </div>
+          <div class="card-body" id="recent-bk-list">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:13.5px">Loading...</div>
+          </div>
         </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num">4</div>
-        <div class="step-text">
-          <strong>Confirm & Portal Access</strong>
-          <span>After booking, you get access to your personal portal to track everything.</span>
+
+        <div>
+          <div id="upcoming-widget"></div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Booking Journey</div></div>
+            <div class="card-body">
+              <div class="timeline" id="bk-timeline">
+                <div style="text-align:center;padding:16px;color:var(--muted);font-size:13px">No active booking</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="info-card">
-      <div class="info-icon" style="background: rgba(56,189,248,0.12);">🛂</div>
-      <h4>Visa Assistance</h4>
-      <p>We handle visa applications for 40+ countries. Track your visa status end-to-end through your portal once confirmed.</p>
+    <!-- ── BOOKINGS ── -->
+    <div class="page" id="page-bookings">
+      <div class="page-header"><h2>My Bookings</h2></div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterBk('all',this)">All</button>
+        <button class="filter-tab" onclick="filterBk('Confirmed',this)">Confirmed</button>
+        <button class="filter-tab" onclick="filterBk('Completed',this)">Completed</button>
+        <button class="filter-tab" onclick="filterBk('Cancelled',this)">Cancelled</button>
+      </div>
+      <div id="bk-list"></div>
     </div>
 
-    <div class="info-card">
-      <div class="info-icon" style="background: rgba(240,180,41,0.12);">🔒</div>
-      <h4>Your Data is Safe</h4>
-      <p>We only use your information to plan your trip and will never share it with third parties without consent.</p>
+    <!-- ── ITINERARY ── -->
+    <div class="page" id="page-itinerary">
+      <div class="page-header"><h2>My Itinerary</h2></div>
+      <div id="itin-content">
+        <div class="empty-state">
+          <div class="es-icon">🗺️</div>
+          <div class="es-title">No upcoming itinerary</div>
+          <div class="es-sub">Your day-by-day travel plan will appear here once confirmed.</div>
+        </div>
+      </div>
     </div>
-  </aside>
+
+    <!-- ── VISA & DOCS ── -->
+    <div class="page" id="page-visa">
+      <div class="page-header"><h2>Visa &amp; Documents</h2></div>
+      <div id="visa-content"></div>
+    </div>
+
+    <!-- ── PAYMENTS ── -->
+    <div class="page" id="page-payments">
+      <div class="page-header"><h2>Payment History</h2></div>
+      <div id="pay-content"></div>
+    </div>
+
+    <!-- ── ENQUIRY ── -->
+    <div class="page" id="page-enquiry">
+      <div class="enq-hero">
+        <h3>Plan Your Next Trip ✈️</h3>
+        <p>Fill in your requirements and our team will get back to you shortly.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">New Travel Enquiry</div></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Destination *</label>
+              <input type="text" id="enq-dest" placeholder="e.g. Goa, Bali, Europe">
+            </div>
+            <div class="form-field">
+              <label>Tour Type *</label>
+              <select id="enq-type">
+                <option value="">Select type</option>
+                <option>Group</option><option>FIT</option>
+                <option>Honeymoon</option><option>Corporate</option><option>Adventure</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Preferred Travel Month *</label>
+              <select id="enq-month">
+                <option value="">Select month</option>
+                <option>January</option><option>February</option><option>March</option>
+                <option>April</option><option>May</option><option>June</option>
+                <option>July</option><option>August</option><option>September</option>
+                <option>October</option><option>November</option><option>December</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Number of Travellers *</label>
+              <input type="number" id="enq-pax" placeholder="2" min="1">
+            </div>
+            <div class="form-field">
+              <label>Budget per Person (₹)</label>
+              <input type="number" id="enq-budget" placeholder="25000">
+            </div>
+            <div class="form-field">
+              <label>Preferred Package (optional)</label>
+              <input type="text" id="enq-pkg" placeholder="Package name or ID">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Special Requirements</label>
+            <textarea id="enq-notes" placeholder="Dietary needs, accessibility, special requests..."></textarea>
+          </div>
+          <button class="btn btn-teal" onclick="submitEnquiry()">Submit Enquiry →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div class="page" id="page-profile">
+      <div class="page-header"><h2>My Profile</h2></div>
+
+      <div class="profile-header">
+        <div class="profile-avatar-big" id="prof-avatar-big">?</div>
+        <div>
+          <div class="profile-name" id="prof-name-display">—</div>
+          <div class="profile-meta" id="prof-meta-display">—</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:860px">
+        <!-- Personal Info -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Personal Information</div>
+            <button class="card-action" onclick="openEditProfile()">Edit ✏️</button>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="detail-field"><label>Full Name</label><span id="pf-name">—</span></div>
+              <div class="detail-field"><label>Mobile</label><span id="pf-mobile">—</span></div>
+              <div class="detail-field"><label>Email</label><span id="pf-email">—</span></div>
+              <div class="detail-field"><label>Lead Status</label><span id="pf-status">—</span></div>
+              <div class="detail-field"><label>Consultant</label><span id="pf-consultant">—</span></div>
+              <div class="detail-field"><label>Tour Preference</label><span id="pf-tour">—</span></div>
+              <div class="detail-field"><label>Interested Destination</label><span id="pf-destination">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card pw-change-wrap">
+          <div class="card-header"><div class="card-title">Change Password</div></div>
+          <div class="card-body">
+            <div class="form-field">
+              <label>Current Password</label>
+              <input type="password" id="pw-old" placeholder="••••••">
+            </div>
+            <div class="form-field">
+              <label>New Password</label>
+              <input type="password" id="pw-new" placeholder="Min. 6 characters">
+            </div>
+            <div class="form-field">
+              <label>Confirm New Password</label>
+              <input type="password" id="pw-confirm" placeholder="Repeat new password">
+            </div>
+            <div id="pw-error" style="color:var(--error);font-size:12.5px;font-weight:600;margin-bottom:10px;display:none"></div>
+            <button class="btn btn-teal" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ════════════════════════════════════════
+     BOOKING DETAIL MODAL
+════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-booking">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="mb-title">Booking Details</div>
+      <button class="modal-close" onclick="closeModal('modal-booking')">✕</button>
+    </div>
+    <div class="modal-body" id="mb-body">Loading...</div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-booking')">Close</button>
+      <button class="btn btn-teal" id="mb-pay-btn" style="display:none" onclick="payBalance()">Pay Balance</button>
+    </div>
+  </div>
 </div>
-{% endblock %}
 
-{% block script %}
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Edit Profile</div>
+      <button class="modal-close" onclick="closeModal('modal-profile')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field"><label>Full Name</label><input type="text" id="ep-name"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="ep-email"></div>
+      <div class="form-field">
+        <label>Tour Preference</label>
+        <select id="ep-tour">
+          <option>Group</option><option>FIT</option>
+          <option>Honeymoon</option><option>Corporate</option><option>Adventure</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Interested Destination</label>
+        <input type="text" id="ep-dest" placeholder="e.g. Europe, Bali, Kashmir">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-profile')">Cancel</button>
+      <button class="btn btn-teal" onclick="saveProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✅</span>
+  <span id="toast-msg">Done!</span>
+</div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
 <script>
-  // Interest tags
-  document.querySelectorAll('.interest-tag').forEach(tag => {
-    tag.addEventListener('click', () => {
-      tag.classList.toggle('selected');
-      updateInterestTags();
-    });
+// ── STATE ──
+let S = { lead: null, bookings: [], cur: null };
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  // Close dropdowns on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.notif-btn') && !e.target.closest('.notif-panel'))
+      document.getElementById('notif-panel').classList.remove('open');
+    if (!e.target.closest('.sidebar') && !e.target.closest('.menu-toggle'))
+      document.getElementById('sidebar').classList.remove('open');
   });
+});
 
-  function updateInterestTags() {
-    const selected = [...document.querySelectorAll('.interest-tag.selected')]
-      .map(t => t.dataset.val).join(', ');
-    document.getElementById('interestTags').value = selected;
+function loadData() {
+  frappe.call({
+    method: 'travel_tour.www.travel_enquiry.get_portal_data',
+    callback(r) {
+      if (r.message) { S = r.message; renderAll(); }
+      else window.location.href = '/my_portal';
+    },
+    error() { window.location.href = '/my_portal'; }
+  });
+}
+
+// ── RENDER ALL ──
+function renderAll() {
+  const { lead, bookings } = S;
+  if (!lead) { window.location.href = '/my_portal'; return; }
+
+  const fname = (lead.lead_name || 'Traveller').split(' ')[0];
+  const initials = fname[0].toUpperCase();
+
+  // Sidebar / topbar identity
+  document.getElementById('sb-name').textContent = lead.lead_name || '—';
+  document.getElementById('sb-mobile').textContent = '+91 ' + (lead.mobile || '');
+  document.getElementById('sb-avatar').textContent = initials;
+  document.getElementById('tb-avatar').textContent = initials;
+  document.getElementById('user-fname').textContent = fname;
+
+  // Profile fields
+  document.getElementById('prof-avatar-big').textContent = initials;
+  document.getElementById('prof-name-display').textContent = lead.lead_name || '—';
+  document.getElementById('prof-meta-display').textContent = `+91 ${lead.mobile || ''} · ${lead.email || 'No email'}`;
+  document.getElementById('pf-name').textContent = lead.lead_name || '—';
+  document.getElementById('pf-mobile').textContent = '+91 ' + (lead.mobile || '');
+  document.getElementById('pf-email').textContent = lead.email || '—';
+  document.getElementById('pf-status').innerHTML = badge(lead.status || 'New');
+  document.getElementById('pf-consultant').textContent = lead.assigned_consultant || 'Not assigned';
+  document.getElementById('pf-tour').textContent = lead.tour_type_pref || '—';
+  document.getElementById('pf-destination').textContent = lead.interested_destination || '—';
+
+  // Stats
+  const confirmed = bookings.filter(b => b.booking_status === 'Confirmed');
+  const upcoming  = confirmed.filter(b => new Date(b.departure_date) >= new Date());
+  const totalBal  = bookings.reduce((s,b) => s + (b.balance_due||0), 0);
+  const dests     = [...new Set(bookings.map(b=>b.destination).filter(Boolean))].length;
+
+  document.getElementById('st-bookings').textContent = bookings.length;
+  document.getElementById('st-upcoming').textContent = upcoming.length;
+  document.getElementById('st-balance').textContent  = '₹' + fmt(totalBal);
+  document.getElementById('st-dest').textContent     = dests;
+  document.getElementById('nb-bookings').textContent = bookings.length;
+
+  // Dashboard widgets
+  renderRecentBk(bookings.slice(0,4));
+  renderUpcoming(upcoming[0] || null);
+  renderTimeline(confirmed[0] || null);
+
+  // Bookings page
+  renderBkCards(bookings, 'bk-list');
+}
+
+// ── RECENT BOOKINGS ──
+function renderRecentBk(list) {
+  const el = document.getElementById('recent-bk-list');
+  if (!list.length) {
+    el.innerHTML = emptyState('🎫','No bookings yet','Confirmed bookings will appear here.');
+    return;
   }
+  el.innerHTML = list.map(b => `
+    <div class="bk-item" onclick="openBk('${b.name}')">
+      <div class="bk-thumb">${destEmoji(b.destination)}</div>
+      <div class="bk-info">
+        <div class="bk-name">${b.tour_package || b.name}</div>
+        <div class="bk-meta">${fmtDate(b.departure_date)} · ${b.total_pax} pax</div>
+      </div>
+      <div class="bk-right">
+        <div class="bk-amount">₹${fmt(b.grand_total)}</div>
+        <div style="margin-top:3px">${badge(b.booking_status)}</div>
+      </div>
+    </div>
+  `).join('');
+}
 
-  // Form submit
-  document.getElementById('enquiryForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const errorEl = document.getElementById('errorMsg');
+// ── UPCOMING TRIP ──
+function renderUpcoming(b) {
+  const el = document.getElementById('upcoming-widget');
+  if (!b) {
+    el.innerHTML = `<div class="upcoming-card" style="margin-bottom:14px;cursor:default">
+      <div class="uc-label">No upcoming trips</div>
+      <div class="uc-name" style="font-size:15px;opacity:.6">Book your next adventure!</div>
+    </div>`;
+    return;
+  }
+  const days = Math.ceil((new Date(b.departure_date) - new Date()) / 86400000);
+  el.innerHTML = `<div class="upcoming-card" style="margin-bottom:14px" onclick="openBk('${b.name}')">
+    <div class="uc-label">🚀 Next Trip</div>
+    <div class="uc-name">${b.tour_package || 'Your Trip'}</div>
+    <div class="uc-details">
+      <div class="uc-detail"><strong>${fmtDate(b.departure_date)}</strong>Departure</div>
+      <div class="uc-detail"><strong>${b.total_pax}</strong>Travellers</div>
+      <div class="uc-detail"><strong>₹${fmt(b.grand_total)}</strong>Total</div>
+    </div>
+    ${days > 0
+      ? `<div class="uc-countdown">⏰ ${days} day${days!==1?'s':''} to go!</div>`
+      : `<div class="uc-countdown">🎉 Trip day is today!</div>`}
+  </div>`;
+}
 
-    btn.classList.add('loading');
-    btn.innerHTML = '<span>Submitting...</span>';
-    errorEl.style.display = 'none';
+// ── TIMELINE ──
+function renderTimeline(b) {
+  if (!b) return;
+  const steps = [
+    { done:true,  icon:'✓', title:'Enquiry Received',    time:'Completed' },
+    { done:true,  icon:'✓', title:'Booking Confirmed',   time:fmtDate(b.creation) },
+    { done:!!(b.advance_paid>0), icon:b.advance_paid>0?'✓':'○', title:'Advance Paid', time:b.advance_paid>0?'₹'+fmt(b.advance_paid):'Pending' },
+    { done:false, icon:'○', title:'Documents Submitted', time:'Pending' },
+    { done:b.balance_due<=0, icon:b.balance_due<=0?'✓':'○', title:'Balance Payment', time:b.balance_due>0?'₹'+fmt(b.balance_due)+' due':'Paid' },
+    { done:false, icon:'✈️', title:'Departure',          time:fmtDate(b.departure_date) },
+  ];
+  document.getElementById('bk-timeline').innerHTML = steps.map(s => `
+    <div class="tl-item">
+      <div class="tl-dot ${s.done?'done':''}">${s.icon}</div>
+      <div class="tl-text">
+        <div class="tl-title">${s.title}</div>
+        <div class="tl-time">${s.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
 
-    const payload = {
-      full_name:       document.getElementById('fullName').value.trim(),
-      mobile_no:       document.getElementById('mobileNo').value.trim(),
-      email_id:        document.getElementById('emailId').value.trim(),
-      pax_count:       parseInt(document.getElementById('paxCount').value) || 1,
-      suggested_package: document.getElementById('tourPackage').value,
-      preferred_month: document.getElementById('travelMonth').value,
-      interest_tags:   document.getElementById('interestTags').value,
-      message:         document.getElementById('message').value.trim(),
-      source:          'Website',
-    };
+// ── BOOKING CARDS ──
+function renderBkCards(list, containerId) {
+  const el = document.getElementById(containerId);
+  if (!list.length) {
+    el.innerHTML = emptyState('🎫','No bookings found','Nothing to show for this filter.');
+    return;
+  }
+  el.innerHTML = list.map(b => {
+    const paid = b.grand_total - b.balance_due;
+    const pct  = b.grand_total > 0 ? Math.round((paid/b.grand_total)*100) : 0;
+    return `<div class="booking-card" onclick="openBk('${b.name}')">
+      <div class="bc-header">
+        <div>
+          <div class="bc-id">${b.name}</div>
+          <div class="bc-pkg">${b.tour_package||'—'}</div>
+        </div>
+        ${badge(b.booking_status)}
+      </div>
+      <div class="bc-body">
+        <div class="bc-field"><label>Departure</label><span>${fmtDate(b.departure_date)}</span></div>
+        <div class="bc-field"><label>Return</label><span>${fmtDate(b.return_date)}</span></div>
+        <div class="bc-field"><label>Pax</label><span>${b.total_pax} travellers</span></div>
+        <div class="bc-field"><label>Total</label><span>₹${fmt(b.grand_total)}</span></div>
+      </div>
+      <div class="bc-footer">
+        <div style="font-size:12.5px;color:var(--muted)">₹${fmt(paid)} paid</div>
+        <div class="prog-wrap">
+          <div class="prog-labels"><span>Payment</span><span>${pct}%</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div style="font-size:12.5px;color:${b.balance_due>0?'var(--warning)':'var(--success)'}">
+          ${b.balance_due>0?'₹'+fmt(b.balance_due)+' due':'✓ Paid'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-    try {
-      const res = await fetch('/api/method/travel_tour.api.portal.submit_enquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Frappe-CSRF-Token': frappe.csrf_token },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+// ── BOOKING DETAIL ──
+function openBk(id) {
+  const b = S.bookings.find(x => x.name===id);
+  if (!b) return;
+  S.cur = b;
 
-      if (data.message && data.message.status === 'success') {
-        document.getElementById('formView').style.display = 'none';
-        document.getElementById('successView').style.display = 'block';
-        document.getElementById('leadRef').textContent = '🎫 Ref: ' + data.message.lead_id;
-      } else {
-        throw new Error(data.message?.msg || 'Submission failed. Please try again.');
-      }
-    } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
-      btn.classList.remove('loading');
-      btn.innerHTML = '<span>✈️ Submit My Interest</span>';
+  document.getElementById('mb-title').textContent = id;
+  const payBtn = document.getElementById('mb-pay-btn');
+  payBtn.style.display = b.balance_due > 0 ? '' : 'none';
+  payBtn.textContent = 'Pay ₹' + fmt(b.balance_due);
+
+  const paxRows = (b.pax_details||[]).map(p => `
+    <tr>
+      <td>${p.pax_name}</td><td>${p.pax_type}</td>
+      <td>${p.id_type||'—'}</td><td>${p.id_number||'—'}</td>
+      <td>${p.passport_expiry ? fmtDate(p.passport_expiry) : '—'}</td>
+      <td>${badge(p.visa_status||'Not Applied')}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--muted)">No traveller details</td></tr>`;
+
+  document.getElementById('mb-body').innerHTML = `
+    <div class="ms">
+      <div class="ms-title">Booking Summary</div>
+      <div class="detail-grid">
+        <div class="detail-field"><label>Package</label><span>${b.tour_package||'—'}</span></div>
+        <div class="detail-field"><label>Status</label><span>${badge(b.booking_status)}</span></div>
+        <div class="detail-field"><label>Departure</label><span>${fmtDate(b.departure_date)}</span></div>
+        <div class="detail-field"><label>Return</label><span>${fmtDate(b.return_date)}</span></div>
+        <div class="detail-field"><label>Adults</label><span>${b.adult_pax||0}</span></div>
+        <div class="detail-field"><label>Children</label><span>${b.child_pax||0}</span></div>
+        <div class="detail-field"><label>Room Category</label><span>${b.room_category||'—'}</span></div>
+        <div class="detail-field"><label>Sales Consultant</label><span>${b.sales_consultant||'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="ms">
+      <div class="ms-title">Payment Breakdown</div>
+      <div class="pay-row"><span>Package Amount</span><span>₹${fmt(b.base_amount)}</span></div>
+      <div class="pay-row"><span>Add-ons</span><span>₹${fmt(b.addons_total)}</span></div>
+      <div class="pay-row"><span>GST</span><span>₹${fmt(b.gst_amount)}</span></div>
+      ${b.tcs_amount ? `<div class="pay-row"><span>TCS</span><span>₹${fmt(b.tcs_amount)}</span></div>` : ''}
+      ${b.discount_amount ? `<div class="pay-row"><span>Discount</span><span style="color:var(--success)">-₹${fmt(b.discount_amount)}</span></div>` : ''}
+      <div class="pay-row total"><span>Grand Total</span><span>₹${fmt(b.grand_total)}</span></div>
+      <div class="pay-row paid"><span>✓ Advance Paid</span><span>₹${fmt(b.advance_paid)}</span></div>
+      ${b.balance_due>0 ? `<div class="pay-row bal"><span>⚠ Balance Due</span><span>₹${fmt(b.balance_due)}</span></div>` : ''}
+    </div>
+
+    <div class="ms">
+      <div class="ms-title">Traveller Details</div>
+      <div style="overflow-x:auto">
+        <table class="pax-table">
+          <thead><tr><th>Name</th><th>Type</th><th>ID Type</th><th>ID Number</th><th>Passport Exp.</th><th>Visa</th></tr></thead>
+          <tbody>${paxRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    ${b.special_requests ? `<div class="ms">
+      <div class="ms-title">Special Requests</div>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.65">${b.special_requests}</p>
+    </div>` : ''}
+  `;
+  openModal('modal-booking');
+}
+
+// ── PAY BALANCE ──
+function payBalance() {
+  const b = S.cur;
+  if (!b || b.balance_due <= 0) return;
+  frappe.call({
+    method: 'travel_tour.www.travel_enquiry.create_payment_link',
+    args: { booking_name: b.name },
+    callback(r) {
+      if (r.message && r.message.url) window.open(r.message.url,'_blank');
+      else showToast('❌', 'Could not generate payment link. Please contact us.');
     }
   });
+}
+
+// ── VISA PAGE ──
+function renderVisaPage() {
+  const docs = S.bookings.flatMap(b =>
+    (b.pax_details||[]).map(p => ({...p, bkName:b.name, pkg:b.tour_package, dep:b.departure_date}))
+  ).filter(p => p.visa_status || p.passport_expiry || p.id_number);
+
+  const el = document.getElementById('visa-content');
+  if (!docs.length) {
+    el.innerHTML = emptyState('🛂','No documents tracked','Visa and document status will appear here after booking confirmation.');
+    return;
+  }
+  el.innerHTML = `<div class="card"><div class="card-body">${docs.map(p => `
+    <div class="visa-item">
+      <div class="visa-flag">🛂</div>
+      <div class="visa-info">
+        <div class="visa-name">${p.pax_name} — ${p.pkg||p.bkName}</div>
+        <div class="visa-sub">Departure: ${fmtDate(p.dep)} · ${p.id_type||'—'}: ${p.id_number||'—'} · Expires: ${fmtDate(p.passport_expiry)}</div>
+      </div>
+      ${badge(p.visa_status||'Not Applied')}
+    </div>
+  `).join('')}</div></div>`;
+}
+
+// ── PAYMENTS PAGE ──
+function renderPaymentsPage() {
+  const el = document.getElementById('pay-content');
+  if (!S.bookings.length) {
+    el.innerHTML = emptyState('💳','No payment records','—');
+    return;
+  }
+  el.innerHTML = S.bookings.map(b => `
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${b.name}</div>
+          <div style="font-size:12.5px;color:var(--muted)">${b.tour_package||'—'}</div>
+        </div>
+        ${badge(b.payment_status || (b.balance_due>0?'Partial':'Paid'))}
+      </div>
+      <div class="card-body">
+        <div class="pay-row"><span>Grand Total</span><span style="font-weight:700">₹${fmt(b.grand_total)}</span></div>
+        <div class="pay-row paid"><span>✓ Advance Paid</span><span>₹${fmt(b.advance_paid)}</span></div>
+        ${b.balance_due>0
+          ? `<div class="pay-row bal"><span>⚠ Balance Due</span><span>₹${fmt(b.balance_due)}</span></div>
+             <div style="margin-top:14px">
+               <button class="btn btn-teal" onclick="S.cur=S.bookings.find(x=>x.name==='${b.name}');payBalance()">
+                 Pay ₹${fmt(b.balance_due)} Now →
+               </button>
+             </div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── ITINERARY PAGE ──
+function renderItinPage() {
+  const upcoming = S.bookings.filter(b =>
+    b.booking_status==='Confirmed' && new Date(b.departure_date) >= new Date()
+  );
+  const el = document.getElementById('itin-content');
+  if (!upcoming.length || !upcoming[0].itinerary_days?.length) {
+    el.innerHTML = emptyState('🗺️','No itinerary available','Your detailed day-by-day plan will appear here once confirmed.');
+    return;
+  }
+  const b = upcoming[0];
+  el.innerHTML = `<div class="card">
+    <div class="card-header">
+      <div class="card-title">${b.tour_package}</div>
+      <div style="font-size:12.5px;color:var(--muted)">${fmtDate(b.departure_date)} → ${fmtDate(b.return_date)}</div>
+    </div>
+    <div class="card-body">
+      ${(b.itinerary_days||[]).map((day,i) => `
+        ${i>0?'<hr style="border:none;border-top:1px solid rgba(5,19,60,.07);margin:14px 0">':''}
+        <div style="margin-bottom:16px">
+          <div style="font-family:Sora,sans-serif;font-weight:700;color:var(--navy);font-size:14.5px;margin-bottom:8px">
+            Day ${day.day_number}: ${day.day_title}
+          </div>
+          ${day.hotel?`<div style="font-size:12px;color:var(--teal);font-weight:600;margin-bottom:8px">🏨 ${day.hotel}</div>`:''}
+          ${day.morning?`<div style="margin-bottom:6px"><span style="font-size:10.5px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:1px">🌅 Morning</span><p style="font-size:13px;color:var(--muted);margin-top:3px">${day.morning}</p></div>`:''}
+          ${day.afternoon?`<div style="margin-bottom:6px"><span style="font-size:10.5px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:1px">☀️ Afternoon</span><p style="font-size:13px;color:var(--muted);margin-top:3px">${day.afternoon}</p></div>`:''}
+          ${day.evening?`<div><span style="font-size:10.5px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:1px">🌙 Evening</span><p style="font-size:13px;color:var(--muted);margin-top:3px">${day.evening}</p></div>`:''}
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+// ── ENQUIRY SUBMIT ──
+function submitEnquiry() {
+  const dest  = document.getElementById('enq-dest').value.trim();
+  const type  = document.getElementById('enq-type').value;
+  const month = document.getElementById('enq-month').value;
+  const pax   = document.getElementById('enq-pax').value;
+
+  if (!dest||!type||!month||!pax) {
+    showToast('❌','Please fill in all required fields.'); return;
+  }
+  frappe.call({
+    method: 'travel_tour.www.travel_enquiry.update_lead_enquiry',
+    args: {
+      destination: dest, tour_type: type,
+      travel_month: month, pax_count: parseInt(pax),
+      budget: document.getElementById('enq-budget').value||0,
+      notes: document.getElementById('enq-notes').value,
+    },
+    callback(r) {
+      if (r.message && r.message.success) {
+        showToast('✅','Enquiry submitted! Our team will contact you shortly.');
+        ['enq-dest','enq-type','enq-month','enq-pax','enq-budget','enq-notes']
+          .forEach(id => { const e=document.getElementById(id); if(e)e.value=''; });
+      } else {
+        showToast('❌','Failed to submit. Please try again.');
+      }
+    }
+  });
+}
+
+// ── PROFILE ──
+function openEditProfile() {
+  const l = S.lead;
+  document.getElementById('ep-name').value = l.lead_name||'';
+  document.getElementById('ep-email').value = l.email||'';
+  document.getElementById('ep-tour').value = l.tour_type_pref||'Group';
+  document.getElementById('ep-dest').value = l.interested_destination||'';
+  openModal('modal-profile');
+}
+
+function saveProfile() {
+  frappe.call({
+    method: 'travel_tour.www.travel_enquiry.update_profile',
+    args: {
+      lead_name: document.getElementById('ep-name').value,
+      email: document.getElementById('ep-email').value,
+      tour_type_pref: document.getElementById('ep-tour').value,
+      interested_destination: document.getElementById('ep-dest').value,
+    },
+    callback(r) {
+      if (r.message && r.message.success) {
+        closeModal('modal-profile');
+        loadData();
+        showToast('✅','Profile updated successfully!');
+      } else {
+        showToast('❌','Could not save profile. Try again.');
+      }
+    }
+  });
+}
+
+// ── CHANGE PASSWORD ──
+function changePassword() {
+  const old = document.getElementById('pw-old').value;
+  const nw  = document.getElementById('pw-new').value;
+  const cnf = document.getElementById('pw-confirm').value;
+  const err = document.getElementById('pw-error');
+  err.style.display='none';
+
+  if (!old||!nw||!cnf) { showPwErr('All fields are required.'); return; }
+  if (nw.length < 6)    { showPwErr('New password must be at least 6 characters.'); return; }
+  if (nw !== cnf)       { showPwErr('Passwords do not match.'); return; }
+
+  frappe.call({
+    method: 'travel_tour.www.my_portal.change_portal_password',
+    args: { old_password: old, new_password: nw },
+    callback(r) {
+      if (r.message && r.message.success) {
+        ['pw-old','pw-new','pw-confirm'].forEach(id => document.getElementById(id).value='');
+        showToast('✅','Password changed successfully!');
+      } else {
+        showPwErr((r.message && r.message.error) || 'Could not change password.');
+      }
+    }
+  });
+}
+function showPwErr(msg) {
+  const e = document.getElementById('pw-error');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+// ── FILTER BOOKINGS ──
+function filterBk(status, btn) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const list = status==='all' ? S.bookings : S.bookings.filter(b=>b.booking_status===status);
+  renderBkCards(list,'bk-list');
+}
+
+// ── NAV ──
+const PAGE_TITLES = {
+  dashboard:'Dashboard', bookings:'My Bookings', itinerary:'Itinerary',
+  visa:'Visa & Documents', payments:'Payments', enquiry:'New Enquiry', profile:'My Profile'
+};
+
+function goPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[id]||'';
+  document.getElementById('sidebar').classList.remove('open');
+
+  // Lazy render
+  if (id==='visa')     renderVisaPage();
+  if (id==='payments') renderPaymentsPage();
+  if (id==='itinerary') renderItinPage();
+}
+
+// ── MODALS ──
+function openModal(id) { document.getElementById(id).classList.add('open') }
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+
+// ── SIDEBAR / NOTIFICATIONS ──
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open') }
+function toggleNotif()   { document.getElementById('notif-panel').classList.toggle('open') }
+
+// ── LOGOUT ──
+function doLogout() {
+  frappe.call({ method:'logout', callback(){ window.location.href='/my_portal'; } });
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(icon, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent  = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// ── UTILS ──
+function fmt(n) {
+  return (Number(n)||0).toLocaleString('en-IN',{maximumFractionDigits:0});
+}
+function fmtDate(d) {
+  if(!d) return '—';
+  return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+function badge(status) {
+  const map = {
+    Confirmed:'badge-confirmed', Completed:'badge-completed', Cancelled:'badge-cancelled',
+    Draft:'badge-draft', Pending:'badge-pending', Paid:'badge-paid', Partial:'badge-partial',
+    New:'badge-new', Converted:'badge-confirmed',
+    'Not Applied':'badge-draft', Applied:'badge-applied',
+    Approved:'badge-approved', Rejected:'badge-rejected',
+  };
+  return `<span class="badge ${map[status]||'badge-draft'}">${status||'—'}</span>`;
+}
+function destEmoji(d) {
+  if(!d) return '✈️';
+  const s = d.toLowerCase();
+  if (s.includes('bali')||s.includes('thai')||s.includes('maldiv')) return '🏝️';
+  if (s.includes('manali')||s.includes('kashmir')||s.includes('swiss')||s.includes('himach')) return '🏔️';
+  if (s.includes('goa')||s.includes('beach')) return '🏖️';
+  if (s.includes('dubai')||s.includes('europe')||s.includes('paris')) return '🌆';
+  if (s.includes('forest')||s.includes('wildlife')||s.includes('coorg')) return '🌿';
+  return '✈️';
+}
+function emptyState(icon,title,sub) {
+  return `<div class="empty-state">
+    <div class="es-icon">${icon}</div>
+    <div class="es-title">${title}</div>
+    <div class="es-sub">${sub}</div>
+  </div>`;
+}
 </script>
-{% endblock %}
+</body>
+</html>
