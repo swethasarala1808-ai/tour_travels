@@ -4,7 +4,7 @@ def get_context(context):
     context.no_cache = 1
     # Already logged in as a Travel Lead user? Redirect to dashboard
     if frappe.session.user != "Guest":
-        mobile = frappe.db.get_value("User", frappe.session.user, "mobile_no") or                  frappe.db.get_value("User", frappe.session.user, "mobile")
+        mobile = frappe.db.get_value("User", frappe.session.user, "mobile_no")
         if mobile and frappe.db.exists("Travel Lead", {"mobile": mobile}):
             frappe.local.flags.redirect_location = "/travel_enquiry"
             raise frappe.Redirect
