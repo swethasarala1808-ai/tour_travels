@@ -1655,23 +1655,28 @@ window.addEventListener("load", function() { (function(){function _init(){
 
 function loadData() {
   _fc({
-    method: 'travel_tour.api.founder.get_founder_data',
-    callback(r) {
-      if (r.message) {
+    method: 'travel_tour.www.founder_dash.get_founder_data',
+    callback: function(r) {
+      if (r && r.message) {
         D = r.message;
-        D.leads = D.leads || [];
-        D.bookings = D.bookings || [];
-        D.packages = D.packages || [];
-        D.customers = D.customers || [];
-        D.team = D.team || [];
+        D.leads      = D.leads      || [];
+        D.bookings   = D.bookings   || [];
+        D.packages   = D.packages   || [];
+        D.customers  = D.customers  || [];
+        D.team       = D.team       || [];
+        D.stats      = D.stats      || {};
+        D.monthly_revenue = D.monthly_revenue || [];
         renderAll();
-      } else if (r.exc_type === 'AuthenticationError' || r.exc_type === 'PermissionError') {
+      } else if (r && (r.exc_type === 'AuthenticationError' || r.exc_type === 'PermissionError')) {
         window.location.href = '/login?redirect-to=/founder_dash';
       } else {
-        renderMockData();
+        showToast('❌', 'Failed to load data. Please refresh.');
       }
     },
-    error() { renderMockData(); } // Preview fallback
+    error: function(e) {
+      console.error('loadData error:', e);
+      showToast('❌', 'Network error. Please refresh.');
+    }
   });
 }
 
@@ -1733,6 +1738,13 @@ function renderMockData() {
 
 /* ── RENDER ALL ── */
 function renderAll() {
+  if (!D) return;
+  D.leads     = D.leads     || [];
+  D.bookings  = D.bookings  || [];
+  D.packages  = D.packages  || [];
+  D.customers = D.customers || [];
+  D.team      = D.team      || [];
+
   D.leads=D.leads||[];D.bookings=D.bookings||[];D.packages=D.packages||[];D.customers=D.customers||[];D.team=D.team||[];
   const f = D.founder || {};
   const fn = f.first_name || f.full_name?.split(' ')[0] || 'Founder';
@@ -2598,7 +2610,7 @@ function showToast(ico, msg) {
   toastT = setTimeout(()=>t.classList.remove('show'), 3500);
 }
 
-function getCsrf() {
+function _csrf() {
   if (typeof frappe !== 'undefined' && frappe.csrf_token) return frappe.csrf_token;
   var m = document.cookie.match(/csrf_token=([^;]+)/);
   return m ? decodeURIComponent(m[1]) : '';
@@ -2607,44 +2619,58 @@ function getCsrf() {
 
 function _fc(opts) {
   var args = opts.args || {};
-  var formData = new URLSearchParams();
-  formData.append('cmd', opts.method);
+  // Build form-encoded body (Frappe expects this for whitelist methods)
+  var body = 'cmd=' + encodeURIComponent(opts.method);
   Object.keys(args).forEach(function(k) {
     var v = args[k];
-    formData.append(k, typeof v === 'object' ? JSON.stringify(v) : v);
+    body += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(
+      typeof v === 'object' ? JSON.stringify(v) : (v === null || v === undefined ? '' : v)
+    );
   });
   fetch('/api/method/' + opts.method, {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'X-Frappe-CSRF-Token': getCsrf()
+      'X-Frappe-CSRF-Token': _csrf()
     },
-    body: formData.toString()
+    body: body
   })
   .then(function(r) {
     if (r.status === 403 || r.status === 401) {
-      window.location.href = '/login?redirect-to=/founder_dash';
+      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
       return null;
     }
     return r.json();
   })
   .then(function(r) {
     if (!r) return;
-    if (r.message !== undefined && opts.callback) opts.callback(r);
-    else if (opts.error) opts.error(r);
+    if (opts.callback) opts.callback(r);
   })
   .catch(function(e) {
-    console.error('API error:', e);
+    console.error('[_fc] error:', e);
     if (opts.error) opts.error(e);
   });
 }
-function getCsrf() {
+
+function _csrf() {
+  // 1. frappe object
+  if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token !== '{{ csrf_token }}')
+    return frappe.csrf_token;
+  // 2. meta tag
+  var el = document.querySelector('meta[name="csrf-token"]');
+  if (el) return el.getAttribute('content');
+  // 3. cookie
+  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+function _csrf() {
   var el = document.querySelector('meta[name="csrf-token"]');
   if (el) return el.getAttribute('content');
   var m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
   return m ? decodeURIComponent(m[1]) : '';
 }
-function getCsrf() {
+function _csrf() {
   if(typeof frappe!=='undefined' && frappe.csrf_token) return frappe.csrf_token;
   var m = document.cookie.match(/csrf_token=([^;]+)/);
   return m ? decodeURIComponent(m[1]) : '';
