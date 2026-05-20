@@ -32,10 +32,8 @@ doc_events = {
         'on_submit': 'travel_tour.events.visa_application.on_submit',
     },
     'Travel Lead': {
-        'after_insert': [
-            'travel_tour.events.travel_lead.assign_consultant',
-            'travel_tour.events.travel_lead.send_ack_whatsapp',
-        ],
+        'after_insert': ['travel_tour.events.travel_lead.on_update'],
+        'on_update': ['travel_tour.events.travel_lead.on_update'],
     },
     'Supplier Contract': {
         'on_submit': 'travel_tour.events.supplier_contract.on_submit',
