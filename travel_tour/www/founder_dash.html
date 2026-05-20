@@ -1643,7 +1643,7 @@ var D = {
 var curBk = null;
 
 /* ── INIT ── */
-(function(){function _init(){
+window.addEventListener("load", function() { (function(){function _init(){
   loadData();
   document.addEventListener('click', e => {
     if (!e.target.closest('.notif-panel') && !e.target.closest('.tb-btn[onclick*="toggleNotif"]'))
@@ -1651,9 +1651,7 @@ var curBk = null;
     if (!e.target.closest('.sb') && !e.target.closest('.hamburger'))
       document.getElementById('sb').classList.remove('open');
   });
-}
-if(typeof frappe!=="undefined"&&frappe.ready){frappe.ready(_init);}else{document.addEventListener("DOMContentLoaded",_init);}
-})();
+} _init(); })(); });
 
 function loadData() {
   frappe.call({
@@ -2588,6 +2586,13 @@ function showToast(ico, msg) {
   clearTimeout(toastT);
   toastT = setTimeout(()=>t.classList.remove('show'), 3500);
 }
+
+function getCsrf() {
+  if (typeof frappe !== 'undefined' && frappe.csrf_token) return frappe.csrf_token;
+  var m = document.cookie.match(/csrf_token=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
 </script>
 </body>
 </html>

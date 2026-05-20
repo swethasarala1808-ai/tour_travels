@@ -472,7 +472,7 @@ function doLogin() {
   btn.classList.add('loading');
   btn.innerHTML = '<span class="spinner"></span>Signing in...';
 
-  frappe.call({
+  frappe_call_compat({
     method: 'travel_tour.www.my_portal.portal_login',
     args: { mobile, password },
     callback(r) {
@@ -508,7 +508,7 @@ function doReset() {
   btn.classList.add('loading');
   btn.innerHTML = '<span class="spinner"></span>Sending...';
 
-  frappe.call({
+  frappe_call_compat({
     method: 'travel_tour.www.my_portal.reset_portal_password',
     args: { mobile },
     callback(r) {
@@ -539,6 +539,25 @@ function showLogin() {
   document.getElementById('reset-panel').style.display = 'none';
   document.getElementById('login-error').classList.remove('show');
 }
+
+function getCsrf() {
+  var m = document.cookie.match(/csrf_token=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+function frappe_call_compat(opts) {
+  fetch('/api/method/' + opts.method, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Frappe-CSRF-Token': getCsrf()
+    },
+    body: JSON.stringify(opts.args || {})
+  })
+  .then(r => r.json())
+  .then(r => { if (opts.callback) opts.callback(r); })
+  .catch(e => { if (opts.error) opts.error(e); });
+}
+
 </script>
 </body>
 </html>

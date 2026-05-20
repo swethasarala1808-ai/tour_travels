@@ -1035,7 +1035,7 @@ body{
 var S = { lead: null, bookings: [], cur: null };
 
 // ── INIT ──
-(function(){function _init(){
+window.addEventListener("load", function() { (function(){function _init(){
   loadData();
   // Close dropdowns on outside click
   document.addEventListener('click', e => {
@@ -1044,9 +1044,7 @@ var S = { lead: null, bookings: [], cur: null };
     if (!e.target.closest('.sidebar') && !e.target.closest('.menu-toggle'))
       document.getElementById('sidebar').classList.remove('open');
   });
-}
-if(typeof frappe!=="undefined"&&frappe.ready){frappe.ready(_init);}else{document.addEventListener("DOMContentLoaded",_init);}
-})();
+} _init(); })(); });
 
 function loadData() {
   frappe.call({
@@ -1560,6 +1558,13 @@ function emptyState(icon,title,sub) {
     <div class="es-sub">${sub}</div>
   </div>`;
 }
+
+function getCsrf() {
+  if (typeof frappe !== 'undefined' && frappe.csrf_token) return frappe.csrf_token;
+  var m = document.cookie.match(/csrf_token=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
 </script>
 </body>
 </html>
