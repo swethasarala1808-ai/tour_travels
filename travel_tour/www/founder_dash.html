@@ -1726,10 +1726,10 @@ function renderAll() {
   const fn = f.first_name || f.full_name?.split(' ')[0] || 'Founder';
   const ini = fn[0]?.toUpperCase() || 'T';
 
-  document.getElementById('ov-fname').textContent   = fn;
-  document.getElementById('sb-oname').textContent   = f.full_name || 'Founder';
-  document.getElementById('sb-ava').textContent     = ini;
-  document.getElementById('tb-ava').textContent     = ini;
+  setText('ov-fname', fn);
+  setText('sb-oname', f.full_name || 'Founder');
+  setText('sb-ava', ini);
+  setText('tb-ava', ini);
 
   renderStats();
   renderRevChart();
@@ -1749,27 +1749,27 @@ function renderAll() {
 /* ── STATS ── */
 function renderStats() {
   const s = D.stats || {};
-  document.getElementById('st-rev').textContent    = s.total_revenue      ? '₹'+fmtL(s.total_revenue)      : '₹48.5L';
-  document.getElementById('st-bk').textContent     = s.active_bookings    ?? D.bookings?.filter(b=>b.booking_status==='Confirmed').length ?? 24;
-  document.getElementById('st-due').textContent    = s.total_balance_due  ? '₹'+fmtL(s.total_balance_due)  : '₹3.8L';
-  document.getElementById('st-leads').textContent  = s.open_leads         ?? D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length ?? 31;
-  document.getElementById('st-dep').textContent    = s.departures_30d     ?? 8;
+  setText('st-rev', s.total_revenue      ? '₹'+fmtL(s.total_revenue)      : '₹48.5L');
+  setText('st-bk', s.active_bookings    ?? D.bookings?.filter(b=>b.booking_status==='Confirmed').length ?? 24);
+  setText('st-due', s.total_balance_due  ? '₹'+fmtL(s.total_balance_due)  : '₹3.8L');
+  setText('st-leads', s.open_leads         ?? D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length ?? 31);
+  setText('st-dep', s.departures_30d     ?? 8);
 
   // Reports stats
   const bks = D.bookings || [];
   const converted = D.leads?.filter(l=>l.status==='Converted').length || 0;
   const totalLeads = D.leads?.length || 1;
-  document.getElementById('rep-conv').textContent = Math.round((converted/totalLeads)*100)+'%';
+  setText('rep-conv', Math.round((converted/totalLeads)*100)+'%');
   const totalRev = bks.reduce((s,b)=>s+(b.grand_total||0),0);
-  document.getElementById('rep-abv').textContent  = bks.length ? '₹'+fmtL(totalRev/bks.length) : '—';
+  setText('rep-abv', bks.length ? '₹'+fmtL(totalRev/bks.length) : '—');
   const totalPax = bks.reduce((s,b)=>s+(b.total_pax||0),0);
-  document.getElementById('rep-pax').textContent  = bks.length ? (totalPax/bks.length).toFixed(1) : '—';
+  setText('rep-pax', bks.length ? (totalPax/bks.length).toFixed(1) : '—');
   const totalPaid = bks.reduce((s,b)=>s+(b.advance_paid||0),0);
-  document.getElementById('rep-coll').textContent = totalRev ? Math.round((totalPaid/totalRev)*100)+'%' : '—';
+  setText('rep-coll', totalRev ? Math.round((totalPaid/totalRev)*100)+'%' : '—');
   const destCount = {};
   bks.forEach(b=>{ if(b.destination) destCount[b.destination]=(destCount[b.destination]||0)+1; });
   const topDest = Object.entries(destCount).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('rep-dest').textContent = topDest?topDest[0]:'—';
+  setText('rep-dest', topDest?topDest[0]:'—');
 }
 
 /* ── REVENUE CHART ── */
@@ -1789,8 +1789,8 @@ function renderRevChart() {
   }).join('');
   const total = mr.reduce((s,m)=>s+m.rev,0);
   const best  = mr.reduce((a,b)=>a.rev>b.rev?a:b,mr[0]);
-  document.getElementById('rev-total').textContent = '₹'+fmtL(total);
-  document.getElementById('rev-best').textContent  = best.month+' ₹'+fmtL(best.rev);
+  setText('rev-total', '₹'+fmtL(total));
+  setText('rev-best', best.month+' ₹'+fmtL(best.rev));
 
   // Destination report
   renderDestReport();
@@ -1804,9 +1804,9 @@ function renderDestReport() {
   bks.forEach(b=>{ if(b.destination) dc[b.destination]=(dc[b.destination]||0)+1; });
   const sorted = Object.entries(dc).sort((a,b)=>b[1]-a[1]);
   const max = sorted[0]?.[1]||1;
-  document.getElementById('dest-report').innerHTML = sorted.slice(0,6).map(([d,c])=>`
+  setHTML('dest-report', sorted.slice(0,6).map(([d,c])=>`
     <div style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">
+      <div style="display:flex);justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">
         <span>${d}</span><span>${c} bookings</span>
       </div>
       <div class="prog-bar"><div class="prog-fill" style="width:${Math.round((c/max)*100)}%"></div></div>
@@ -1819,8 +1819,8 @@ function renderConsultReport() {
   const cc = {};
   bks.forEach(b=>{ if(b.sales_consultant) cc[b.sales_consultant]=(cc[b.sales_consultant]||0)+1; });
   const sorted = Object.entries(cc).sort((a,b)=>b[1]-a[1]);
-  document.getElementById('consult-report').innerHTML = sorted.map(([c,n])=>`
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,0.06)">
+  setHTML('consult-report', sorted.map(([c,n])=>`
+    <div style="display:flex);align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,0.06)">
       <div style="width:32px;height:32px;background:var(--jade-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:Sora;font-weight:700;font-size:13px;color:var(--jade2)">${c[0]}</div>
       <div style="flex:1"><div style="font-weight:700;font-size:13px;color:var(--ink)">${c}</div></div>
       <div style="font-family:Sora;font-weight:800;font-size:16px;color:var(--ink)">${n}</div>
@@ -1834,9 +1834,9 @@ function renderTourTypeReport() {
   bks.forEach(b=>{ const t=b.tour_type||'Other'; tc[t]=(tc[t]||0)+1; });
   const total = bks.length||1;
   const colors = ['var(--jade)','var(--blue)','var(--amber)','var(--purple)','var(--red)'];
-  document.getElementById('tourtype-report').innerHTML = Object.entries(tc).map(([t,c],i)=>`
+  setHTML('tourtype-report', Object.entries(tc).map(([t,c],i)=>`
     <div style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">
+      <div style="display:flex);justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">
         <span>${t}</span><span>${Math.round((c/total)*100)}%</span>
       </div>
       <div class="prog-bar"><div style="height:100%;background:${colors[i%colors.length]};border-radius:10px;width:${Math.round((c/total)*100)}%;transition:width .5s"></div></div>
@@ -1853,7 +1853,7 @@ function renderActivityFeed() {
     { ico:'✅', bg:'rgba(20,241,177,.12)', title:'Payment received: BK-0040',   time:'3 hrs ago' },
     { ico:'🛂', bg:'rgba(177,151,252,.15)','title':'Visa approved: Preethi N',  time:'5 hrs ago' },
   ];
-  document.getElementById('activity-feed').innerHTML = activities.map(a => `
+  setHTML('activity-feed', activities.map(a => `
     <div class="act-item">
       <div class="act-ico" style="background:${a.bg}">${a.ico}</div>
       <div class="act-text">
@@ -1861,7 +1861,7 @@ function renderActivityFeed() {
         <div class="act-time">${a.time}</div>
       </div>
     </div>
-  `).join('');
+  `).join(''));
 }
 
 /* ── DASHBOARD WIDGETS ── */
@@ -1919,7 +1919,7 @@ function renderDashWidgets() {
 function renderLeads() {
   renderKanban(D.leads||[]);
   renderLeadTable(D.leads||[]);
-  document.getElementById('nb-leads').textContent = D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length || 0;
+  setText('nb-leads', D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length || 0);
 }
 
 const STAGES = ['New','Contacted','Proposal Sent','Negotiation','Converted','Lost'];
@@ -1950,7 +1950,7 @@ function renderKanban(leads) {
 }
 
 function renderLeadTable(leads) {
-  document.getElementById('leads-tbody').innerHTML = leads.map(l => `
+  setHTML('leads-tbody', leads.map(l => `
     <tr>
       <td><span class="tbl-link" onclick="openLeadEdit('${l.name}')">${l.lead_name}</span></td>
       <td>${l.mobile||'—'}</td>
@@ -1966,7 +1966,7 @@ function renderLeadTable(leads) {
         <button class="tbl-btn tbl-btn-del" onclick="confirmDelete('lead','${l.name}','${l.lead_name}')">Del</button>
       </div></td>
     </tr>
-  `).join('');
+  `).join(''));
 }
 
 function filterLeads() {
@@ -1990,7 +1990,7 @@ function leadView(view, btn) {
 function openLeadEdit(id) {
   const l = D.leads.find(x=>x.name===id);
   if (!l) return;
-  document.getElementById('mo-lead-title').textContent = 'Edit Lead — ' + l.lead_name;
+  setText('mo-lead-title', 'Edit Lead — ' + l.lead_name);
   document.getElementById('lead-edit-id').value   = l.name;
   document.getElementById('l-name').value         = l.lead_name||'';
   document.getElementById('l-mobile').value       = l.mobile||'';
@@ -2048,11 +2048,11 @@ function saveLead() {
 /* ── BOOKINGS ── */
 function renderBookings() {
   renderBkTable(D.bookings||[]);
-  document.getElementById('nb-bk').textContent = D.bookings?.length||0;
+  setText('nb-bk', D.bookings?.length||0);
 }
 
 function renderBkTable(list) {
-  document.getElementById('bk-tbody').innerHTML = list.map(b => `
+  setHTML('bk-tbody', list.map(b => `
     <tr>
       <td><span class="tbl-link" onclick="openBkDetail('${b.name}')">${b.name}</span></td>
       <td>${b.customer||'—'}</td>
@@ -2068,7 +2068,7 @@ function renderBkTable(list) {
         <button class="tbl-btn tbl-btn-edit" onclick="openBkEdit('${b.name}')">Edit</button>
       </div></td>
     </tr>
-  `).join('');
+  `).join(''));
 }
 
 function filterBk() {
@@ -2092,10 +2092,10 @@ function openBkDetail(id) {
   const b = D.bookings.find(x=>x.name===id);
   if (!b) return;
   curBk = b;
-  document.getElementById('mo-bk-title').textContent = id + ' — ' + (b.customer||'');
+  setText('mo-bk-title', id + ' — ' + (b.customer||''));
   const paid = b.grand_total - b.balance_due;
   const pct  = b.grand_total>0?Math.round((paid/b.grand_total)*100):0;
-  document.getElementById('mo-bk-body').innerHTML = `
+  setHTML('mo-bk-body', `
     <div class="ms">
       <div class="ms-t">Booking Summary</div>
       <div class="dg">
@@ -2122,7 +2122,7 @@ function openBkDetail(id) {
     ${(b.pax_details||[]).length?`<div class="ms">
       <div class="ms-t">Travellers</div>
       <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+        <table style="width:100%);border-collapse:collapse;font-size:12.5px">
           <thead><tr style="background:rgba(5,19,60,0.03)">
             <th style="padding:8px 10px;text-align:left;font-size:10.5px;font-weight:700;color:var(--t3)">Name</th>
             <th style="padding:8px 10px;text-align:left;font-size:10.5px;font-weight:700;color:var(--t3)">Type</th>
@@ -2144,7 +2144,7 @@ function openBkDetail(id) {
 function openBkEdit(id) {
   const b = D.bookings.find(x=>x.name===id);
   if (!b) return;
-  document.getElementById('mo-nbk-title').textContent = 'Edit Booking — ' + id;
+  setText('mo-nbk-title', 'Edit Booking — ' + id);
   document.getElementById('bk-edit-id').value = b.name;
   document.getElementById('bk-customer').value  = b.customer||'';
   document.getElementById('bk-package').value   = b.tour_package||'';
@@ -2290,7 +2290,7 @@ function renderPackages() {
 function openPkgEdit(id) {
   const p = D.packages.find(x=>x.name===id);
   if (!p) return;
-  document.getElementById('mo-pkg-title').textContent = 'Edit Package';
+  setText('mo-pkg-title', 'Edit Package');
   document.getElementById('pkg-edit-id').value    = p.name;
   document.getElementById('pkg-name').value       = p.package_name||'';
   document.getElementById('pkg-dest').value       = p.destination||'';
@@ -2381,7 +2381,7 @@ function renderDepartures() {
   }).join('') || `<div style="color:var(--t3);font-size:13px;padding:10px">No upcoming departures</div>`;
 
   // Table
-  document.getElementById('dep-tbody').innerHTML = bks.map(b => `
+  setHTML('dep-tbody', bks.map(b => `
     <tr>
       <td style="font-weight:700">${fmtDate(b.departure_date)}</td>
       <td>${b.tour_package||'—'}</td>
@@ -2395,7 +2395,7 @@ function renderDepartures() {
         <button class="tbl-btn tbl-btn-edit" onclick="openBkEdit('${b.name}')">Edit</button>
       </div></td>
     </tr>
-  `).join('') || `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No departures yet</td></tr>`;
+  `).join('') || `<tr><td colspan="8" style="text-align:center);padding:28px;color:var(--t3)">No departures yet</td></tr>`;
 }
 
 /* ── VISA ── */
@@ -2407,7 +2407,7 @@ function renderVisa() {
 }
 
 function renderVisaTable(list) {
-  document.getElementById('visa-tbody').innerHTML = list.map(p => `
+  setHTML('visa-tbody', list.map(p => `
     <tr>
       <td style="font-weight:600">${p.pax_name||'—'}</td>
       <td><span class="tbl-link" onclick="openBkDetail('${p.bk}')">${p.bk}</span></td>
@@ -2420,7 +2420,7 @@ function renderVisaTable(list) {
         <button class="tbl-btn tbl-btn-edit" onclick="updateVisaStatus('${p.bk}','${p.pax_name}')">Update</button>
       </div></td>
     </tr>
-  `).join('') || `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No visa records</td></tr>`;
+  `).join('') || `<tr><td colspan="8" style="text-align:center);padding:28px;color:var(--t3)">No visa records</td></tr>`;
 }
 
 function filterVisa(status,btn) {
@@ -2501,7 +2501,7 @@ function saveSettings(section) {
 
 /* ── CONFIRM DELETE ── */
 function confirmDelete(type, id, name) {
-  document.getElementById('mo-confirm-msg').textContent = `Delete ${type}: ${name} (${id})?`;
+  setText('mo-confirm-msg', `Delete ${type}: ${name} (${id})?`);
   document.getElementById('mo-confirm-btn').onclick = () => {
     _fc({
       method: 'travel_tour.www.founder_dash.delete_record',
@@ -2527,7 +2527,7 @@ function goPage(id,navEl){
   document.getElementById('pg-'+id).classList.add('active');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
-  document.getElementById('tb-title').textContent = PAGE_TITLES[id]||'';
+  setText('tb-title', PAGE_TITLES[id]||'');
   document.getElementById('sb').classList.remove('open');
 }
 
@@ -2580,17 +2580,56 @@ function destEmoji(d) {
 let toastT;
 function showToast(ico, msg) {
   const t = document.getElementById('toast');
-  document.getElementById('toast-ico').textContent = ico;
-  document.getElementById('toast-msg').textContent = msg;
+  setText('toast-ico', ico);
+  setText('toast-msg', msg);
   t.classList.add('show');
   clearTimeout(toastT);
   toastT = setTimeout(()=>t.classList.remove('show'), 3500);
 }
 
 function getCsrf(){var m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);return m?decodeURIComponent(m[1]):'';}
-function _fc(opts){var args=opts.args||{};var fd=new URLSearchParams();Object.keys(args).forEach(function(k){var v=args[k];fd.append(k,typeof v==='object'?JSON.stringify(v):(v==null?'':String(v)));});fetch('/api/method/'+opts.method,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded','X-Frappe-CSRF-Token':getCsrf()},body:fd.toString()}).then(function(r){if(r.status===403||r.status===401){window.location.href='/login?redirect-to=/founder_dash';return null;}return r.json();}).then(function(r){if(!r)return;if(opts.callback)opts.callback(r);}).catch(function(e){console.error('[_fc]',e);if(opts.error)opts.error(e);});}
+function _fc(opts) {
+  var args = opts.args || {};
+  var params = new URLSearchParams();
+  Object.keys(args).forEach(function(k) {
+    var v = args[k];
+    params.append(k, typeof v === 'object' ? JSON.stringify(v) : v);
+  });
+  fetch('/api/method/' + opts.method, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-Frappe-CSRF-Token': getCsrf()
+    },
+    body: params.toString()
+  })
+  .then(function(r) {
+    if (r.status === 403 || r.status === 401) {
+      window.location.href = '/login?redirect-to=/founder_dash';
+      return null;
+    }
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    if (opts.callback) opts.callback(data);
+  })
+  .catch(function(e) {
+    console.error('_fc error:', e);
+    if (opts.error) opts.error(e);
+  });
+}
 function renderReports(){var e=document.getElementById('pg-reports');if(e)e.innerHTML='<div style="padding:40px;text-align:center;color:#888">Reports coming soon</div>';}
 
+
+function setText(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function setHTML(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.innerHTML = val;
+}
 </script>
 </body>
 </html>

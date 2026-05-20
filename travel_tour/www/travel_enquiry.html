@@ -1558,15 +1558,36 @@ function emptyState(icon,title,sub) {
 }
 
 function getCsrf(){var m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);return m?decodeURIComponent(m[1]):'';}
-function _fc(opts){
-  var args=opts.args||{};var fd=new URLSearchParams();
-  Object.keys(args).forEach(function(k){var v=args[k];fd.append(k,typeof v==='object'?JSON.stringify(v):(v==null?'':v));});
-  fetch('/api/method/'+opts.method,{method:'POST',credentials:'same-origin',
-    headers:{'Content-Type':'application/x-www-form-urlencoded','X-Frappe-CSRF-Token':getCsrf()},
-    body:fd.toString()})
-  .then(function(r){if(r.status===403||r.status===401){window.location.href='/my_portal';return null;}return r.json();})
-  .then(function(r){if(!r)return;if(opts.callback)opts.callback(r);})
-  .catch(function(e){console.error('[_fc]',e);if(opts.error)opts.error(e);});
+function _fc(opts) {
+  var args = opts.args || {};
+  var params = new URLSearchParams();
+  Object.keys(args).forEach(function(k) {
+    var v = args[k];
+    params.append(k, typeof v === 'object' ? JSON.stringify(v) : v);
+  });
+  fetch('/api/method/' + opts.method, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-Frappe-CSRF-Token': getCsrf()
+    },
+    body: params.toString()
+  })
+  .then(function(r) {
+    if (r.status === 403 || r.status === 401) {
+      window.location.href = '/my_portal';
+      return null;
+    }
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    if (opts.callback) opts.callback(data);
+  })
+  .catch(function(e) {
+    console.error('_fc error:', e);
+    if (opts.error) opts.error(e);
+  });
 }
 
 </script>
