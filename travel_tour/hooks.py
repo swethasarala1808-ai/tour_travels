@@ -102,3 +102,9 @@ has_website_permission = {
 
 # ── Workspace ───────────────────────────────────────────────
 # Workspace is usually defined via JSON in doctype/workspace
+
+website_route_rules = [
+    {"from_route": "/travel-enquiry", "to_route": "travel_enquiry"},
+    {"from_route": "/my-portal", "to_route": "my_portal"},
+    {"from_route": "/founder-dash", "to_route": "founder_dash"},
+]
