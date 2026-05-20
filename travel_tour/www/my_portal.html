@@ -472,7 +472,7 @@ function doLogin() {
   btn.classList.add('loading');
   btn.innerHTML = '<span class="spinner"></span>Signing in...';
 
-  frappe_call_compat({
+  frappe.call({
     method: 'travel_tour.www.my_portal.portal_login',
     args: { mobile, password },
     callback(r) {
@@ -480,7 +480,8 @@ function doLogin() {
       if (r.message && r.message.success) {
         btn.innerHTML = '✓ Success! Redirecting...';
         btn.style.background = '#0aab7d';
-        setTimeout(() => { window.location.href = r.message.redirect || '/travel_enquiry'; }, 900);
+        // Session created server-side by portal_login - just redirect
+        window.location.href = r.message.redirect || '/travel_enquiry';
       } else {
         btn.textContent = 'Sign In to My Portal →';
         showError(errEl, (r.message && r.message.error) || 'Invalid credentials. Please try again.');
@@ -508,7 +509,7 @@ function doReset() {
   btn.classList.add('loading');
   btn.innerHTML = '<span class="spinner"></span>Sending...';
 
-  frappe_call_compat({
+  frappe.call({
     method: 'travel_tour.www.my_portal.reset_portal_password',
     args: { mobile },
     callback(r) {
@@ -539,75 +540,6 @@ function showLogin() {
   document.getElementById('reset-panel').style.display = 'none';
   document.getElementById('login-error').classList.remove('show');
 }
-
-function _getCsrf_old() {
-  var m = document.cookie.match(/csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-function frappe_call_compat(opts) {
-  fetch('/api/method/' + opts.method, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Frappe-CSRF-Token': _csrf()
-    },
-    body: JSON.stringify(opts.args || {})
-  })
-  .then(r => r.json())
-  .then(r => { if (opts.callback) opts.callback(r); })
-  .catch(e => { if (opts.error) opts.error(e); });
-}
-
-
-function _fc(opts) {
-  var args = opts.args || {};
-  // Build form-encoded body (Frappe expects this for whitelist methods)
-  var body = 'cmd=' + encodeURIComponent(opts.method);
-  Object.keys(args).forEach(function(k) {
-    var v = args[k];
-    body += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(
-      typeof v === 'object' ? JSON.stringify(v) : (v === null || v === undefined ? '' : v)
-    );
-  });
-  fetch('/api/method/' + opts.method, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-Frappe-CSRF-Token': _csrf()
-    },
-    body: body
-  })
-  .then(function(r) {
-    if (r.status === 403 || r.status === 401) {
-      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
-      return null;
-    }
-    return r.json();
-  })
-  .then(function(r) {
-    if (!r) return;
-    if (opts.callback) opts.callback(r);
-  })
-  .catch(function(e) {
-    console.error('[_fc] error:', e);
-    if (opts.error) opts.error(e);
-  });
-}
-
-function _csrf() {
-  // 1. frappe object
-  if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token !== '{{ csrf_token }}')
-    return frappe.csrf_token;
-  // 2. meta tag
-  var el = document.querySelector('meta[name="csrf-token"]');
-  if (el) return el.getAttribute('content');
-  // 3. cookie
-  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-
-function frappe_call_compat(opts){_fc(opts);}
 </script>
 </body>
 </html>

@@ -1035,7 +1035,7 @@ body{
 var S = { lead: null, bookings: [], cur: null };
 
 // ── INIT ──
-window.addEventListener("load", function() { (function(){function _init(){
+frappe.ready(function() {
   loadData();
   // Close dropdowns on outside click
   document.addEventListener('click', e => {
@@ -1044,31 +1044,27 @@ window.addEventListener("load", function() { (function(){function _init(){
     if (!e.target.closest('.sidebar') && !e.target.closest('.menu-toggle'))
       document.getElementById('sidebar').classList.remove('open');
   });
-} _init(); })(); });
+});
 
 function loadData() {
-  _fc({
+  frappe.call({
     method: 'travel_tour.www.travel_enquiry.get_portal_data',
-    callback: function(r) {
-      if (r && r.message) {
-        S = r.message;
-        S.bookings = S.bookings || [];
-        renderAll();
-      } else {
-        window.location.href = '/my_portal';
-      }
+    callback(r) {
+      if (r.message) { S = r.message; renderAll(); }
+      else window.location.href = '/my_portal';
     },
-    error: function(e) {
-      console.error('loadData error:', e);
-      window.location.href = '/my_portal';
-    }
+    error() { window.location.href = '/my_portal'; }
   });
 }
 
 // ── RENDER ALL ──
+
+/* ── SAFE GET ── */
+function $id(id) { return document.getElementById(id); }
+function setText(id, val) { var el = $id(id); if(el) el.textContent = val; }
+function setHTML(id, val) { var el = $id(id); if(el) el.innerHTML = val; }
+
 function renderAll() {
-  if(!S)return;
-  S.bookings=S.bookings||[];S.visas=S.visas||[];
   const { lead, bookings } = S;
   if (!lead) { window.location.href = '/my_portal'; return; }
 
@@ -1076,23 +1072,23 @@ function renderAll() {
   const initials = fname[0].toUpperCase();
 
   // Sidebar / topbar identity
-  document.getElementById('sb-name').textContent = lead.lead_name || '—';
-  document.getElementById('sb-mobile').textContent = '+91 ' + (lead.mobile || '');
-  document.getElementById('sb-avatar').textContent = initials;
-  document.getElementById('tb-avatar').textContent = initials;
-  document.getElementById('user-fname').textContent = fname;
+  setText('sb-name', lead.lead_name || '—');
+  setText('sb-mobile', '+91 ' + (lead.mobile || ''));
+  setText('sb-avatar', initials);
+  setText('tb-avatar', initials);
+  setText('user-fname', fname);
 
   // Profile fields
-  document.getElementById('prof-avatar-big').textContent = initials;
-  document.getElementById('prof-name-display').textContent = lead.lead_name || '—';
-  document.getElementById('prof-meta-display').textContent = `+91 ${lead.mobile || ''} · ${lead.email || 'No email'}`;
-  document.getElementById('pf-name').textContent = lead.lead_name || '—';
-  document.getElementById('pf-mobile').textContent = '+91 ' + (lead.mobile || '');
-  document.getElementById('pf-email').textContent = lead.email || '—';
-  document.getElementById('pf-status').innerHTML = badge(lead.status || 'New');
-  document.getElementById('pf-consultant').textContent = lead.assigned_consultant || 'Not assigned';
-  document.getElementById('pf-tour').textContent = lead.tour_type_pref || '—';
-  document.getElementById('pf-destination').textContent = lead.interested_destination || '—';
+  setText('prof-avatar-big', initials);
+  setText('prof-name-display', lead.lead_name || '—');
+  setText('prof-meta-display', `+91 ${lead.mobile || ''} · ${lead.email || 'No email'}`);
+  setText('pf-name', lead.lead_name || '—');
+  setText('pf-mobile', '+91 ' + (lead.mobile || ''));
+  setText('pf-email', lead.email || '—');
+  setHTML('pf-status', badge(lead.status || 'New'));
+  setText('pf-consultant', lead.assigned_consultant || 'Not assigned');
+  setText('pf-tour', lead.tour_type_pref || '—');
+  setText('pf-destination', lead.interested_destination || '—');
 
   // Stats
   const confirmed = bookings.filter(b => b.booking_status === 'Confirmed');
@@ -1100,11 +1096,11 @@ function renderAll() {
   const totalBal  = bookings.reduce((s,b) => s + (b.balance_due||0), 0);
   const dests     = [...new Set(bookings.map(b=>b.destination).filter(Boolean))].length;
 
-  document.getElementById('st-bookings').textContent = bookings.length;
-  document.getElementById('st-upcoming').textContent = upcoming.length;
-  document.getElementById('st-balance').textContent  = '₹' + fmt(totalBal);
-  document.getElementById('st-dest').textContent     = dests;
-  document.getElementById('nb-bookings').textContent = bookings.length;
+  setText('st-bookings', bookings.length);
+  setText('st-upcoming', upcoming.length);
+  setText('st-balance', '₹' + fmt(totalBal));
+  setText('st-dest', dests);
+  setText('nb-bookings', bookings.length);
 
   // Dashboard widgets
   renderRecentBk(bookings.slice(0,4));
@@ -1173,7 +1169,7 @@ function renderTimeline(b) {
     { done:b.balance_due<=0, icon:b.balance_due<=0?'✓':'○', title:'Balance Payment', time:b.balance_due>0?'₹'+fmt(b.balance_due)+' due':'Paid' },
     { done:false, icon:'✈️', title:'Departure',          time:fmtDate(b.departure_date) },
   ];
-  document.getElementById('bk-timeline').innerHTML = steps.map(s => `
+  setHTML('bk-timeline', steps.map(s => `
     <div class="tl-item">
       <div class="tl-dot ${s.done?'done':''}">${s.icon}</div>
       <div class="tl-text">
@@ -1228,10 +1224,10 @@ function openBk(id) {
   if (!b) return;
   S.cur = b;
 
-  document.getElementById('mb-title').textContent = id;
+  setText('mb-title', id);
   const payBtn = document.getElementById('mb-pay-btn');
   payBtn.style.display = b.balance_due > 0 ? '' : 'none';
-  payBtn.textContent = 'Pay ₹' + fmt(b.balance_due);
+  if(payBtn) payBtn.textContent = 'Pay ₹' + fmt(b.balance_due);
 
   const paxRows = (b.pax_details||[]).map(p => `
     <tr>
@@ -1242,7 +1238,7 @@ function openBk(id) {
     </tr>
   `).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--muted)">No traveller details</td></tr>`;
 
-  document.getElementById('mb-body').innerHTML = `
+  setHTML('mb-body', `
     <div class="ms">
       <div class="ms-title">Booking Summary</div>
       <div class="detail-grid">
@@ -1291,7 +1287,7 @@ function openBk(id) {
 function payBalance() {
   const b = S.cur;
   if (!b || b.balance_due <= 0) return;
-  _fc({
+  frappe.call({
     method: 'travel_tour.www.travel_enquiry.create_payment_link',
     args: { booking_name: b.name },
     callback(r) {
@@ -1398,7 +1394,7 @@ function submitEnquiry() {
   if (!dest||!type||!month||!pax) {
     showToast('❌','Please fill in all required fields.'); return;
   }
-  _fc({
+  frappe.call({
     method: 'travel_tour.www.travel_enquiry.update_lead_enquiry',
     args: {
       destination: dest, tour_type: type,
@@ -1429,7 +1425,7 @@ function openEditProfile() {
 }
 
 function saveProfile() {
-  _fc({
+  frappe.call({
     method: 'travel_tour.www.travel_enquiry.update_profile',
     args: {
       lead_name: document.getElementById('ep-name').value,
@@ -1461,7 +1457,7 @@ function changePassword() {
   if (nw.length < 6)    { showPwErr('New password must be at least 6 characters.'); return; }
   if (nw !== cnf)       { showPwErr('Passwords do not match.'); return; }
 
-  _fc({
+  frappe.call({
     method: 'travel_tour.www.my_portal.change_portal_password',
     args: { old_password: old, new_password: nw },
     callback(r) {
@@ -1476,7 +1472,7 @@ function changePassword() {
 }
 function showPwErr(msg) {
   const e = document.getElementById('pw-error');
-  e.textContent = msg; e.style.display = 'block';
+  if(e){ e.textContent = msg; e.style.display = 'block'; }
 }
 
 // ── FILTER BOOKINGS ──
@@ -1498,7 +1494,7 @@ function goPage(id, navEl) {
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
-  document.getElementById('topbar-title').textContent = (window.PAGE_TITLES||{})[id]||id||'';
+  setText('topbar-title', PAGE_TITLES[id]||'');
   document.getElementById('sidebar').classList.remove('open');
 
   // Lazy render
@@ -1517,15 +1513,15 @@ function toggleNotif()   { document.getElementById('notif-panel').classList.togg
 
 // ── LOGOUT ──
 function doLogout() {
-  _fc({ method:'logout', callback(){ window.location.href='/my_portal'; } });
+  frappe.call({ method:'logout', callback(){ window.location.href='/my_portal'; } });
 }
 
 // ── TOAST ──
 let toastTimer;
 function showToast(icon, msg) {
   const t = document.getElementById('toast');
-  document.getElementById('toast-icon').textContent = icon;
-  document.getElementById('toast-msg').textContent  = msg;
+  setText('toast-icon', icon);
+  setText('toast-msg', msg);
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>t.classList.remove('show'), 3500);
@@ -1565,72 +1561,6 @@ function emptyState(icon,title,sub) {
     <div class="es-title">${title}</div>
     <div class="es-sub">${sub}</div>
   </div>`;
-}
-
-function _csrf() {
-  if (typeof frappe !== 'undefined' && frappe.csrf_token) return frappe.csrf_token;
-  var m = document.cookie.match(/csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-
-
-function _fc(opts) {
-  var args = opts.args || {};
-  // Build form-encoded body (Frappe expects this for whitelist methods)
-  var body = 'cmd=' + encodeURIComponent(opts.method);
-  Object.keys(args).forEach(function(k) {
-    var v = args[k];
-    body += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(
-      typeof v === 'object' ? JSON.stringify(v) : (v === null || v === undefined ? '' : v)
-    );
-  });
-  fetch('/api/method/' + opts.method, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-Frappe-CSRF-Token': _csrf()
-    },
-    body: body
-  })
-  .then(function(r) {
-    if (r.status === 403 || r.status === 401) {
-      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
-      return null;
-    }
-    return r.json();
-  })
-  .then(function(r) {
-    if (!r) return;
-    if (opts.callback) opts.callback(r);
-  })
-  .catch(function(e) {
-    console.error('[_fc] error:', e);
-    if (opts.error) opts.error(e);
-  });
-}
-
-function _csrf() {
-  // 1. frappe object
-  if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token !== '{{ csrf_token }}')
-    return frappe.csrf_token;
-  // 2. meta tag
-  var el = document.querySelector('meta[name="csrf-token"]');
-  if (el) return el.getAttribute('content');
-  // 3. cookie
-  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-function _csrf() {
-  var el = document.querySelector('meta[name="csrf-token"]');
-  if (el) return el.getAttribute('content');
-  var m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-function _csrf() {
-  if(typeof frappe!=='undefined' && frappe.csrf_token) return frappe.csrf_token;
-  var m = document.cookie.match(/csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
 }
 </script>
 </body>

@@ -1643,7 +1643,7 @@ var D = {
 var curBk = null;
 
 /* ── INIT ── */
-window.addEventListener("load", function() { (function(){function _init(){
+frappe.ready(function() {
   loadData();
   document.addEventListener('click', e => {
     if (!e.target.closest('.notif-panel') && !e.target.closest('.tb-btn[onclick*="toggleNotif"]'))
@@ -1651,32 +1651,16 @@ window.addEventListener("load", function() { (function(){function _init(){
     if (!e.target.closest('.sb') && !e.target.closest('.hamburger'))
       document.getElementById('sb').classList.remove('open');
   });
-} _init(); })(); });
+});
 
 function loadData() {
-  _fc({
-    method: 'travel_tour.api.founder.get_founder_data',
-    callback: function(r) {
-      if (r && r.message) {
-        D = r.message;
-        D.leads      = D.leads      || [];
-        D.bookings   = D.bookings   || [];
-        D.packages   = D.packages   || [];
-        D.customers  = D.customers  || [];
-        D.team       = D.team       || [];
-        D.stats      = D.stats      || {};
-        D.monthly_revenue = D.monthly_revenue || [];
-        renderAll();
-      } else if (r && (r.exc_type === 'AuthenticationError' || r.exc_type === 'PermissionError')) {
-        window.location.href = '/login?redirect-to=/founder_dash';
-      } else {
-        showToast('❌', 'Failed to load data. Please refresh.');
-      }
+  frappe.call({
+    method: 'travel_tour.www.founder_dash.get_founder_data',
+    callback(r) {
+      if (r.message) { D = r.message; renderAll(); }
+      else { window.location.href = '/login'; }
     },
-    error: function(e) {
-      console.error('loadData error:', e);
-      showToast('❌', 'Network error. Please refresh.');
-    }
+    error() { renderMockData(); } // Preview fallback
   });
 }
 
@@ -1685,7 +1669,7 @@ function loadData() {
 ══════════════════════════════════════════ */
 function renderMockData() {
   D = {
-    founder: { full_name: (document.title || 'Tour Travels'), first_name: document.querySelector('.tb-founder-name')?.textContent || 'Founder' },
+    founder: { full_name:'Swetha Travels', first_name:'Swetha' },
     stats:{
       total_revenue:4850000, active_bookings:24,
       total_balance_due:385000, open_leads:31,
@@ -1737,23 +1721,21 @@ function renderMockData() {
 }
 
 /* ── RENDER ALL ── */
-function renderAll() {
-  if (!D) return;
-  D.leads     = D.leads     || [];
-  D.bookings  = D.bookings  || [];
-  D.packages  = D.packages  || [];
-  D.customers = D.customers || [];
-  D.team      = D.team      || [];
 
-  D.leads=D.leads||[];D.bookings=D.bookings||[];D.packages=D.packages||[];D.customers=D.customers||[];D.team=D.team||[];
+/* ── SAFE GET ── */
+function $id(id) { return document.getElementById(id); }
+function setText(id, val) { var el = $id(id); if(el) el.textContent = val; }
+function setHTML(id, val) { var el = $id(id); if(el) el.innerHTML = val; }
+
+function renderAll() {
   const f = D.founder || {};
   const fn = f.first_name || f.full_name?.split(' ')[0] || 'Founder';
   const ini = fn[0]?.toUpperCase() || 'T';
 
-  document.getElementById('ov-fname').textContent   = fn;
-  document.getElementById('sb-oname').textContent   = f.full_name || 'Founder';
-  document.getElementById('sb-ava').textContent     = ini;
-  document.getElementById('tb-ava').textContent     = ini;
+  setText('ov-fname', fn);
+  setText('sb-oname', f.full_name || 'Founder');
+  setText('sb-ava', ini);
+  setText('tb-ava', ini);
 
   renderStats();
   renderRevChart();
@@ -1773,27 +1755,27 @@ function renderAll() {
 /* ── STATS ── */
 function renderStats() {
   const s = D.stats || {};
-  document.getElementById('st-rev').textContent    = s.total_revenue      ? '₹'+fmtL(s.total_revenue)      : '₹48.5L';
-  document.getElementById('st-bk').textContent     = s.active_bookings    ?? D.bookings?.filter(b=>b.booking_status==='Confirmed').length ?? 24;
-  document.getElementById('st-due').textContent    = s.total_balance_due  ? '₹'+fmtL(s.total_balance_due)  : '₹3.8L';
-  document.getElementById('st-leads').textContent  = s.open_leads         ?? D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length ?? 31;
-  document.getElementById('st-dep').textContent    = s.departures_30d     ?? 8;
+  setText('st-rev', s.total_revenue      ? '₹'+fmtL(s.total_revenue)      : '₹48.5L');
+  setText('st-bk', s.active_bookings    ?? D.bookings?.filter(b=>b.booking_status==='Confirmed').length ?? 24);
+  setText('st-due', s.total_balance_due  ? '₹'+fmtL(s.total_balance_due)  : '₹3.8L');
+  setText('st-leads', s.open_leads         ?? D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length ?? 31);
+  setText('st-dep', s.departures_30d     ?? 8);
 
   // Reports stats
   const bks = D.bookings || [];
   const converted = D.leads?.filter(l=>l.status==='Converted').length || 0;
   const totalLeads = D.leads?.length || 1;
-  document.getElementById('rep-conv').textContent = Math.round((converted/totalLeads)*100)+'%';
+  setText('rep-conv', Math.round((converted/totalLeads)*100)+'%');
   const totalRev = bks.reduce((s,b)=>s+(b.grand_total||0),0);
-  document.getElementById('rep-abv').textContent  = bks.length ? '₹'+fmtL(totalRev/bks.length) : '—';
+  setText('rep-abv', bks.length ? '₹'+fmtL(totalRev/bks.length) : '—');
   const totalPax = bks.reduce((s,b)=>s+(b.total_pax||0),0);
-  document.getElementById('rep-pax').textContent  = bks.length ? (totalPax/bks.length).toFixed(1) : '—';
+  setText('rep-pax', bks.length ? (totalPax/bks.length).toFixed(1) : '—');
   const totalPaid = bks.reduce((s,b)=>s+(b.advance_paid||0),0);
-  document.getElementById('rep-coll').textContent = totalRev ? Math.round((totalPaid/totalRev)*100)+'%' : '—';
+  setText('rep-coll', totalRev ? Math.round((totalPaid/totalRev)*100)+'%' : '—');
   const destCount = {};
   bks.forEach(b=>{ if(b.destination) destCount[b.destination]=(destCount[b.destination]||0)+1; });
   const topDest = Object.entries(destCount).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('rep-dest').textContent = topDest?topDest[0]:'—';
+  setText('rep-dest', topDest?topDest[0]:'—');
 }
 
 /* ── REVENUE CHART ── */
@@ -1813,8 +1795,8 @@ function renderRevChart() {
   }).join('');
   const total = mr.reduce((s,m)=>s+m.rev,0);
   const best  = mr.reduce((a,b)=>a.rev>b.rev?a:b,mr[0]);
-  document.getElementById('rev-total').textContent = '₹'+fmtL(total);
-  document.getElementById('rev-best').textContent  = best.month+' ₹'+fmtL(best.rev);
+  setText('rev-total', '₹'+fmtL(total));
+  setText('rev-best', best.month+' ₹'+fmtL(best.rev));
 
   // Destination report
   renderDestReport();
@@ -1828,7 +1810,7 @@ function renderDestReport() {
   bks.forEach(b=>{ if(b.destination) dc[b.destination]=(dc[b.destination]||0)+1; });
   const sorted = Object.entries(dc).sort((a,b)=>b[1]-a[1]);
   const max = sorted[0]?.[1]||1;
-  document.getElementById('dest-report').innerHTML = sorted.slice(0,6).map(([d,c])=>`
+  setHTML('dest-report', sorted.slice(0,6).map(([d,c])=>`
     <div style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">
         <span>${d}</span><span>${c} bookings</span>
@@ -1843,7 +1825,7 @@ function renderConsultReport() {
   const cc = {};
   bks.forEach(b=>{ if(b.sales_consultant) cc[b.sales_consultant]=(cc[b.sales_consultant]||0)+1; });
   const sorted = Object.entries(cc).sort((a,b)=>b[1]-a[1]);
-  document.getElementById('consult-report').innerHTML = sorted.map(([c,n])=>`
+  setHTML('consult-report', sorted.map(([c,n])=>`
     <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,0.06)">
       <div style="width:32px;height:32px;background:var(--jade-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:Sora;font-weight:700;font-size:13px;color:var(--jade2)">${c[0]}</div>
       <div style="flex:1"><div style="font-weight:700;font-size:13px;color:var(--ink)">${c}</div></div>
@@ -1858,7 +1840,7 @@ function renderTourTypeReport() {
   bks.forEach(b=>{ const t=b.tour_type||'Other'; tc[t]=(tc[t]||0)+1; });
   const total = bks.length||1;
   const colors = ['var(--jade)','var(--blue)','var(--amber)','var(--purple)','var(--red)'];
-  document.getElementById('tourtype-report').innerHTML = Object.entries(tc).map(([t,c],i)=>`
+  setHTML('tourtype-report', Object.entries(tc).map(([t,c],i)=>`
     <div style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">
         <span>${t}</span><span>${Math.round((c/total)*100)}%</span>
@@ -1877,7 +1859,7 @@ function renderActivityFeed() {
     { ico:'✅', bg:'rgba(20,241,177,.12)', title:'Payment received: BK-0040',   time:'3 hrs ago' },
     { ico:'🛂', bg:'rgba(177,151,252,.15)','title':'Visa approved: Preethi N',  time:'5 hrs ago' },
   ];
-  document.getElementById('activity-feed').innerHTML = activities.map(a => `
+  setHTML('activity-feed', activities.map(a => `
     <div class="act-item">
       <div class="act-ico" style="background:${a.bg}">${a.ico}</div>
       <div class="act-text">
@@ -1943,7 +1925,7 @@ function renderDashWidgets() {
 function renderLeads() {
   renderKanban(D.leads||[]);
   renderLeadTable(D.leads||[]);
-  document.getElementById('nb-leads').textContent = D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length || 0;
+  setText('nb-leads', D.leads?.filter(l=>!['Converted','Lost'].includes(l.status)).length || 0);
 }
 
 const STAGES = ['New','Contacted','Proposal Sent','Negotiation','Converted','Lost'];
@@ -1974,7 +1956,7 @@ function renderKanban(leads) {
 }
 
 function renderLeadTable(leads) {
-  document.getElementById('leads-tbody').innerHTML = leads.map(l => `
+  setHTML('leads-tbody', leads.map(l => `
     <tr>
       <td><span class="tbl-link" onclick="openLeadEdit('${l.name}')">${l.lead_name}</span></td>
       <td>${l.mobile||'—'}</td>
@@ -2014,7 +1996,7 @@ function leadView(view, btn) {
 function openLeadEdit(id) {
   const l = D.leads.find(x=>x.name===id);
   if (!l) return;
-  document.getElementById('mo-lead-title').textContent = 'Edit Lead — ' + l.lead_name;
+  setText('mo-lead-title', 'Edit Lead — ' + l.lead_name);
   document.getElementById('lead-edit-id').value   = l.name;
   document.getElementById('l-name').value         = l.lead_name||'';
   document.getElementById('l-mobile').value       = l.mobile||'';
@@ -2035,10 +2017,10 @@ function saveLead() {
   const mobile = document.getElementById('l-mobile').value.trim();
   if (!name||!mobile) { showToast('❌','Name and mobile are required.'); return; }
 
-  _fc({
+  frappe.call({
     method: id
-      ? 'travel_tour.api.founder.update_lead'
-      : 'travel_tour.api.founder.create_lead',
+      ? 'travel_tour.www.founder_dash.update_lead'
+      : 'travel_tour.www.founder_dash.create_lead',
     args: {
       lead_id: id||null,
       lead_name: name, mobile,
@@ -2072,11 +2054,11 @@ function saveLead() {
 /* ── BOOKINGS ── */
 function renderBookings() {
   renderBkTable(D.bookings||[]);
-  document.getElementById('nb-bk').textContent = D.bookings?.length||0;
+  setText('nb-bk', D.bookings?.length||0);
 }
 
 function renderBkTable(list) {
-  document.getElementById('bk-tbody').innerHTML = list.map(b => `
+  setHTML('bk-tbody', list.map(b => `
     <tr>
       <td><span class="tbl-link" onclick="openBkDetail('${b.name}')">${b.name}</span></td>
       <td>${b.customer||'—'}</td>
@@ -2116,10 +2098,10 @@ function openBkDetail(id) {
   const b = D.bookings.find(x=>x.name===id);
   if (!b) return;
   curBk = b;
-  document.getElementById('mo-bk-title').textContent = id + ' — ' + (b.customer||'');
+  setText('mo-bk-title', id + ' — ' + (b.customer||''));
   const paid = b.grand_total - b.balance_due;
   const pct  = b.grand_total>0?Math.round((paid/b.grand_total)*100):0;
-  document.getElementById('mo-bk-body').innerHTML = `
+  setHTML('mo-bk-body', `
     <div class="ms">
       <div class="ms-t">Booking Summary</div>
       <div class="dg">
@@ -2168,7 +2150,7 @@ function openBkDetail(id) {
 function openBkEdit(id) {
   const b = D.bookings.find(x=>x.name===id);
   if (!b) return;
-  document.getElementById('mo-nbk-title').textContent = 'Edit Booking — ' + id;
+  setText('mo-nbk-title', 'Edit Booking — ' + id);
   document.getElementById('bk-edit-id').value = b.name;
   document.getElementById('bk-customer').value  = b.customer||'';
   document.getElementById('bk-package').value   = b.tour_package||'';
@@ -2189,8 +2171,8 @@ function editBooking() { if(curBk) openBkEdit(curBk.name); closeModal('mo-bk-det
 function cancelBooking() {
   if (!curBk) return;
   if (confirm(`Cancel booking ${curBk.name}?`)) {
-    _fc({
-      method:'travel_tour.api.founder.create_booking_status',
+    frappe.call({
+      method:'travel_tour.www.founder_dash.update_booking_status',
       args:{booking_name:curBk.name, status:'Cancelled'},
       callback(r){ if(r.message?.success){closeModal('mo-bk-detail');loadData();showToast('✅','Booking cancelled.');}},
       error(){ closeModal('mo-bk-detail'); showToast('✅','Cancelled (preview).'); }
@@ -2200,10 +2182,10 @@ function cancelBooking() {
 
 function saveBooking() {
   const id = document.getElementById('bk-edit-id').value;
-  _fc({
+  frappe.call({
     method: id
-      ? 'travel_tour.api.founder.create_booking'
-      : 'travel_tour.api.founder.create_booking',
+      ? 'travel_tour.www.founder_dash.update_booking'
+      : 'travel_tour.www.founder_dash.create_booking',
     args: {
       booking_id: id||null,
       customer: document.getElementById('bk-customer').value,
@@ -2270,8 +2252,8 @@ function recordPayment() {
   const bk  = document.getElementById('rp-bk').value.trim();
   const amt = document.getElementById('rp-amt').value;
   if (!bk||!amt) { showToast('❌','Booking ID and amount are required.'); return; }
-  _fc({
-    method:'travel_tour.api.founder.record_payment',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.record_payment',
     args:{booking_name:bk,amount:amt,payment_date:document.getElementById('rp-date').value,mode:document.getElementById('rp-mode').value,reference:document.getElementById('rp-ref').value,notes:document.getElementById('rp-notes').value},
     callback(r){if(r.message?.success){closeModal('mo-record-pay');loadData();showToast('✅','Payment recorded!');}else showToast('❌',r.message?.error||'Error');},
     error(){closeModal('mo-record-pay');showToast('✅','Payment recorded (preview).');}
@@ -2314,7 +2296,7 @@ function renderPackages() {
 function openPkgEdit(id) {
   const p = D.packages.find(x=>x.name===id);
   if (!p) return;
-  document.getElementById('mo-pkg-title').textContent = 'Edit Package';
+  setText('mo-pkg-title', 'Edit Package');
   document.getElementById('pkg-edit-id').value    = p.name;
   document.getElementById('pkg-name').value       = p.package_name||'';
   document.getElementById('pkg-dest').value       = p.destination||'';
@@ -2327,8 +2309,8 @@ function openPkgEdit(id) {
 }
 
 function savePackage() {
-  _fc({
-    method:'travel_tour.api.founder.save_package',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.save_package',
     args:{
       pkg_id:document.getElementById('pkg-edit-id').value||null,
       package_name:document.getElementById('pkg-name').value,
@@ -2405,7 +2387,7 @@ function renderDepartures() {
   }).join('') || `<div style="color:var(--t3);font-size:13px;padding:10px">No upcoming departures</div>`;
 
   // Table
-  document.getElementById('dep-tbody').innerHTML = bks.map(b => `
+  setHTML('dep-tbody', bks.map(b => `
     <tr>
       <td style="font-weight:700">${fmtDate(b.departure_date)}</td>
       <td>${b.tour_package||'—'}</td>
@@ -2431,7 +2413,7 @@ function renderVisa() {
 }
 
 function renderVisaTable(list) {
-  document.getElementById('visa-tbody').innerHTML = list.map(p => `
+  setHTML('visa-tbody', list.map(p => `
     <tr>
       <td style="font-weight:600">${p.pax_name||'—'}</td>
       <td><span class="tbl-link" onclick="openBkDetail('${p.bk}')">${p.bk}</span></td>
@@ -2459,8 +2441,8 @@ function updateVisaStatus(bk,pax) {
   const statuses = ['Not Applied','Applied','Approved','Rejected'];
   const val = prompt(`Visa status for ${pax}:\n(${statuses.join(' / ')})`, 'Applied');
   if (!val||!statuses.includes(val)) return;
-  _fc({
-    method:'travel_tour.api.founder.update_visa_status',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.update_visa_status',
     args:{booking_name:bk,pax_name:pax,visa_status:val},
     callback(r){if(r.message?.success){loadData();showToast('✅','Visa status updated!');}},
     error(){showToast('✅','Updated (preview).');}
@@ -2505,8 +2487,8 @@ function renderTeam() {
 }
 
 function saveTeamMember() {
-  _fc({
-    method:'travel_tour.api.founder.save_package',
+  frappe.call({
+    method:'travel_tour.www.founder_dash.save_team_member',
     args:{
       employee_name:document.getElementById('tm-name').value,
       mobile:document.getElementById('tm-mobile').value,
@@ -2525,10 +2507,10 @@ function saveSettings(section) {
 
 /* ── CONFIRM DELETE ── */
 function confirmDelete(type, id, name) {
-  document.getElementById('mo-confirm-msg').textContent = `Delete ${type}: ${name} (${id})?`;
+  setText('mo-confirm-msg', `Delete ${type}: ${name} (${id})?`);
   document.getElementById('mo-confirm-btn').onclick = () => {
-    _fc({
-      method: 'travel_tour.api.founder.delete_record',
+    frappe.call({
+      method: 'travel_tour.www.founder_dash.delete_record',
       args: { doctype: type, record_name: id },
       callback(r) { closeModal('mo-confirm'); if(r.message?.success){loadData();showToast('✅','Deleted.');}},
       error(){ closeModal('mo-confirm'); showToast('✅','Deleted (preview).'); }
@@ -2538,7 +2520,7 @@ function confirmDelete(type, id, name) {
 }
 
 /* ── NAV ── */
-window.PAGE_TITLES = window.PAGE_TITLES || {
+var PAGE_TITLES = {
   overview:'Overview', leads:'Leads & Enquiries', bookings:'Bookings',
   payments:'Payments', packages:'Tour Packages', customers:'Customers',
   departures:'Departures', visa:'Visa Tracker', team:'My Team',
@@ -2550,7 +2532,7 @@ function goPage(id, navEl) {
   document.getElementById('pg-'+id).classList.add('active');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
-  document.getElementById('tb-title').textContent = (window.PAGE_TITLES||{})[id]||'';
+  setText('tb-title', PAGE_TITLES[id]||'');
   document.getElementById('sb').classList.remove('open');
 }
 
@@ -2560,7 +2542,7 @@ function openModal(id) { document.getElementById(id).classList.add('open') }
 function closeModal(id){ document.getElementById(id).classList.remove('open') }
 
 function doLogout() {
-  _fc({method:'logout',callback(){window.location.href='/login';}});
+  frappe.call({method:'logout',callback(){window.location.href='/login';}});
 }
 
 /* ── UTILS ── */
@@ -2603,85 +2585,12 @@ function destEmoji(d) {
 let toastT;
 function showToast(ico, msg) {
   const t = document.getElementById('toast');
-  document.getElementById('toast-ico').textContent = ico;
-  document.getElementById('toast-msg').textContent = msg;
+  setText('toast-ico', ico);
+  setText('toast-msg', msg);
   t.classList.add('show');
   clearTimeout(toastT);
   toastT = setTimeout(()=>t.classList.remove('show'), 3500);
 }
-
-function _csrf() {
-  if (typeof frappe !== 'undefined' && frappe.csrf_token) return frappe.csrf_token;
-  var m = document.cookie.match(/csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-
-
-function _fc(opts) {
-  var args = opts.args || {};
-  // Build form-encoded body (Frappe expects this for whitelist methods)
-  var body = 'cmd=' + encodeURIComponent(opts.method);
-  Object.keys(args).forEach(function(k) {
-    var v = args[k];
-    body += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(
-      typeof v === 'object' ? JSON.stringify(v) : (v === null || v === undefined ? '' : v)
-    );
-  });
-  fetch('/api/method/' + opts.method, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-Frappe-CSRF-Token': _csrf()
-    },
-    body: body
-  })
-  .then(function(r) {
-    if (r.status === 403 || r.status === 401) {
-      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
-      return null;
-    }
-    return r.json();
-  })
-  .then(function(r) {
-    if (!r) return;
-    if (opts.callback) opts.callback(r);
-  })
-  .catch(function(e) {
-    console.error('[_fc] error:', e);
-    if (opts.error) opts.error(e);
-  });
-}
-
-function _csrf() {
-  // 1. frappe object
-  if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token !== '{{ csrf_token }}')
-    return frappe.csrf_token;
-  // 2. meta tag
-  var el = document.querySelector('meta[name="csrf-token"]');
-  if (el) return el.getAttribute('content');
-  // 3. cookie
-  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-function _csrf() {
-  var el = document.querySelector('meta[name="csrf-token"]');
-  if (el) return el.getAttribute('content');
-  var m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-function _csrf() {
-  if(typeof frappe!=='undefined' && frappe.csrf_token) return frappe.csrf_token;
-  var m = document.cookie.match(/csrf_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : '';
-}
-
-function renderReports() {
-  var el = document.getElementById('pg-reports');
-  if (!el) return;
-  el.innerHTML = '<div style="padding:40px;text-align:center;color:#888">Reports coming soon</div>';
-}
-
 </script>
 </body>
 </html>
