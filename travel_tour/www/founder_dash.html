@@ -1644,7 +1644,12 @@ let curBk = null;
 
 /* ── INIT ── */
 document.addEventListener("DOMContentLoaded", function() {
-  loadData();
+  // Wait for frappe to be ready before loading data
+  if (typeof frappe !== "undefined" && frappe.ready) {
+    frappe.ready(function() { loadData(); });
+  } else {
+    setTimeout(loadData, 500);
+  }
   document.addEventListener('click', e => {
     if (!e.target.closest('.notif-panel') && !e.target.closest('.tb-btn[onclick*="toggleNotif"]'))
       document.getElementById('notif-panel').classList.remove('open');
@@ -1658,7 +1663,7 @@ function loadData() {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Frappe-CSRF-Token": frappe.csrf_token
+      "X-Frappe-CSRF-Token": (typeof frappe !== 'undefined' ? frappe.csrf_token : '') || document.cookie.split('; ').find(r=>r.startsWith('csrf_token='))?.split('=')[1] || ''  
     },
     body: JSON.stringify({})
   })

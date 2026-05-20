@@ -139,7 +139,7 @@ async function doLogin(){
     btn.disabled=false;btn.textContent='Sign In to My Portal';
     if(data.message&&data.message.success){
       btn.textContent='✓ Redirecting…';btn.style.background='#0aab7d';
-      setTimeout(()=>{window.location.href='/travel_enquiry'},800);
+      sessionStorage.setItem('portal_mobile', mob); setTimeout(()=>{window.location.href='/travel_enquiry'},800);
     }else{
       err.textContent=(data.message&&data.message.error)||'Invalid credentials.';
       err.classList.add('show');
