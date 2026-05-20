@@ -1666,7 +1666,6 @@ function loadData() {
   .then(r => {
     if (r.message) { D = r.message; renderAll(); }
       else { window.location.href = '/login'; }
-    },
   })
   .catch(() => { renderMockData(); });
 }
