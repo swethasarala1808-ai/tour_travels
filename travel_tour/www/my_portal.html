@@ -472,27 +472,22 @@ function doLogin() {
   btn.classList.add('loading');
   btn.innerHTML = '<span class="spinner"></span>Signing in...';
 
-  frappe.call({
-    method: 'travel_tour.www.my_portal.portal_login',
-    args: { mobile, password },
-    callback(r) {
-      btn.classList.remove('loading');
-      if (r.message && r.message.success) {
-        btn.innerHTML = '✓ Success! Redirecting...';
-        btn.style.background = '#0aab7d';
-        // Session created server-side by portal_login - just redirect
-        window.location.href = r.message.redirect || '/travel_enquiry';
-      } else {
-        btn.textContent = 'Sign In to My Portal →';
-        showError(errEl, (r.message && r.message.error) || 'Invalid credentials. Please try again.');
-      }
-    },
-    error() {
-      btn.classList.remove('loading');
-      btn.textContent = 'Sign In to My Portal →';
-      showError(errEl, 'Server error. Please try again shortly.');
+  var fd=new URLSearchParams();
+  fd.append('mobile',mobile); fd.append('password',password);
+  fetch('/api/method/travel_tour.www.my_portal.portal_login',{
+    method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:fd.toString()
+  }).then(r=>r.json()).then(r=>{
+    btn.classList.remove('loading');
+    if(r.message&&r.message.success){
+      btn.innerHTML='✓ Redirecting...'; btn.style.background='#0aab7d';
+      window.location.replace(r.message.redirect||'/travel_enquiry');
+    } else {
+      btn.textContent='Sign In to My Portal →';
+      showError(errEl,(r.message&&r.message.error)||'Invalid credentials.');
     }
-  });
+  }).catch(()=>{btn.classList.remove('loading');btn.textContent='Sign In to My Portal →';showError(errEl,'Server error.');});
 }
 
 function doReset() {
@@ -509,18 +504,15 @@ function doReset() {
   btn.classList.add('loading');
   btn.innerHTML = '<span class="spinner"></span>Sending...';
 
-  frappe.call({
-    method: 'travel_tour.www.my_portal.reset_portal_password',
-    args: { mobile },
-    callback(r) {
-      btn.classList.remove('loading');
-      btn.textContent = 'Send New Password via WhatsApp';
-      if (r.message && r.message.success) {
-        succEl.classList.add('show');
-      } else {
-        showError(errEl, (r.message && r.message.error) || 'Mobile not registered.');
-      }
-    }
+  var fd2=new URLSearchParams(); fd2.append('mobile',mobile);
+  fetch('/api/method/travel_tour.www.my_portal.reset_portal_password',{
+    method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:fd2.toString()
+  }).then(r=>r.json()).then(r=>{
+    btn.classList.remove('loading'); btn.textContent='Send New Password via WhatsApp';
+    if(r.message&&r.message.success){succEl.classList.add('show');}
+    else{showError(errEl,(r.message&&r.message.error)||'Mobile not registered.');}
   });
 }
 
