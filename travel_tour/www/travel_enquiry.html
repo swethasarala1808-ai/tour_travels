@@ -1047,7 +1047,7 @@ window.addEventListener("load", function() { (function(){function _init(){
 } _init(); })(); });
 
 function loadData() {
-  frappe.call({
+  _fc({
     method: 'travel_tour.www.travel_enquiry.get_portal_data',
     callback(r) {
       if (r.message) { S = r.message; renderAll(); }
@@ -1283,7 +1283,7 @@ function openBk(id) {
 function payBalance() {
   const b = S.cur;
   if (!b || b.balance_due <= 0) return;
-  frappe.call({
+  _fc({
     method: 'travel_tour.www.travel_enquiry.create_payment_link',
     args: { booking_name: b.name },
     callback(r) {
@@ -1390,7 +1390,7 @@ function submitEnquiry() {
   if (!dest||!type||!month||!pax) {
     showToast('❌','Please fill in all required fields.'); return;
   }
-  frappe.call({
+  _fc({
     method: 'travel_tour.www.travel_enquiry.update_lead_enquiry',
     args: {
       destination: dest, tour_type: type,
@@ -1421,7 +1421,7 @@ function openEditProfile() {
 }
 
 function saveProfile() {
-  frappe.call({
+  _fc({
     method: 'travel_tour.www.travel_enquiry.update_profile',
     args: {
       lead_name: document.getElementById('ep-name').value,
@@ -1453,7 +1453,7 @@ function changePassword() {
   if (nw.length < 6)    { showPwErr('New password must be at least 6 characters.'); return; }
   if (nw !== cnf)       { showPwErr('Passwords do not match.'); return; }
 
-  frappe.call({
+  _fc({
     method: 'travel_tour.www.my_portal.change_portal_password',
     args: { old_password: old, new_password: nw },
     callback(r) {
@@ -1509,7 +1509,7 @@ function toggleNotif()   { document.getElementById('notif-panel').classList.togg
 
 // ── LOGOUT ──
 function doLogout() {
-  frappe.call({ method:'logout', callback(){ window.location.href='/my_portal'; } });
+  _fc({ method:'logout', callback(){ window.location.href='/my_portal'; } });
 }
 
 // ── TOAST ──
@@ -1565,6 +1565,26 @@ function getCsrf() {
   return m ? decodeURIComponent(m[1]) : '';
 }
 
+
+function _fc(opts) {
+  var args = opts.args || {};
+  fetch('/api/method/' + opts.method, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Frappe-CSRF-Token': getCsrf()
+    },
+    body: JSON.stringify(args)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(r){ if(opts.callback) opts.callback(r); })
+  .catch(function(e){ if(opts.error) opts.error(e); else console.error(e); });
+}
+function getCsrf() {
+  if(typeof frappe!=='undefined' && frappe.csrf_token) return frappe.csrf_token;
+  var m = document.cookie.match(/csrf_token=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
 </script>
 </body>
 </html>
