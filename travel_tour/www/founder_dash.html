@@ -1654,11 +1654,17 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function loadData() {
-  // frappe.call replaced:
-  fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method: 'travel_tour.www.founder_dash.get_founder_data',
-    callback(r) {
-      if (r.message) { D = r.message; renderAll(); }
+  fetch("/api/method/travel_tour.api.founder.get_founder_data", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Frappe-CSRF-Token": frappe.csrf_token
+    },
+    body: JSON.stringify({})
+  })
+  .then(r => r.json())
+  .then(r => {
+    if (r.message) { D = r.message; renderAll(); }
       else { window.location.href = '/login'; }
     },
     error() { renderMockData(); } // Preview fallback
@@ -2310,7 +2316,7 @@ function openPkgEdit(id) {
 function savePackage() {
   // frappe.call replaced:
   fetch("/api/method/frappe.client.get_list", {method:"POST",
-    method:'travel_tour.www.founder_dash.save_package',
+    method: 'travel_tour.api.founder.save_package',
     args:{
       pkg_id:document.getElementById('pkg-edit-id').value||null,
       package_name:document.getElementById('pkg-name').value,
