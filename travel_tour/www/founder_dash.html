@@ -1657,8 +1657,19 @@ function loadData() {
   _fc({
     method: 'travel_tour.api.founder.get_founder_data',
     callback(r) {
-      if (r.message) { D = r.message; renderAll(); }
-      else { window.location.href = '/login'; }
+      if (r.message) {
+        D = r.message;
+        D.leads = D.leads || [];
+        D.bookings = D.bookings || [];
+        D.packages = D.packages || [];
+        D.customers = D.customers || [];
+        D.team = D.team || [];
+        renderAll();
+      } else if (r.exc_type === 'AuthenticationError' || r.exc_type === 'PermissionError') {
+        window.location.href = '/login?redirect-to=/founder_dash';
+      } else {
+        renderMockData();
+      }
     },
     error() { renderMockData(); } // Preview fallback
   });

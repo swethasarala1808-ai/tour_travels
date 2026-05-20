@@ -1050,9 +1050,16 @@ function loadData() {
   _fc({
     method: 'travel_tour.www.travel_enquiry.get_portal_data',
     callback(r) {
-      if (r.message) { S = r.message; renderAll(); }
-      else window.location.href = '/my_portal';
+      if (r.message) {
+        S = r.message;
+        S.bookings = S.bookings || [];
+        S.visas = S.visas || [];
+        renderAll();
+      } else {
+        window.location.href = '/my_portal';
+      }
     },
+    error: function(e) { window.location.href = '/my_portal'; },
     error() { window.location.href = '/my_portal'; }
   });
 }

@@ -480,7 +480,7 @@ function doLogin() {
       if (r.message && r.message.success) {
         btn.innerHTML = '✓ Success! Redirecting...';
         btn.style.background = '#0aab7d';
-        setTimeout(() => { window.location.href = '/travel_enquiry'; }, 900);
+        setTimeout(() => { window.location.href = r.message.redirect || '/travel_enquiry'; }, 900);
       } else {
         btn.textContent = 'Sign In to My Portal →';
         showError(errEl, (r.message && r.message.error) || 'Invalid credentials. Please try again.');
