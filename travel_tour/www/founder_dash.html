@@ -1680,7 +1680,7 @@ function loadData() {
 ══════════════════════════════════════════ */
 function renderMockData() {
   D = {
-    founder: { full_name:'Swetha Travels', first_name:'Swetha' },
+    founder: { full_name: (document.title || 'Tour Travels'), first_name: document.querySelector('.tb-founder-name')?.textContent || 'Founder' },
     stats:{
       total_revenue:4850000, active_bookings:24,
       total_balance_due:385000, open_leads:31,
@@ -2607,23 +2607,55 @@ function getCsrf() {
 
 function _fc(opts) {
   var args = opts.args || {};
+  var formData = new URLSearchParams();
+  formData.append('cmd', opts.method);
+  Object.keys(args).forEach(function(k) {
+    var v = args[k];
+    formData.append(k, typeof v === 'object' ? JSON.stringify(v) : v);
+  });
   fetch('/api/method/' + opts.method, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
       'X-Frappe-CSRF-Token': getCsrf()
     },
-    body: JSON.stringify(args)
+    body: formData.toString()
   })
-  .then(function(r){ return r.json(); })
-  .then(function(r){ if(opts.callback) opts.callback(r); })
-  .catch(function(e){ if(opts.error) opts.error(e); else console.error(e); });
+  .then(function(r) {
+    if (r.status === 403 || r.status === 401) {
+      window.location.href = '/login?redirect-to=/founder_dash';
+      return null;
+    }
+    return r.json();
+  })
+  .then(function(r) {
+    if (!r) return;
+    if (r.message !== undefined && opts.callback) opts.callback(r);
+    else if (opts.error) opts.error(r);
+  })
+  .catch(function(e) {
+    console.error('API error:', e);
+    if (opts.error) opts.error(e);
+  });
+}
+function getCsrf() {
+  var el = document.querySelector('meta[name="csrf-token"]');
+  if (el) return el.getAttribute('content');
+  var m = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
+  return m ? decodeURIComponent(m[1]) : '';
 }
 function getCsrf() {
   if(typeof frappe!=='undefined' && frappe.csrf_token) return frappe.csrf_token;
   var m = document.cookie.match(/csrf_token=([^;]+)/);
   return m ? decodeURIComponent(m[1]) : '';
 }
+
+function renderReports() {
+  var el = document.getElementById('pg-reports');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:40px;text-align:center;color:#888">Reports coming soon</div>';
+}
+
 </script>
 </body>
 </html>
