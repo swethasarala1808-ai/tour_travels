@@ -1548,8 +1548,8 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
         <div class="ff"><label>Nights</label><input type="number" id="pkg-nights" placeholder="4" min="0"></div>
         <div class="ff"><label>Tour Type</label>
           <select id="pkg-type">
-            <option>Group</option><option>FIT</option>
-            <option>Honeymoon</option><option>Corporate</option><option>Adventure</option>
+            <option value="Domestic">Domestic</option>
+            <option value="International">International</option>
           </select>
         </div>
       </div>
@@ -1651,12 +1651,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function _csrf() {
-  // Read from cookie - Frappe always sets csrf_token cookie for logged-in users
   var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  if (m && m[1] && m[1] !== 'None') return decodeURIComponent(m[1]);
-  // Try frappe object (desk pages)
-  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 8) return frappe.csrf_token; } catch(e) {}
-  return '';
+  var t = m ? decodeURIComponent(m[1]) : '';
+  if (t && t !== 'None' && t.length > 8) return t;
+  try { if (typeof frappe!=='undefined' && frappe.csrf_token && frappe.csrf_token.length>8) return frappe.csrf_token; } catch(e) {}
+  return t || '';
 }
 
 function _fc(opts) {
@@ -1847,6 +1846,11 @@ function openPkgEdit(id) {
 }
 
 function savePackage() {
+  // Map frontend tour type to DocType options
+  var tt = document.getElementById('pkg-type').value || 'Domestic';
+  var ttMap = {'Group':'Domestic','FIT':'Domestic','Honeymoon':'Domestic','Corporate':'Domestic','Adventure':'Domestic','Domestic':'Domestic','International':'International'};
+  tt = ttMap[tt] || 'Domestic';
+  document.getElementById('pkg-type').value = tt;
   var id=(document.getElementById('pkg-edit-id')||{}).value||'';
   _fc({method:'travel_tour.api.founder.save_package',
     args:{pkg_id:id||null,package_name:(document.getElementById('pkg-name')||{}).value,destination:(document.getElementById('pkg-dest')||{}).value,duration:(document.getElementById('pkg-days')||{}).value,price_per_person:(document.getElementById('pkg-price')||{}).value},
