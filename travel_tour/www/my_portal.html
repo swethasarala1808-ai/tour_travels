@@ -328,6 +328,10 @@
     .right-panel { width:100%; padding:48px 28px; }
   }
 </style>
+<script>
+// Frappe CSRF token - injected by server
+var csrf_token = "{{ csrf_token }}";
+</script>
 </head>
 <body>
 
@@ -531,6 +535,18 @@ function showLogin() {
   document.getElementById('reset-panel').classList.remove('show');
   document.getElementById('reset-panel').style.display = 'none';
   document.getElementById('login-error').classList.remove('show');
+}
+
+function _csrf() {
+  // Frappe injects csrf_token as a JS variable in the page
+  if (typeof csrf_token !== "undefined" && csrf_token && csrf_token !== "{{ csrf_token }}") return csrf_token;
+  // Try frappe object
+  try { if (typeof frappe !== "undefined" && frappe.csrf_token && frappe.csrf_token.length > 4) return frappe.csrf_token; } catch(e) {}
+  // Try meta tag
+  var el = document.querySelector('meta[name="csrf-token"]'); if (el && el.content) return el.content;
+  // Try cookie
+  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/); if (m) return decodeURIComponent(m[1]);
+  return "";
 }
 
 function _fc(opts) {
