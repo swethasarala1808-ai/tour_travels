@@ -1649,9 +1649,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function _csrf() {
-  if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token !== 'None' && frappe.csrf_token.length > 4) return frappe.csrf_token;
-  var el = document.querySelector('meta[name="csrf-token"]'); if (el) return el.content;
-  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/); return m ? decodeURIComponent(m[1]) : '';
+  // Try frappe object first (when loaded in Frappe context)
+  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 4 && frappe.csrf_token !== 'None') return frappe.csrf_token; } catch(e) {}
+  // Try meta tag (Frappe injects this into pages)
+  var el = document.querySelector('meta[name="csrf-token"]'); if (el && el.content) return el.content;
+  // Try cookie
+  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/); if (m) return decodeURIComponent(m[1]);
+  // Try X-Frappe-CSRF-Token from page data
+  try { if (window.csrf_token) return window.csrf_token; } catch(e) {}
+  return '';
 }
 
 function _fc(opts) {

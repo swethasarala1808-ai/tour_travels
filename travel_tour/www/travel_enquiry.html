@@ -1046,6 +1046,40 @@ window.addEventListener('load', function() {
   });
 });
 
+
+function _csrf() {
+  try {
+    if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 4 && frappe.csrf_token !== 'None')
+      return frappe.csrf_token;
+  } catch(e) {}
+  var el = document.querySelector('meta[name="csrf-token"]');
+  if (el && el.content) return el.content;
+  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+function _fc(opts) {
+  fetch('/api/method/' + opts.method, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Frappe-CSRF-Token': _csrf(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(opts.args || {})
+  })
+  .then(function(r) {
+    if (r.status === 401 || r.status === 403) {
+      window.location.href = '/my_portal'; return null;
+    }
+    return r.json();
+  })
+  .then(function(r) { if (!r) return; if (opts.callback) opts.callback(r); })
+  .catch(function(e) { console.error('[_fc]', opts.method, e); if (opts.error) opts.error(e); });
+}
+
 function loadData() {
   _fc({
     method: 'travel_tour.www.travel_enquiry.get_portal_data',
@@ -1562,36 +1596,7 @@ function emptyState(icon,title,sub) {
 }
 
 
-function _fc(opts) {
-  var method  = opts.method || '';
-  var args    = opts.args   || {};
-  fetch('/api/method/' + method, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type':        'application/json',
-      'Accept':              'application/json',
-      'X-Frappe-CSRF-Token': _csrf(),
-      'X-Requested-With':    'XMLHttpRequest'
-    },
-    body: JSON.stringify(args)
-  })
-  .then(function(res) {
-    if (res.status === 403 || res.status === 401) {
-      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
-      return null;
-    }
-    return res.json();
-  })
-  .then(function(r) {
-    if (!r) return;
-    if (opts.callback) opts.callback(r);
-  })
-  .catch(function(e) {
-    console.error('[_fc] ' + method, e);
-    if (opts.error) opts.error(e);
-  });
-}
+
 
 
 
