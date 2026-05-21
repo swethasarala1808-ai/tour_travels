@@ -1657,10 +1657,20 @@ function loadData() {
   _fc({
     method: 'travel_tour.www.founder_dash.get_founder_data',
     callback(r) {
-      if (r.message) { D = r.message; renderAll(); }
+      if (r && r.message) {
+        D = r.message;
+        D.leads      = D.leads      || [];
+        D.bookings   = D.bookings   || [];
+        D.packages   = D.packages   || [];
+        D.customers  = D.customers  || [];
+        D.team       = D.team       || [];
+        D.stats      = D.stats      || {};
+        D.monthly_revenue = D.monthly_revenue || [];
+        renderAll();
+      }
       else { window.location.href = '/login'; }
     },
-    error() { renderMockData(); } // Preview fallback
+    error: function(e) { console.error('loadData failed:', e); showToast('❌','Could not load data. Please refresh.'); }
   });
 }
 
@@ -1722,6 +1732,13 @@ function renderMockData() {
 
 /* ── RENDER ALL ── */
 function renderAll() {
+  if (!D) return;
+  D.leads      = D.leads      || [];
+  D.bookings   = D.bookings   || [];
+  D.packages   = D.packages   || [];
+  D.customers  = D.customers  || [];
+  D.team       = D.team       || [];
+
   const f = D.founder || {};
   const fn = f.first_name || f.full_name?.split(' ')[0] || 'Founder';
   const ini = fn[0]?.toUpperCase() || 'T';
@@ -2533,8 +2550,15 @@ function goPage(id,navEl){
 
 function toggleSb()    { document.getElementById('sb').classList.toggle('open') }
 function toggleNotif() { document.getElementById('notif-panel').classList.toggle('open') }
-function openModal(id) { document.getElementById(id).classList.add('open') }
-function closeModal(id){ document.getElementById(id).classList.remove('open') }
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (!el) { console.warn('openModal: element not found:', id); return; }
+  el.classList.add('open');
+}
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
 
 function doLogout() {
   _fc({method:'logout',callback(){window.location.href='/login';}});
@@ -2587,38 +2611,39 @@ function showToast(ico, msg) {
   toastT = setTimeout(()=>t.classList.remove('show'), 3500);
 }
 
-function getCsrf(){var m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);return m?decodeURIComponent(m[1]):'';}
+
 function _fc(opts) {
-  var args = opts.args || {};
-  var params = new URLSearchParams();
-  Object.keys(args).forEach(function(k) {
-    var v = args[k];
-    params.append(k, typeof v === 'object' ? JSON.stringify(v) : v);
-  });
-  fetch('/api/method/' + opts.method, {
+  var method  = opts.method || '';
+  var args    = opts.args   || {};
+  fetch('/api/method/' + method, {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-Frappe-CSRF-Token': getCsrf()
+      'Content-Type':        'application/json',
+      'Accept':              'application/json',
+      'X-Frappe-CSRF-Token': _csrf(),
+      'X-Requested-With':    'XMLHttpRequest'
     },
-    body: params.toString()
+    body: JSON.stringify(args)
   })
-  .then(function(r) {
-    if (r.status === 403 || r.status === 401) {
-      window.location.href = '/login?redirect-to=/founder_dash';
+  .then(function(res) {
+    if (res.status === 403 || res.status === 401) {
+      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
       return null;
     }
-    return r.json();
+    return res.json();
   })
-  .then(function(data) {
-    if (!data) return;
-    if (opts.callback) opts.callback(data);
+  .then(function(r) {
+    if (!r) return;
+    if (opts.callback) opts.callback(r);
   })
   .catch(function(e) {
-    console.error('_fc error:', e);
+    console.error('[_fc] ' + method, e);
     if (opts.error) opts.error(e);
   });
 }
+
+
 function renderReports(){var e=document.getElementById('pg-reports');if(e)e.innerHTML='<div style="padding:40px;text-align:center;color:#888">Reports coming soon</div>';}
 
 

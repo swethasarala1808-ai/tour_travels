@@ -1050,7 +1050,11 @@ function loadData() {
   _fc({
     method: 'travel_tour.www.travel_enquiry.get_portal_data',
     callback(r) {
-      if (r.message) { S = r.message; renderAll(); }
+      if (r && r.message) {
+        S = r.message;
+        S.bookings = S.bookings || [];
+        renderAll();
+      }
       else window.location.href = '/my_portal';
     },
     error() { window.location.href = '/my_portal'; }
@@ -1557,38 +1561,39 @@ function emptyState(icon,title,sub) {
   </div>`;
 }
 
-function getCsrf(){var m=document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);return m?decodeURIComponent(m[1]):'';}
+
 function _fc(opts) {
-  var args = opts.args || {};
-  var params = new URLSearchParams();
-  Object.keys(args).forEach(function(k) {
-    var v = args[k];
-    params.append(k, typeof v === 'object' ? JSON.stringify(v) : v);
-  });
-  fetch('/api/method/' + opts.method, {
+  var method  = opts.method || '';
+  var args    = opts.args   || {};
+  fetch('/api/method/' + method, {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-Frappe-CSRF-Token': getCsrf()
+      'Content-Type':        'application/json',
+      'Accept':              'application/json',
+      'X-Frappe-CSRF-Token': _csrf(),
+      'X-Requested-With':    'XMLHttpRequest'
     },
-    body: params.toString()
+    body: JSON.stringify(args)
   })
-  .then(function(r) {
-    if (r.status === 403 || r.status === 401) {
-      window.location.href = '/my_portal';
+  .then(function(res) {
+    if (res.status === 403 || res.status === 401) {
+      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
       return null;
     }
-    return r.json();
+    return res.json();
   })
-  .then(function(data) {
-    if (!data) return;
-    if (opts.callback) opts.callback(data);
+  .then(function(r) {
+    if (!r) return;
+    if (opts.callback) opts.callback(r);
   })
   .catch(function(e) {
-    console.error('_fc error:', e);
+    console.error('[_fc] ' + method, e);
     if (opts.error) opts.error(e);
   });
 }
+
+
 
 </script>
 </body>

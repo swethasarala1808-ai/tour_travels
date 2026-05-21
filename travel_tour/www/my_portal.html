@@ -532,6 +532,43 @@ function showLogin() {
   document.getElementById('reset-panel').style.display = 'none';
   document.getElementById('login-error').classList.remove('show');
 }
+
+function _fc(opts) {
+  var method  = opts.method || '';
+  var args    = opts.args   || {};
+  fetch('/api/method/' + method, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type':        'application/json',
+      'Accept':              'application/json',
+      'X-Frappe-CSRF-Token': _csrf(),
+      'X-Requested-With':    'XMLHttpRequest'
+    },
+    body: JSON.stringify(args)
+  })
+  .then(function(res) {
+    if (res.status === 403 || res.status === 401) {
+      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
+      return null;
+    }
+    return res.json();
+  })
+  .then(function(r) {
+    if (!r) return;
+    if (opts.callback) opts.callback(r);
+  })
+  .catch(function(e) {
+    console.error('[_fc] ' + method, e);
+    if (opts.error) opts.error(e);
+  });
+}
+
+
+
+function frappe_call_compat(opts) { _fc(opts); }
+
+
 </script>
 </body>
 </html>
