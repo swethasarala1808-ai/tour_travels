@@ -538,6 +538,7 @@ function showLogin() {
 }
 
 function _csrf() {
+  try { if (typeof frappe !== "undefined" && frappe.boot && frappe.boot.csrf_token) return frappe.boot.csrf_token; } catch(e) {}
   // Frappe injects csrf_token as a JS variable in the page
   if (typeof csrf_token !== "undefined" && csrf_token && csrf_token !== "{{ csrf_token }}") return csrf_token;
   // Try frappe object

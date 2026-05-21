@@ -12,5 +12,5 @@ def get_context(context):
     context.no_cache = 1
     context.user = frappe.session.user
     context.user_name = frappe.db.get_value('User', frappe.session.user, 'full_name') or 'Founder'
-    # Correct way to get CSRF token in Frappe
-    context.csrf_token = frappe.sessions.get_csrf_token()
+    # Correct way - read from session data directly
+    context.csrf_token = frappe.session.data.csrf_token if frappe.session.data else ''

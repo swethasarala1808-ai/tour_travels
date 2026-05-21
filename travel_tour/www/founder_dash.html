@@ -746,8 +746,19 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 }
 </style>
 <script>
-// Frappe CSRF token - injected by server
-var csrf_token = "{{ csrf_token }}";
+// CSRF token - read from frappe.boot (most reliable method)
+var csrf_token = "";
+document.addEventListener('DOMContentLoaded', function() {
+  // frappe.boot is set by Frappe framework on every page
+  if (typeof frappe !== 'undefined' && frappe.boot && frappe.boot.csrf_token) {
+    csrf_token = frappe.boot.csrf_token;
+  } else {
+    // fallback: read from cookie
+    var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+    if (m) csrf_token = decodeURIComponent(m[1]);
+  }
+  console.log('[CSRF] token loaded:', csrf_token ? 'OK (len='+csrf_token.length+')' : 'MISSING');
+});
 </script>
 </head>
 <body>
@@ -1158,7 +1169,7 @@ var csrf_token = "{{ csrf_token }}";
       <div class="ph">
         <h2>Departures Calendar</h2>
         <div class="ph-actions">
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-dep')">+ Add Departure</button>
+          <button class="btn btn-jade btn-sm" onclick="populateDepPackages();openModal('mo-new-dep')">+ Add Departure</button>
         </div>
       </div>
       <div class="dep-strip" id="dep-strip"></div>
@@ -1655,8 +1666,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function _csrf() {
-  // Frappe injects csrf_token as a JS variable in the page
-  if (typeof csrf_token !== "undefined" && csrf_token && csrf_token !== "{{ csrf_token }}") return csrf_token;
+  // Read from frappe.boot first (most reliable)
+  try { if (typeof frappe !== "undefined" && frappe.boot && frappe.boot.csrf_token) return frappe.boot.csrf_token; } catch(e) {}
+  // Try local variable
+  if (typeof csrf_token !== "undefined" && csrf_token && csrf_token.length > 8) return csrf_token;
   // Try frappe object
   try { if (typeof frappe !== "undefined" && frappe.csrf_token && frappe.csrf_token.length > 4) return frappe.csrf_token; } catch(e) {}
   // Try meta tag
@@ -1896,6 +1909,37 @@ function toggleNotif(){var e=document.getElementById('notif-panel');if(e)e.class
 function openModal(id){var el=document.getElementById(id);if(!el){console.warn('openModal: not found:',id);return;}el.classList.add('open');}
 function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('open');}
 
+
+function saveDeparture() {
+  var pkg = document.getElementById('dep-pkg').value;
+  var date = document.getElementById('dep-date').value;
+  var pax = document.getElementById('dep-pax').value || 1;
+  var consultant = document.getElementById('dep-consultant').value;
+  if (!pkg || !date) { showToast('⚠️', 'Package and date required.'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.create_booking',
+    args: { tour_package: pkg, departure_date: date, total_pax: pax, sales_consultant: consultant },
+    callback: function(r) {
+      if (r.message && r.message.success) {
+        closeModal('mo-new-dep');
+        loadData();
+        showToast('✅', 'Departure added!');
+      } else {
+        showToast('❌', (r.message && r.message.error) || 'Error saving departure.');
+      }
+    },
+    error: function() { showToast('❌', 'Network error.'); }
+  });
+}
+
+function populateDepPackages() {
+  var sel = document.getElementById('dep-pkg');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select Package</option>';
+  (D.packages || []).forEach(function(p) {
+    sel.innerHTML += '<option value="' + p.name + '">' + p.package_name + '</option>';
+  });
+}
 function doLogout(){fetch('/api/method/logout',{method:'POST',credentials:'same-origin',headers:{'X-Frappe-CSRF-Token':_csrf()}}).then(function(){window.location.href='/login';}).catch(function(){window.location.href='/login';});}
 
 function fmt(n){return(Number(n)||0).toLocaleString('en-IN',{maximumFractionDigits:0});}
@@ -1907,5 +1951,43 @@ function destEmoji(d){if(!d)return '\u2708\uFE0F';var s=d.toLowerCase();if(s.inc
 var toastT;
 function showToast(ico,msg){var t=document.getElementById('toast');if(!t)return;var ti=document.getElementById('toast-ico');if(ti)ti.textContent=ico;var tm=document.getElementById('toast-msg');if(tm)tm.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},3500);}
 </script>
+
+<!-- Modal: New Departure -->
+<div class="modal" id="mo-new-dep">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span>Add Departure</span>
+      <button class="modal-close" onclick="closeModal('mo-new-dep')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tour Package *</label>
+          <select id="dep-pkg" style="width:100%;padding:8px;border:1px solid var(--br);border-radius:6px;background:var(--bg2)">
+            <option value="">Select Package</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Departure Date *</label>
+          <input type="date" id="dep-date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Pax</label>
+          <input type="number" id="dep-pax" placeholder="0" min="1">
+        </div>
+        <div class="form-group">
+          <label>Sales Consultant</label>
+          <input type="text" id="dep-consultant" placeholder="Consultant name">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-new-dep')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveDeparture()">Save Departure</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
