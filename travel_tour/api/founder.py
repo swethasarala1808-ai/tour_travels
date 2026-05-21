@@ -5,16 +5,15 @@ def get_founder_data():
     if frappe.session.user == 'Guest':
         frappe.throw("Login required", frappe.AuthenticationError)
 
-    # Travel Leads - using actual field names from DocType
     leads = frappe.get_all('Travel Lead',
         fields=['name','full_name','email_id','mobile_no','status',
                 'source','suggested_package','pax_count',
                 'preferred_month','assigned_consultant','creation'],
         order_by='creation desc', limit=100)
 
-    # Bookings - using actual Booking DocType field names
+    # FIXED: use table_exists('Tour Package') not 'tabTour Package'
     bookings = []
-    if frappe.db.table_exists('tabBooking'):
+    if frappe.db.table_exists('Booking'):
         bookings = frappe.get_all('Booking',
             fields=['name','customer','customer_mobile','tour_package',
                     'departure_date','total_pax','sales_consultant',
@@ -22,24 +21,19 @@ def get_founder_data():
                     'tcs_amount','grand_total','creation'],
             order_by='creation desc', limit=100)
 
-    # Tour Packages - using actual Tour Package DocType field names
     packages = []
-    if frappe.db.table_exists('tabTour Package'):
+    if frappe.db.table_exists('Tour Package'):
         packages = frappe.get_all('Tour Package',
             fields=['name','package_name','destination','tour_type',
                     'duration_days','duration_nights','visa_required','creation'],
             order_by='creation desc', limit=50)
 
-    # Stats
     total_revenue = 0
-    balance_due = 0
     active_bookings = 0
-    if frappe.db.table_exists('tabBooking'):
+    if frappe.db.table_exists('Booking'):
         try:
             r = frappe.db.sql("""
-                SELECT
-                    COALESCE(SUM(grand_total),0) as revenue,
-                    COUNT(*) as active
+                SELECT COALESCE(SUM(grand_total),0) as revenue, COUNT(*) as active
                 FROM `tabBooking`
             """, as_dict=True)
             if r:
@@ -60,7 +54,7 @@ def get_founder_data():
         'settings': {},
         'stats': {
             'total_revenue': total_revenue,
-            'balance_due': balance_due,
+            'balance_due': 0,
             'active_bookings': active_bookings,
             'open_leads': open_leads,
             'lead_count': len(leads),
@@ -120,19 +114,57 @@ def update_lead(**kwargs):
     return create_lead(**kwargs)
 
 @frappe.whitelist()
+def save_package(**kwargs):
+    # FIXED: correct table check
+    if not frappe.db.table_exists('Tour Package'):
+        return {'success': False, 'error': 'Tour Package table not found'}
+
+    pkg_id = kwargs.get('pkg_id') or kwargs.get('name')
+    if pkg_id and frappe.db.exists('Tour Package', pkg_id):
+        doc = frappe.get_doc('Tour Package', pkg_id)
+    else:
+        doc = frappe.new_doc('Tour Package')
+
+    # Map fields - tour_type must be Domestic or International
+    tour_type = kwargs.get('tour_type','Domestic')
+    if tour_type not in ('Domestic','International'):
+        tour_type = 'Domestic'
+
+    if kwargs.get('package_name'):
+        doc.package_name = kwargs['package_name']
+    doc.tour_type = tour_type
+    if kwargs.get('destination'):
+        doc.destination = kwargs['destination']
+    if kwargs.get('duration_days'):
+        doc.duration_days = int(kwargs['duration_days'])
+    if kwargs.get('duration_nights') or kwargs.get('nights'):
+        doc.duration_nights = int(kwargs.get('duration_nights') or kwargs.get('nights'))
+    if kwargs.get('visa_required') is not None:
+        doc.visa_required = int(kwargs['visa_required'])
+    if kwargs.get('description'):
+        doc.description = kwargs['description']
+
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
+    return {'success': True, 'name': doc.name}
+
+@frappe.whitelist()
+def create_package(**kwargs):
+    return save_package(**kwargs)
+
+@frappe.whitelist()
 def create_booking(**kwargs):
-    if not frappe.db.table_exists('tabBooking'):
-        return {'success': False, 'error': 'Booking module not ready'}
+    if not frappe.db.table_exists('Booking'):
+        return {'success': False, 'error': 'Booking table not found'}
     doc = frappe.get_doc({
         "doctype": "Booking",
         "customer": kwargs.get('customer',''),
-        "customer_mobile": kwargs.get('customer_mobile',''),
+        "customer_mobile": kwargs.get('customer_mobile') or kwargs.get('mobile',''),
         "tour_package": kwargs.get('tour_package',''),
         "departure_date": kwargs.get('departure_date') or kwargs.get('travel_date',''),
         "total_pax": int(kwargs.get('total_pax') or kwargs.get('pax_count') or 1),
         "sales_consultant": kwargs.get('sales_consultant',''),
-        "base_amount": float(kwargs.get('base_amount') or kwargs.get('total_amount') or 0),
-        "grand_total": float(kwargs.get('grand_total') or kwargs.get('total_amount') or 0),
+        # booking.py will auto-calculate amounts from package pricing
     })
     doc.insert(ignore_permissions=True)
     frappe.db.commit()
@@ -153,58 +185,8 @@ def record_payment(**kwargs):
     if not bname or not amount:
         return {'success': False, 'error': 'Booking ID and amount required'}
     if frappe.db.exists('Booking', bname):
-        # Booking has no paid_amount field - store in a custom note or just return success
-        # grand_total is the total, we track payments separately if needed
-        return {'success': True, 'message': f'Payment of {amount} recorded for {bname}'}
+        return {'success': True, 'message': f'Payment of {amount} noted for {bname}'}
     return {'success': False, 'error': 'Booking not found'}
-
-@frappe.whitelist()
-def save_package(**kwargs):
-    if not frappe.db.table_exists('tabTour Package'):
-        return {'success': False, 'error': 'Tour Package not available'}
-    pkg_id = kwargs.get('pkg_id') or kwargs.get('name')
-    if pkg_id and frappe.db.exists('Tour Package', pkg_id):
-        doc = frappe.get_doc('Tour Package', pkg_id)
-    else:
-        doc = frappe.new_doc('Tour Package')
-    # Map to actual field names
-    field_map = {
-        'package_name': 'package_name',
-        'tour_type': 'tour_type',
-        'destination': 'destination',
-        'duration_days': 'duration_days',
-        'duration_nights': 'duration_nights',
-        'visa_required': 'visa_required',
-        'description': 'description',
-        # HTML may send these wrong names - map them:
-        'nights': 'duration_nights',
-        'price_per_person': None,  # field doesn't exist - ignore
-        'status': None,            # field doesn't exist - ignore
-        'inclusions': None,        # field doesn't exist - ignore
-        'exclusions': None,        # field doesn't exist - ignore
-    }
-    for k, field in field_map.items():
-        if field and kwargs.get(k) is not None:
-            setattr(doc, field, kwargs[k])
-    doc.save(ignore_permissions=True)
-    frappe.db.commit()
-    return {'success': True, 'name': doc.name}
-
-# Alias so HTML calling create_package also works
-@frappe.whitelist()
-def create_package(**kwargs):
-    return save_package(**kwargs)
-
-@frappe.whitelist()
-def update_visa_status(booking_name, pax_name, visa_status):
-    if frappe.db.table_exists('tabVisa Application'):
-        visas = frappe.get_all('Visa Application',
-            filters={'booking': booking_name, 'pax_name': pax_name}, pluck='name')
-        if visas:
-            frappe.db.set_value('Visa Application', visas[0], 'status', visa_status)
-            frappe.db.commit()
-            return {'success': True}
-    return {'success': False, 'error': 'Not found'}
 
 @frappe.whitelist()
 def delete_record(doctype, record_name):
