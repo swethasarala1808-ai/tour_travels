@@ -1052,10 +1052,13 @@ window.addEventListener('load', function() {
 
 
 
+
+
 function _csrf() {
   var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  if (m && m[1] && m[1] !== 'None') return decodeURIComponent(m[1]);
-  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 8) return frappe.csrf_token; } catch(e) {}
+  var t = m ? decodeURIComponent(m[1]) : '';
+  if (t && t !== 'None' && t.length > 4) return t;
+  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 4) return frappe.csrf_token; } catch(e) {}
   return '';
 }
 

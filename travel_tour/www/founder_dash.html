@@ -1650,12 +1650,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
 function _csrf() {
   var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
   var t = m ? decodeURIComponent(m[1]) : '';
-  if (t && t !== 'None' && t.length > 8) return t;
-  try { if (typeof frappe!=='undefined' && frappe.csrf_token && frappe.csrf_token.length>8) return frappe.csrf_token; } catch(e) {}
-  return t || '';
+  if (t && t !== 'None' && t.length > 4) return t;
+  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 4) return frappe.csrf_token; } catch(e) {}
+  return '';
 }
 
 function _fc(opts) {
