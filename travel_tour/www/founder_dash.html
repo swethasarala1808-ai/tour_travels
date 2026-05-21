@@ -745,21 +745,6 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
   .bc-body{grid-template-columns:1fr 1fr}
 }
 </style>
-<script>
-// CSRF token - read from frappe.boot (most reliable method)
-var csrf_token = "";
-document.addEventListener('DOMContentLoaded', function() {
-  // frappe.boot is set by Frappe framework on every page
-  if (typeof frappe !== 'undefined' && frappe.boot && frappe.boot.csrf_token) {
-    csrf_token = frappe.boot.csrf_token;
-  } else {
-    // fallback: read from cookie
-    var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-    if (m) csrf_token = decodeURIComponent(m[1]);
-  }
-  console.log('[CSRF] token loaded:', csrf_token ? 'OK (len='+csrf_token.length+')' : 'MISSING');
-});
-</script>
 </head>
 <body>
 
@@ -1666,17 +1651,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function _csrf() {
-  // Read from frappe.boot first (most reliable)
-  try { if (typeof frappe !== "undefined" && frappe.boot && frappe.boot.csrf_token) return frappe.boot.csrf_token; } catch(e) {}
-  // Try local variable
-  if (typeof csrf_token !== "undefined" && csrf_token && csrf_token.length > 8) return csrf_token;
-  // Try frappe object
-  try { if (typeof frappe !== "undefined" && frappe.csrf_token && frappe.csrf_token.length > 4) return frappe.csrf_token; } catch(e) {}
-  // Try meta tag
-  var el = document.querySelector('meta[name="csrf-token"]'); if (el && el.content) return el.content;
-  // Try cookie
-  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/); if (m) return decodeURIComponent(m[1]);
-  return "";
+  // Read from cookie - Frappe always sets csrf_token cookie for logged-in users
+  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  if (m && m[1] && m[1] !== 'None') return decodeURIComponent(m[1]);
+  // Try frappe object (desk pages)
+  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 8) return frappe.csrf_token; } catch(e) {}
+  return '';
 }
 
 function _fc(opts) {
