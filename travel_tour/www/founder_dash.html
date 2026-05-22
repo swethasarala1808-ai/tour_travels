@@ -1685,7 +1685,7 @@ function _fc(opts) {
 }
 
 /* ── INIT ── */
-frappe.ready(function() {
+function _initDash() {
   loadData();
   document.addEventListener('click', function(e) {
     if (!e.target.closest('#notif-panel') && !e.target.closest('[onclick*="toggleNotif"]')) {
@@ -1697,7 +1697,16 @@ frappe.ready(function() {
       if (sb) sb.classList.remove('open');
     }
   });
-});
+}
+
+/* Wait for frappe to be available, then init */
+(function waitForFrappe() {
+  if (typeof frappe !== 'undefined' && frappe.ready) {
+    frappe.ready(_initDash);
+  } else {
+    setTimeout(waitForFrappe, 50);
+  }
+})();
 
 /* ── LOAD DATA ── */
 function loadData() {
