@@ -1389,8 +1389,11 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
         <div class="ff"><label>Tour Type</label>
           <select id="l-type">
             <option value="">Select</option>
-            <option>Group</option><option>FIT</option><option>Honeymoon</option>
-            <option>Corporate</option><option>Adventure</option>
+            <option value="Group">Group</option>
+            <option value="FIT">FIT</option>
+            <option value="Honeymoon">Honeymoon</option>
+            <option value="Corporate">Corporate</option>
+            <option value="Adventure">Adventure</option>
           </select>
         </div>
         <div class="ff"><label>Travel Month</label>
@@ -1410,8 +1413,12 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
       <div class="ff-row">
         <div class="ff"><label>Lead Status</label>
           <select id="l-status">
-            <option>New</option><option>Contacted</option><option>Proposal Sent</option>
-            <option>Negotiation</option><option>Converted</option><option>Lost</option>
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Proposal Sent">Proposal Sent</option>
+            <option value="Negotiation">Negotiation</option>
+            <option value="Converted">Converted</option>
+            <option value="Lost">Lost</option>
           </select>
         </div>
         <div class="ff"><label>Assign Consultant</label>
@@ -1420,7 +1427,20 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
           </select>
         </div>
       </div>
-      <div class="ff"><label>Notes / Source</label><textarea id="l-notes" placeholder="How did they enquire? Any specifics..."></textarea></div>
+      <div class="ff-row">
+        <div class="ff"><label>Source</label>
+          <select id="l-source">
+            <option value="Walk-in">Walk-in</option>
+            <option value="Website">Website</option>
+            <option value="Social Media">Social Media</option>
+            <option value="Referral">Referral</option>
+            <option value="Cold Call">Cold Call</option>
+          </select>
+        </div>
+        <div class="ff"><label>Notes</label>
+          <textarea id="l-notes" placeholder="Any specifics..."></textarea>
+        </div>
+      </div>
     </div>
     <div class="mo-foot">
       <button class="btn btn-outline" onclick="closeModal('mo-new-lead')">Cancel</button>
@@ -1655,24 +1675,37 @@ document.addEventListener('DOMContentLoaded', function() {
 function _csrf() {
   var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
   var t = m ? decodeURIComponent(m[1]) : '';
-  if (t && t !== 'None' && t.length > 4) return t;
-  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 4) return frappe.csrf_token; } catch(e) {}
+  if (t && t !== 'None' && t.length > 8) return t;
+  try { if (typeof frappe!=='undefined'&&frappe.csrf_token&&frappe.csrf_token.length>8) return frappe.csrf_token; } catch(e){}
   return '';
 }
 
 function _fc(opts) {
   fetch('/api/method/' + opts.method, {
-    method: 'POST', credentials: 'same-origin',
-    headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Frappe-CSRF-Token': _csrf(), 'X-Requested-With': 'XMLHttpRequest'},
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Frappe-CSRF-Token': _csrf(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
     body: JSON.stringify(opts.args || {})
   })
   .then(function(r) {
-    if (r.status === 401 || r.status === 403) { window.location.href = '/login?redirect-to=/founder_dash'; return null; }
+    if (r.status===401||r.status===403) {
+      window.location.href='/login?redirect-to=/founder_dash'; return null;
+    }
     return r.json();
   })
-  .then(function(r) { if (!r) return; if (opts.callback) opts.callback(r); })
-  .catch(function(e) { console.error('[_fc]', opts.method, e); if (opts.error) opts.error(e); });
+  .then(function(r) { if(!r)return; if(opts.callback)opts.callback(r); })
+  .catch(function(e) {
+    console.error('[_fc]',opts.method,e);
+    if(opts.error)opts.error(e);
+    else showToast('❌','Network error. Please try again.');
+  });
 }
+
 
 function loadData() {
   _fc({

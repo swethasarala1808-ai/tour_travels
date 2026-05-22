@@ -1,414 +1,435 @@
 import frappe
-from frappe.utils import flt, cint, nowdate
-
-
-def _check():
-    if frappe.session.user == "Guest":
-        frappe.throw("Login required", frappe.AuthenticationError)
-
-
-def _safe(fn, default=None):
-    try:
-        return fn()
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "founder." + fn.__name__)
-        return default if default is not None else {}
+from frappe.utils import flt, now
 
 
 @frappe.whitelist()
 def get_founder_data():
-    _check()
-    try:
-        user = frappe.get_doc("User", frappe.session.user)
-        fname = (user.full_name or "Founder").split()[0]
-    except Exception:
-        fname = "Founder"
+    if frappe.session.user == 'Guest':
+        frappe.throw("Login required", frappe.AuthenticationError)
+
+    leads = frappe.get_all('Travel Lead',
+        fields=['name','full_name','email_id','mobile_no','status',
+                'source','suggested_package','pax_count','preferred_month',
+                'assigned_consultant','interest_tags','remarks','creation'],
+        order_by='creation desc', limit=200)
+
+    bookings_raw = frappe.get_all('Booking',
+        fields=['name','customer','customer_mobile','tour_package',
+                'departure_date','total_pax','sales_consultant',
+                'base_amount','discount_amount','gst_amount',
+                'tcs_amount','grand_total','creation'],
+        order_by='creation desc', limit=200)
+
+    # Normalize bookings for dashboard
+    bookings = []
+    for b in bookings_raw:
+        grand = flt(b.get('grand_total') or 0)
+        bookings.append({
+            'name':             b['name'],
+            'customer':         b.get('customer') or '',
+            'tour_package':     b.get('tour_package') or '',
+            'departure_date':   str(b.get('departure_date') or ''),
+            'return_date':      '',
+            'total_pax':        int(b.get('total_pax') or 0),
+            'adult_pax':        int(b.get('total_pax') or 0),
+            'child_pax':        0,
+            'room_category':    '',
+            'base_amount':      flt(b.get('base_amount') or 0),
+            'addons_total':     0,
+            'gst_amount':       flt(b.get('gst_amount') or 0),
+            'tcs_amount':       flt(b.get('tcs_amount') or 0),
+            'discount_amount':  flt(b.get('discount_amount') or 0),
+            'grand_total':      grand,
+            'advance_paid':     0,
+            'balance_due':      grand,
+            'balance_due_date': '',
+            'payment_status':   'Partial',
+            'booking_status':   'Confirmed' if grand > 0 else 'Draft',
+            'sales_consultant': b.get('sales_consultant') or '',
+            'special_requests': '',
+            'destination':      '',
+            'creation':         str(b.get('creation') or ''),
+            'pax_details':      [],
+        })
+
+    packages_raw = frappe.get_all('Tour Package',
+        fields=['name','package_name','destination','tour_type',
+                'duration_days','duration_nights','visa_required','creation'],
+        order_by='creation desc', limit=100)
+
+    packages = []
+    for p in packages_raw:
+        try:
+            price = flt(frappe.db.sql(
+                "SELECT MIN(price_per_person) FROM `tabPackage Pricing` WHERE parent=%s",
+                p['name'])[0][0] or 0)
+        except Exception:
+            price = 0
+        bcount = frappe.db.count('Booking', {'tour_package': p['name']})
+        packages.append({
+            'name':             p['name'],
+            'package_name':     p.get('package_name') or p['name'],
+            'destination':      p.get('destination') or '',
+            'tour_type':        p.get('tour_type') or '',
+            'duration':         int(p.get('duration_days') or 0),
+            'nights':           int(p.get('duration_nights') or 0),
+            'price_per_person': price,
+            'status':           'Active',
+            'description':      '',
+            'bookings_count':   bcount,
+        })
+
+    visas = frappe.get_all('Visa Application',
+        fields=['name','booking','applicant_name','destination_country',
+                'status','passport_number','departure_date','creation'],
+        order_by='creation desc', limit=200)
+
+    destinations = frappe.get_all('Destination',
+        fields=['name','destination_name','description'],
+        limit=100)
+
+    total_revenue = flt(frappe.db.sql(
+        "SELECT COALESCE(SUM(grand_total),0) FROM `tabBooking` WHERE docstatus!=2"
+    )[0][0])
+
+    open_leads = frappe.db.count('Travel Lead',
+        {'status': ['not in', ['Converted','Lost']]})
+
+    # Normalize leads for dashboard
+    leads_norm = []
+    for l in leads:
+        leads_norm.append({
+            'name':                   l['name'],
+            'lead_name':              l.get('full_name') or l['name'],
+            'mobile':                 l.get('mobile_no') or '',
+            'email':                  l.get('email_id') or '',
+            'status':                 l.get('status') or 'New',
+            'interested_destination': '',
+            'tour_type_pref':         '',
+            'travel_month':           l.get('preferred_month') or '',
+            'pax_count':              int(l.get('pax_count') or 0),
+            'budget_per_person':      0,
+            'assigned_consultant':    l.get('assigned_consultant') or '',
+            'notes':                  l.get('remarks') or '',
+            'source':                 l.get('source') or '',
+            'creation':               str(l.get('creation') or ''),
+        })
+
+    founder_name = frappe.db.get_value('User', frappe.session.user, 'full_name') or 'Founder'
 
     return {
-        "founder": {"full_name": fname, "first_name": fname},
-        "stats": _safe(_stats),
-        "monthly_revenue": _safe(_monthly_revenue, []),
-        "leads": _safe(_leads, []),
-        "bookings": _safe(_bookings, []),
-        "packages": _safe(_packages, []),
-        "customers": _safe(_customers, []),
-        "team": [],
-    }
-
-
-def _stats():
-    leads = frappe.get_all("Travel Lead", fields=["status"])
-    open_leads = len([l for l in leads if l.status not in ["Converted", "Lost"]])
-    total_bk = 0
-    total_rev = 0
-    try:
-        if frappe.db.table_exists("Booking"):
-            total_bk = frappe.db.count("Booking")
-            r = frappe.db.sql(
-                "SELECT COALESCE(SUM(grand_total),0) FROM `tabBooking` WHERE docstatus!=2")
-            total_rev = flt(r[0][0]) if r else 0
-    except Exception:
-        pass
-    return {
-        "total_revenue": total_rev,
-        "active_bookings": cint(total_bk),
-        "total_balance_due": 0,
-        "open_leads": cint(open_leads),
-        "departures_30d": 0,
+        'founder': {
+            'full_name':  founder_name,
+            'first_name': founder_name.split()[0],
+        },
+        'stats': {
+            'total_revenue':     total_revenue,
+            'active_bookings':   len(bookings),
+            'total_balance_due': sum(b['balance_due'] for b in bookings),
+            'open_leads':        int(open_leads),
+            'departures_30d':    0,
+        },
+        'monthly_revenue': _monthly_revenue(),
+        'leads':       leads_norm,
+        'bookings':    bookings,
+        'packages':    packages,
+        'visas':       visas,
+        'destinations':destinations,
+        'customers':   _customers(bookings_raw, leads),
+        'team':        _team(),
     }
 
 
 def _monthly_revenue():
-    labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    return [{"month": m, "rev": 0} for m in labels]
-
-
-def _leads():
-    rows = frappe.get_all("Travel Lead",
-        fields=["name", "full_name", "email_id", "mobile_no", "status",
-                "source", "suggested_package", "pax_count",
-                "preferred_month", "assigned_consultant", "creation"],
-        order_by="creation desc", limit=500)
-    result = []
-    for l in rows:
-        result.append({
-            "name": l.name,
-            "lead_name": l.full_name or l.name,
-            "mobile": l.mobile_no or "",
-            "email": l.email_id or "",
-            "status": l.status or "New",
-            "interested_destination": l.suggested_package or "",
-            "tour_type_pref": "",
-            "travel_month": l.preferred_month or "",
-            "pax_count": cint(l.pax_count or 0),
-            "budget_per_person": 0,
-            "assigned_consultant": l.assigned_consultant or "",
-            "source": l.source or "",
-            "notes": "",
-            "creation": str(l.creation or ""),
-        })
-    return result
-
-
-def _bookings():
-    if not frappe.db.table_exists("Booking"):
-        return []
     try:
         rows = frappe.db.sql("""
-            SELECT name, customer, tour_package,
-                   departure_date, total_pax, grand_total,
-                   docstatus, creation
+            SELECT MONTH(departure_date) AS mnum,
+                   COALESCE(SUM(grand_total),0) AS rev
             FROM `tabBooking`
-            WHERE docstatus != 2
-            ORDER BY creation DESC LIMIT 500
+            WHERE docstatus!=2 AND YEAR(departure_date)=YEAR(CURDATE())
+              AND departure_date IS NOT NULL
+            GROUP BY MONTH(departure_date)
         """, as_dict=True)
+        m_map = {r['mnum']: flt(r['rev']) for r in rows}
     except Exception:
-        return []
+        m_map = {}
+    labels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    return [{"month": labels[i], "rev": m_map.get(i+1, 0)} for i in range(12)]
+
+
+def _customers(bookings_raw, leads):
     result = []
-    for b in rows:
-        grand = flt(b.get("grand_total") or 0)
-        ds = cint(b.get("docstatus", 0))
-        status = {0: "Draft", 1: "Confirmed", 2: "Cancelled"}.get(ds, "Draft")
-        dep = b.get("departure_date")
-        result.append({
-            "name": b.name,
-            "customer": b.customer or "",
-            "tour_package": b.tour_package or "",
-            "departure_date": str(dep) if dep else "",
-            "return_date": "",
-            "total_pax": cint(b.total_pax or 0),
-            "adult_pax": cint(b.total_pax or 0),
-            "child_pax": 0,
-            "grand_total": grand,
-            "advance_paid": 0,
-            "balance_due": grand,
-            "payment_status": "Pending",
-            "booking_status": status,
-            "sales_consultant": "",
-            "destination": "",
-            "creation": str(b.creation or ""),
-            "pax_details": [],
-        })
-    return result
-
-
-def _packages():
-    if not frappe.db.table_exists("Tour Package"):
-        return []
-    rows = frappe.get_all("Tour Package",
-        fields=["name", "package_name", "destination", "tour_type",
-                "duration_days", "duration_nights", "description"],
-        order_by="creation desc", limit=200)
-    result = []
-    for p in rows:
-        try:
-            r = frappe.db.sql(
-                "SELECT MIN(price_per_person) FROM `tabPackage Pricing` WHERE parent=%s",
-                p.name)
-            price = flt(r[0][0]) if r and r[0][0] else 0
-        except Exception:
-            price = 0
-        result.append({
-            "name": p.name,
-            "package_name": p.package_name or p.name,
-            "destination": p.destination or "",
-            "tour_type": p.tour_type or "",
-            "duration": cint(p.duration_days or 0),
-            "nights": cint(p.duration_nights or 0),
-            "price_per_person": price,
-            "status": "Active",
-            "bookings_count": 0,
-        })
-    return result
-
-
-def _customers():
-    result = []
-    try:
-        leads = frappe.get_all("Travel Lead",
-            fields=["name", "full_name", "mobile_no", "email_id", "status"],
-            filters={"status": ["not in", ["Lost"]]}, limit=300)
-        for l in leads:
+    seen = set()
+    for b in bookings_raw:
+        c = b.get('customer','')
+        if c and c not in seen:
+            seen.add(c)
             result.append({
-                "name": l.name,
-                "customer_name": l.full_name or l.name,
-                "mobile": l.mobile_no or "",
-                "email": l.email_id or "",
-                "total_bookings": 0,
-                "total_spent": 0,
-                "last_trip": "—",
+                'name': c, 'customer_name': c,
+                'mobile': b.get('customer_mobile',''),
+                'email': '', 'total_bookings': 1,
+                'total_spent': flt(b.get('grand_total',0)),
+                'last_trip': b.get('tour_package','—'),
             })
-    except Exception:
-        pass
+    for l in leads:
+        nm = l.get('full_name') or l['name']
+        if nm not in seen:
+            seen.add(nm)
+            result.append({
+                'name': l['name'], 'customer_name': nm,
+                'mobile': l.get('mobile_no',''),
+                'email': l.get('email_id',''),
+                'total_bookings': 0, 'total_spent': 0, 'last_trip': '—',
+            })
     return result
 
 
-@frappe.whitelist()
-def create_lead(**kwargs):
-    _check()
-    valid_sources = ["Website", "Social Media", "Walk-in", "Referral",
-                     "Cold Call", "Exhibition"]
-    src = kwargs.get("source", "Walk-in")
-    if src not in valid_sources:
-        src = "Walk-in"
-    valid_statuses = ["New", "Contacted", "Proposal Sent",
-                      "Negotiation", "Converted", "Lost"]
-    status = kwargs.get("status", "New")
-    if status not in valid_statuses:
-        status = "New"
+def _team():
     try:
-        doc = frappe.get_doc({
-            "doctype": "Travel Lead",
-            "full_name": kwargs.get("lead_name") or kwargs.get("full_name", ""),
-            "email_id": kwargs.get("email", ""),
-            "mobile_no": kwargs.get("mobile", ""),
-            "pax_count": cint(kwargs.get("pax_count", 0)),
-            "preferred_month": kwargs.get("travel_month", ""),
-            "source": src,
-            "assigned_consultant": kwargs.get("assigned_consultant", ""),
-            "status": status,
-        })
-        doc.flags.ignore_permissions = True
-        doc.flags.ignore_hooks = True
-        doc.insert()
-        frappe.db.commit()
-        return {"success": True, "name": doc.name}
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "create_lead")
-        return {"success": False, "error": str(e)}
+        members = frappe.get_all('Employee',
+            filters={'status':'Active'},
+            fields=['name','employee_name','designation','cell_number','company_email','status'])
+        result = []
+        for m in members:
+            n = m.get('employee_name') or m['name']
+            result.append({
+                'name': m['name'], 'employee_name': n,
+                'role': m.get('designation') or 'Staff',
+                'mobile': m.get('cell_number') or '',
+                'email': m.get('company_email') or '',
+                'status': m.get('status') or 'Active',
+                'leads_handled': frappe.db.count('Travel Lead', {'assigned_consultant': n}),
+                'bookings_confirmed': frappe.db.count('Booking', {'sales_consultant': n, 'docstatus': 1}),
+            })
+        return result
+    except Exception:
+        return []
 
+
+# ─── LEAD CRUD ────────────────────────────────────────────────────────────
+@frappe.whitelist()
+def save_lead(**kwargs):
+    lead_id = kwargs.get('name') or kwargs.get('lead_id')
+    doc = frappe.get_doc('Travel Lead', lead_id) if (lead_id and frappe.db.exists('Travel Lead', lead_id)) else frappe.new_doc('Travel Lead')
+    # Valid source options
+    src = kwargs.get('source','Walk-in')
+    if src not in ['Website','Social Media','Walk-in','Referral','Cold Call','Exhibition']:
+        src = 'Walk-in'
+    field_map = {
+        'full_name': kwargs.get('lead_name') or kwargs.get('full_name',''),
+        'email_id': kwargs.get('email',''),
+        'mobile_no': kwargs.get('mobile',''),
+        'status': kwargs.get('status','New'),
+        'source': src,
+        'pax_count': int(kwargs.get('pax_count') or 0),
+        'preferred_month': kwargs.get('travel_month',''),
+        'assigned_consultant': kwargs.get('assigned_consultant',''),
+        'remarks': kwargs.get('notes',''),
+    }
+    for k, v in field_map.items():
+        if v is not None:
+            setattr(doc, k, v)
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
+    return {'success': True, 'name': doc.name}
 
 @frappe.whitelist()
-def update_lead(**kwargs):
-    _check()
-    lid = kwargs.get("lead_id") or kwargs.get("name")
-    if not lid or not frappe.db.exists("Travel Lead", lid):
-        return {"success": False, "error": "Lead not found"}
-    try:
-        doc = frappe.get_doc("Travel Lead", lid)
-        if kwargs.get("lead_name"):
-            doc.full_name = kwargs["lead_name"]
-        if kwargs.get("mobile"):
-            doc.mobile_no = kwargs["mobile"]
-        if kwargs.get("email"):
-            doc.email_id = kwargs["email"]
-        if kwargs.get("pax_count") is not None:
-            doc.pax_count = cint(kwargs["pax_count"])
-        if kwargs.get("travel_month"):
-            doc.preferred_month = kwargs["travel_month"]
-        if kwargs.get("assigned_consultant"):
-            doc.assigned_consultant = kwargs["assigned_consultant"]
-        valid_s = ["New", "Contacted", "Proposal Sent",
-                   "Negotiation", "Converted", "Lost"]
-        if kwargs.get("status") in valid_s:
-            doc.status = kwargs["status"]
-        valid_src = ["Website", "Social Media", "Walk-in",
-                     "Referral", "Cold Call", "Exhibition"]
-        if kwargs.get("source") in valid_src:
-            doc.source = kwargs["source"]
-        doc.flags.ignore_permissions = True
-        doc.flags.ignore_hooks = True
-        doc.save()
-        frappe.db.commit()
-        return {"success": True, "name": lid}
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "update_lead")
-        return {"success": False, "error": str(e)}
+def create_lead(**kwargs): return save_lead(**kwargs)
+@frappe.whitelist()
+def update_lead(**kwargs): return save_lead(**kwargs)
 
 
+# ─── PACKAGE CRUD ─────────────────────────────────────────────────────────
+@frappe.whitelist()
+def save_package(**kwargs):
+    pkg_id = kwargs.get('name') or kwargs.get('pkg_id')
+    doc = frappe.get_doc('Tour Package', pkg_id) if (pkg_id and frappe.db.exists('Tour Package', pkg_id)) else frappe.new_doc('Tour Package')
+    tt = kwargs.get('tour_type','Domestic')
+    if tt not in ('Domestic','International'): tt = 'Domestic'
+    if kwargs.get('package_name'): doc.package_name   = kwargs['package_name']
+    if kwargs.get('destination'):  doc.destination     = kwargs['destination']
+    doc.tour_type = tt
+    if kwargs.get('duration') or kwargs.get('duration_days'):
+        doc.duration_days   = int(kwargs.get('duration') or kwargs.get('duration_days') or 0)
+    if kwargs.get('nights') or kwargs.get('duration_nights'):
+        doc.duration_nights = int(kwargs.get('nights') or kwargs.get('duration_nights') or 0)
+    if kwargs.get('description'): doc.description = kwargs['description']
+    doc.flags.ignore_permissions = True
+    doc.flags.ignore_mandatory   = True
+    doc.insert() if doc.is_new() else doc.save()
+    frappe.db.commit()
+    return {'success': True, 'name': doc.name}
+
+@frappe.whitelist()
+def create_package(**kwargs): return save_package(**kwargs)
+
+
+# ─── BOOKING CRUD (SQL bypass) ────────────────────────────────────────────
 @frappe.whitelist()
 def create_booking(**kwargs):
-    _check()
+    """Direct SQL to bypass validate() pricing check."""
+    if frappe.session.user == 'Guest':
+        frappe.throw("Login required", frappe.AuthenticationError)
     try:
-        count = frappe.db.sql("SELECT COUNT(*) FROM `tabBooking`")[0][0] or 0
-        name = "BOOK-{}-{:04d}".format(
-            nowdate().replace("-", ""), count + 1)
-        grand = flt(kwargs.get("grand_total", 0))
-        pax = cint(kwargs.get("total_pax") or kwargs.get("adult_pax", 0))
-        dep = kwargs.get("departure_date", "") or None
+        cnt  = frappe.db.sql("SELECT COUNT(*)+1 FROM `tabBooking`")[0][0]
+        name = f"BOOK-{frappe.utils.nowdate().replace('-','')}-{str(cnt).zfill(4)}"
+        grand = flt(kwargs.get('grand_total', 0))
         frappe.db.sql("""
             INSERT INTO `tabBooking`
-            (name, creation, modified, modified_by, owner, docstatus,
-             customer, tour_package, departure_date,
-             total_pax, grand_total, base_amount)
-            VALUES (%s, NOW(), NOW(), %s, %s, 0,
-                    %s, %s, %s, %s, %s, %s)
+            (name,creation,modified,modified_by,owner,docstatus,
+             customer,customer_mobile,tour_package,departure_date,
+             total_pax,sales_consultant,base_amount,grand_total)
+            VALUES(%s,NOW(),NOW(),%s,%s,0,%s,%s,%s,%s,%s,%s,%s,%s)
         """, (name, frappe.session.user, frappe.session.user,
-              kwargs.get("customer", ""),
-              kwargs.get("tour_package", ""),
-              dep, pax, grand, grand))
+              kwargs.get('customer',''), kwargs.get('customer',''),
+              kwargs.get('tour_package',''), kwargs.get('departure_date',''),
+              int(kwargs.get('total_pax') or kwargs.get('adult_pax') or 0),
+              kwargs.get('sales_consultant',''), grand, grand))
         frappe.db.commit()
-        return {"success": True, "name": name}
+        return {'success': True, 'name': name}
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "create_booking")
-        return {"success": False, "error": str(e)}
+        frappe.log_error(frappe.get_traceback(), 'create_booking')
+        return {'success': False, 'error': str(e)}
 
+@frappe.whitelist()
+def save_booking(**kwargs):
+    return create_booking(**kwargs)
 
 @frappe.whitelist()
 def update_booking(**kwargs):
-    _check()
-    bid = kwargs.get("booking_id") or kwargs.get("name")
-    if not bid or not frappe.db.exists("Booking", bid):
-        return {"success": False, "error": "Booking not found"}
-    try:
-        sets, vals = ["modified=NOW()"], []
-        for k, col in [("tour_package", "tour_package"),
-                       ("grand_total", "grand_total")]:
-            if kwargs.get(k) is not None:
-                sets.append("`{}`=%s".format(col))
-                vals.append(kwargs[k])
-        dep = kwargs.get("departure_date", "")
-        if dep:
-            sets.append("`departure_date`=%s")
-            vals.append(dep)
-        pax = cint(kwargs.get("total_pax") or kwargs.get("adult_pax", 0))
-        if pax:
-            sets.append("`total_pax`=%s")
-            vals.append(pax)
-        vals.append(bid)
-        frappe.db.sql(
-            "UPDATE `tabBooking` SET {} WHERE name=%s".format(
-                ",".join(sets)), vals)
-        frappe.db.commit()
-        return {"success": True}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
+    bid = kwargs.get('booking_id') or kwargs.get('name')
+    if not frappe.db.exists('Booking', bid):
+        return {'success': False, 'error': 'Not found'}
+    sets, vals = ['modified=NOW()'], []
+    for k, col in [('tour_package','tour_package'),('departure_date','departure_date'),
+                   ('sales_consultant','sales_consultant'),('grand_total','grand_total'),
+                   ('total_pax','total_pax'),('customer','customer')]:
+        v = kwargs.get(k) or kwargs.get('adult_pax' if k=='total_pax' else k)
+        if v is not None:
+            sets.append(f'`{col}`=%s'); vals.append(v)
+    vals.append(bid)
+    frappe.db.sql(f"UPDATE `tabBooking` SET {','.join(sets)} WHERE name=%s", vals)
+    frappe.db.commit()
+    return {'success': True}
 
 @frappe.whitelist()
 def update_booking_status(booking_name, status):
-    _check()
-    if not frappe.db.exists("Booking", booking_name):
-        return {"success": False, "error": "Not found"}
-    ds = {"Draft": 0, "Confirmed": 1, "Cancelled": 2,
-          "Completed": 1}.get(status, 0)
-    frappe.db.sql(
-        "UPDATE `tabBooking` SET docstatus=%s,modified=NOW() WHERE name=%s",
-        (ds, booking_name))
+    if not frappe.db.exists('Booking', booking_name):
+        return {'success': False, 'error': 'Not found'}
+    ds = {'Draft':0,'Confirmed':1,'Cancelled':2,'Completed':1}.get(status, 0)
+    frappe.db.sql("UPDATE `tabBooking` SET docstatus=%s,modified=NOW() WHERE name=%s", (ds, booking_name))
     frappe.db.commit()
-    return {"success": True}
-
+    return {'success': True}
 
 @frappe.whitelist()
 def record_payment(**kwargs):
-    _check()
-    bname = str(kwargs.get("booking_name", "")).strip()
-    amount = flt(kwargs.get("amount", 0))
+    bname  = (kwargs.get('booking_name') or kwargs.get('booking_id') or '').strip()
+    amount = flt(kwargs.get('amount', 0))
     if not bname:
-        return {"success": False, "error": "Booking ID required"}
+        return {'success': False, 'error': 'Booking ID required'}
     if amount <= 0:
-        return {"success": False, "error": "Amount must be greater than 0"}
-    if not frappe.db.exists("Booking", bname):
-        return {"success": False, "error": "Booking {} not found".format(bname)}
+        return {'success': False, 'error': 'Amount must be greater than 0'}
+    if not frappe.db.exists('Booking', bname):
+        return {'success': False, 'error': f"Booking '{bname}' not found"}
     try:
-        frappe.get_doc("Booking", bname).add_comment(
-            "Comment",
-            text="Payment \u20b9{:,.0f} via {} on {}. Ref: {}".format(
-                amount,
-                kwargs.get("mode", "—"),
-                kwargs.get("payment_date", nowdate()),
-                kwargs.get("reference", "—")))
+        frappe.get_doc('Booking', bname).add_comment('Comment', text=(
+            f"Payment ₹{amount:,.0f} via {kwargs.get('mode','—')} "
+            f"on {kwargs.get('payment_date', frappe.utils.nowdate())}. "
+            f"Ref: {kwargs.get('reference','—')}"))
         frappe.db.commit()
-        return {"success": True}
+        return {'success': True}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {'success': False, 'error': str(e)}
 
 
-@frappe.whitelist()
-def save_package(**kwargs):
-    _check()
-    pkg_id = kwargs.get("pkg_id")
-    tt = kwargs.get("tour_type", "Domestic")
-    if tt not in ["Domestic", "International"]:
-        tt = "Domestic"
-    try:
-        if pkg_id and frappe.db.exists("Tour Package", pkg_id):
-            doc = frappe.get_doc("Tour Package", pkg_id)
-        else:
-            doc = frappe.new_doc("Tour Package")
-        if kwargs.get("package_name"):
-            doc.package_name = kwargs["package_name"]
-        if kwargs.get("destination"):
-            doc.destination = kwargs["destination"]
-        doc.tour_type = tt
-        if kwargs.get("duration"):
-            doc.duration_days = cint(kwargs["duration"])
-        if kwargs.get("nights"):
-            doc.duration_nights = cint(kwargs["nights"])
-        if kwargs.get("description"):
-            doc.description = kwargs["description"]
-        doc.flags.ignore_permissions = True
-        doc.flags.ignore_mandatory = True
-        doc.insert() if doc.is_new() else doc.save()
-        frappe.db.commit()
-        return {"success": True, "name": doc.name}
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "save_package")
-        return {"success": False, "error": str(e)}
-
-
-@frappe.whitelist()
-def delete_record(doctype, record_name):
-    _check()
-    if doctype not in ["Travel Lead", "Booking", "Tour Package"]:
-        return {"success": False, "error": "Not allowed"}
-    if frappe.db.exists(doctype, record_name):
-        frappe.delete_doc(doctype, record_name,
-                         ignore_permissions=True, force=True)
-        frappe.db.commit()
-        return {"success": True}
-    return {"success": False, "error": "Not found"}
-
-
+# ─── VISA CRUD ────────────────────────────────────────────────────────────
 @frappe.whitelist()
 def update_visa_status(booking_name, pax_name, visa_status):
-    _check()
-    frappe.db.commit()
-    return {"success": True}
-
+    va = frappe.db.get_value('Visa Application',
+        {'booking': booking_name, 'applicant_name': pax_name}, 'name')
+    if va:
+        frappe.db.set_value('Visa Application', va, 'status', visa_status)
+        frappe.db.commit()
+        return {'success': True}
+    try:
+        frappe.get_doc('Booking', booking_name).add_comment(
+            'Comment', text=f'Visa status for {pax_name}: {visa_status}')
+        frappe.db.commit()
+    except Exception:
+        pass
+    return {'success': True}
 
 @frappe.whitelist()
+def save_visa(**kwargs):
+    vid = kwargs.get('name')
+    doc = frappe.get_doc('Visa Application', vid) if (vid and frappe.db.exists('Visa Application', vid)) else frappe.new_doc('Visa Application')
+    for f in ['booking','applicant_name','destination_country','status','passport_number','visa_type','departure_date']:
+        if kwargs.get(f) is not None:
+            setattr(doc, f, kwargs[f])
+    doc.flags.ignore_permissions = True
+    doc.insert() if doc.is_new() else doc.save()
+    frappe.db.commit()
+    return {'success': True, 'name': doc.name}
+
+
+# ─── DESTINATION CRUD ─────────────────────────────────────────────────────
+@frappe.whitelist()
+def save_destination(**kwargs):
+    did = kwargs.get('name')
+    doc = frappe.get_doc('Destination', did) if (did and frappe.db.exists('Destination', did)) else frappe.new_doc('Destination')
+    if kwargs.get('destination_name'): doc.destination_name = kwargs['destination_name']
+    if kwargs.get('description'):      doc.description      = kwargs['description']
+    doc.flags.ignore_permissions = True
+    doc.insert() if doc.is_new() else doc.save()
+    frappe.db.commit()
+    return {'success': True, 'name': doc.name}
+
+
+# ─── TEAM ─────────────────────────────────────────────────────────────────
+@frappe.whitelist()
 def save_team_member(**kwargs):
-    _check()
-    return {"success": True, "message": "Feature coming soon"}
+    try:
+        doc = frappe.new_doc('Employee')
+        doc.employee_name   = kwargs.get('employee_name','')
+        doc.designation     = kwargs.get('role','Sales Consultant')
+        doc.cell_number     = kwargs.get('mobile','')
+        doc.company_email   = kwargs.get('email','')
+        doc.status          = 'Active'
+        doc.date_of_joining = frappe.utils.nowdate()
+        doc.flags.ignore_permissions = True
+        doc.insert()
+        frappe.db.commit()
+        return {'success': True, 'name': doc.name}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+
+# ─── GENERIC DELETE ───────────────────────────────────────────────────────
+@frappe.whitelist()
+def delete_record(doctype, record_name):
+    allowed = ['Travel Lead','Booking','Tour Package','Visa Application',
+               'Destination','Visa Agent','Trip Run Sheet','Hotel Allotment',
+               'Supplier Contract','Cancellation Policy','Visa Country Config']
+    if doctype not in allowed:
+        return {'success': False, 'error': 'Not allowed'}
+    if frappe.db.exists(doctype, record_name):
+        frappe.delete_doc(doctype, record_name, ignore_permissions=True, force=True)
+        frappe.db.commit()
+        return {'success': True}
+    return {'success': False, 'error': 'Not found'}
+
+
+# ─── DOCTYPE META ─────────────────────────────────────────────────────────
+@frappe.whitelist()
+def get_doctype_fields(doctype):
+    allowed = ['Travel Lead','Booking','Tour Package','Visa Application',
+               'Destination','Visa Agent','Trip Run Sheet','Hotel Allotment',
+               'Supplier Contract','Cancellation Policy','Visa Country Config',
+               'Package Pricing','Itinerary Day','Travel Tour Settings']
+    if doctype not in allowed:
+        return []
+    meta = frappe.get_meta(doctype)
+    return [{'fieldname': f.fieldname, 'label': f.label,
+             'fieldtype': f.fieldtype, 'options': f.options, 'reqd': f.reqd}
+            for f in meta.fields
+            if f.fieldtype not in ('Section Break','Column Break')]
