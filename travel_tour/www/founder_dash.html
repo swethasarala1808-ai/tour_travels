@@ -1154,7 +1154,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
       <div class="ph">
         <h2>Departures Calendar</h2>
         <div class="ph-actions">
-          <button class="btn btn-jade btn-sm" onclick="populateDepPackages();openModal('mo-new-dep')">+ Add Departure</button>
+          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-dep')">+ Add Departure</button>
         </div>
       </div>
       <div class="dep-strip" id="dep-strip"></div>
@@ -1389,11 +1389,8 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
         <div class="ff"><label>Tour Type</label>
           <select id="l-type">
             <option value="">Select</option>
-            <option value="Group">Group</option>
-            <option value="FIT">FIT</option>
-            <option value="Honeymoon">Honeymoon</option>
-            <option value="Corporate">Corporate</option>
-            <option value="Adventure">Adventure</option>
+            <option>Group</option><option>FIT</option><option>Honeymoon</option>
+            <option>Corporate</option><option>Adventure</option>
           </select>
         </div>
         <div class="ff"><label>Travel Month</label>
@@ -1413,12 +1410,8 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
       <div class="ff-row">
         <div class="ff"><label>Lead Status</label>
           <select id="l-status">
-            <option value="New">New</option>
-            <option value="Contacted">Contacted</option>
-            <option value="Proposal Sent">Proposal Sent</option>
-            <option value="Negotiation">Negotiation</option>
-            <option value="Converted">Converted</option>
-            <option value="Lost">Lost</option>
+            <option>New</option><option>Contacted</option><option>Proposal Sent</option>
+            <option>Negotiation</option><option>Converted</option><option>Lost</option>
           </select>
         </div>
         <div class="ff"><label>Assign Consultant</label>
@@ -1427,20 +1420,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
           </select>
         </div>
       </div>
-      <div class="ff-row">
-        <div class="ff"><label>Source</label>
-          <select id="l-source">
-            <option value="Walk-in">Walk-in</option>
-            <option value="Website">Website</option>
-            <option value="Social Media">Social Media</option>
-            <option value="Referral">Referral</option>
-            <option value="Cold Call">Cold Call</option>
-          </select>
-        </div>
-        <div class="ff"><label>Notes</label>
-          <textarea id="l-notes" placeholder="Any specifics..."></textarea>
-        </div>
-      </div>
+      <div class="ff"><label>Notes / Source</label><textarea id="l-notes" placeholder="How did they enquire? Any specifics..."></textarea></div>
     </div>
     <div class="mo-foot">
       <button class="btn btn-outline" onclick="closeModal('mo-new-lead')">Cancel</button>
@@ -1655,31 +1635,27 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
      JAVASCRIPT
 ═══════════════════════════════════════════════════════ -->
 <script>
-var D = {leads:[],bookings:[],packages:[],team:[],customers:[],settings:{},stats:{},founder:null,monthly_revenue:[]};
+/* ══════════════════════════════════════════════
+   TOUR TRAVELS FOUNDER DASHBOARD
+   All API calls use travel_tour.www.founder_dash.*
+   which match the whitelisted methods in founder_dash.py
+══════════════════════════════════════════════ */
+
+var D = {
+  leads:[], bookings:[], packages:[], customers:[], team:[],
+  stats:{}, founder:null, monthly_revenue:[]
+};
 var curBk = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-  loadData();
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.notif-panel') && !e.target.closest('[onclick*="toggleNotif"]'))
-      document.getElementById('notif-panel').classList.remove('open');
-    if (!e.target.closest('.sb') && !e.target.closest('.hamburger'))
-      document.getElementById('sb').classList.remove('open');
-  });
-});
-
-
-
-
-
+/* ── CSRF: cookie-based (always works on Frappe www pages) ── */
 function _csrf() {
   var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  var t = m ? decodeURIComponent(m[1]) : '';
-  if (t && t !== 'None' && t.length > 8) return t;
-  try { if (typeof frappe!=='undefined'&&frappe.csrf_token&&frappe.csrf_token.length>8) return frappe.csrf_token; } catch(e){}
+  if (m && m[1] && m[1] !== 'None' && m[1].length > 8) return decodeURIComponent(m[1]);
+  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 8) return frappe.csrf_token; } catch(e) {}
   return '';
 }
 
+/* ── FETCH WRAPPER ── */
 function _fc(opts) {
   fetch('/api/method/' + opts.method, {
     method: 'POST',
@@ -1693,320 +1669,684 @@ function _fc(opts) {
     body: JSON.stringify(opts.args || {})
   })
   .then(function(r) {
-    if (r.status===401||r.status===403) {
-      window.location.href='/login?redirect-to=/founder_dash'; return null;
+    if (r.status === 401 || r.status === 403) {
+      window.location.href = '/login?redirect-to=/founder_dash'; return null;
     }
     return r.json();
   })
-  .then(function(r) { if(!r)return; if(opts.callback)opts.callback(r); })
+  .then(function(data) {
+    if (!data) return;
+    if (opts.callback) opts.callback(data);
+  })
   .catch(function(e) {
-    console.error('[_fc]',opts.method,e);
-    if(opts.error)opts.error(e);
-    else showToast('❌','Network error. Please try again.');
+    console.error('[_fc] error:', opts.method, e);
+    if (opts.error) opts.error(e);
   });
 }
 
+/* ── INIT ── */
+frappe.ready(function() {
+  loadData();
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#notif-panel') && !e.target.closest('[onclick*="toggleNotif"]')) {
+      var np = document.getElementById('notif-panel');
+      if (np) np.classList.remove('open');
+    }
+    if (!e.target.closest('#sb') && !e.target.closest('.hamburger')) {
+      var sb = document.getElementById('sb');
+      if (sb) sb.classList.remove('open');
+    }
+  });
+});
 
+/* ── LOAD DATA ── */
 function loadData() {
   _fc({
-    method: 'travel_tour.api.founder.get_founder_data',
+    method: 'travel_tour.www.founder_dash.get_founder_data',
     callback: function(r) {
       if (r && r.message) {
         D = r.message;
-        D.leads = D.leads || []; D.bookings = D.bookings || []; D.packages = D.packages || [];
-        D.customers = D.customers || []; D.team = D.team || []; D.stats = D.stats || {};
+        D.leads           = D.leads           || [];
+        D.bookings        = D.bookings        || [];
+        D.packages        = D.packages        || [];
+        D.customers       = D.customers       || [];
+        D.team            = D.team            || [];
+        D.stats           = D.stats           || {};
         D.monthly_revenue = D.monthly_revenue || [];
         renderAll();
-      } else { showToast('\u274c', 'Could not load data.'); }
-    },
-    error: function(e) { console.error('loadData error:', e); showToast('\u274c', 'Network error. Please refresh.'); }
-  });
-}
-
-function renderAll() {
-  if (!D) return;
-  D.leads=D.leads||[]; D.bookings=D.bookings||[]; D.packages=D.packages||[];
-  D.customers=D.customers||[]; D.team=D.team||[];
-  var f=D.founder||{}; var fn=f.first_name||(f.full_name||'Founder').split(' ')[0]; var ini=(fn[0]||'T').toUpperCase();
-  function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-  s('ov-fname',fn); s('sb-oname',f.full_name||'Founder'); s('sb-ava',ini); s('tb-ava',ini);
-  renderStats(); renderDashWidgets(); renderLeads(); renderBookings();
-  renderPayments(); renderPackages(); renderCustomers(); renderDepartures(); renderVisa(); renderTeam(); renderReports();
-}
-
-function renderStats() {
-  var s=D.stats||{};
-  function setEl(id,val){var e=document.getElementById(id);if(e)e.textContent=val;}
-  setEl('st-rev', s.total_revenue ? '\u20b9'+fmtL(s.total_revenue) : '\u20b90');
-  setEl('st-bk', s.total_bookings !== undefined ? s.total_bookings : D.bookings.length);
-  setEl('st-due', '\u20b90');
-  setEl('st-leads', s.open_leads !== undefined ? s.open_leads : D.leads.filter(function(l){return l.status==='Open';}).length);
-  setEl('st-dep', 0);
-  setEl('rep-conv', D.leads.length ? Math.round((D.leads.filter(function(l){return l.status==='Converted';}).length/D.leads.length)*100)+'%' : '0%');
-  setEl('rep-abv', D.bookings.length ? '\u20b9'+fmtL(D.bookings.reduce(function(a,b){return a+(b.total_amount||0);},0)/D.bookings.length) : '\u2014');
-  setEl('rep-pax', D.bookings.length ? (D.bookings.reduce(function(a,b){return a+(b.pax_count||0);},0)/D.bookings.length).toFixed(1) : '\u2014');
-  setEl('rep-coll', '\u2014'); setEl('rep-dest', '\u2014');
-}
-
-function renderDashWidgets() {
-  var depEl=document.getElementById('dep-list-dash');
-  if(depEl) depEl.innerHTML='<div class="es"><div class="es-ico">\uD83D\uDEEB</div><div class="es-title">No upcoming departures</div></div>';
-  var hlEl=document.getElementById('hot-leads-dash');
-  if(hlEl){var hot=(D.leads||[]).slice(0,4);hlEl.innerHTML=hot.length?hot.map(function(l){return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,0.05)"><div style="width:36px;height:36px;background:var(--jade-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--jade2)">'+(l.full_name&&l.full_name[0]?l.full_name[0].toUpperCase():'?')+'</div><div style="flex:1"><div style="font-weight:700;font-size:13px">'+(l.full_name||'')+'</div><div style="font-size:11.5px;color:var(--t3)">'+(l.mobile_no||'')+'</div></div>'+bdg(l.status)+'</div>';}).join(''):'<div class="es"><div class="es-ico">\uD83C\uDFAF</div><div class="es-title">No leads yet</div></div>';}
-  var ppEl=document.getElementById('pending-pay-dash');
-  if(ppEl) ppEl.innerHTML='<div class="es"><div class="es-ico">\u2705</div><div class="es-title">No pending payments</div></div>';
-}
-
-function renderLeads() {
-  var nb=document.getElementById('nb-leads'); if(nb) nb.textContent=D.leads.length||0;
-  var tb=document.getElementById('leads-tbody'); if(!tb)return;
-  tb.innerHTML=(D.leads||[]).map(function(l){
-    return '<tr><td><span class="tbl-link" onclick="openLeadEdit(\''+l.name+'\')">'+(l.full_name||l.name)+'</span></td><td>'+(l.mobile_no||'\u2014')+'</td><td>'+(l.email_id||'\u2014')+'</td><td>'+(l.status||'\u2014')+'</td><td>'+bdg(l.status)+'</td><td><div class="tbl-actions"><button class="tbl-btn tbl-btn-edit" onclick="openLeadEdit(\''+l.name+'\')">Edit</button></div></td></tr>';
-  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--t3)">No leads yet. Add your first lead!</td></tr>';
-  renderKanban(D.leads||[]);
-}
-
-var STAGES=['New','Contacted','Proposal Sent','Negotiation','Converted','Lost','Open'];
-function renderKanban(leads) {
-  var board=document.getElementById('kanban-board'); if(!board)return;
-  var stages=['Open','New','Contacted','Negotiation','Converted','Lost'];
-  board.innerHTML=stages.map(function(stage){
-    var sl=leads.filter(function(l){return l.status===stage;});
-    return '<div class="kol"><div class="kol-head"><span class="kol-title">'+stage+'</span><span class="kol-count">'+sl.length+'</span></div>'+sl.map(function(l){
-      return '<div class="kcard" onclick="openLeadEdit(\''+l.name+'\')"><div class="kc-name">'+(l.full_name||l.name)+'</div><div style="font-size:11.5px;color:var(--t3)">'+(l.mobile_no||'\u2014')+'</div></div>';
-    }).join('')+'</div>';
-  }).join('');
-}
-
-function filterLeads() {
-  var q=((document.getElementById('lead-search')||{}).value||'').toLowerCase();
-  var filtered=(D.leads||[]).filter(function(l){return (l.full_name||'').toLowerCase().includes(q)||(l.mobile_no||'').includes(q);});
-  var tb=document.getElementById('leads-tbody'); if(!tb)return;
-  tb.innerHTML=filtered.map(function(l){
-    return '<tr><td><span class="tbl-link" onclick="openLeadEdit(\''+l.name+'\')">'+(l.full_name||l.name)+'</span></td><td>'+(l.mobile_no||'\u2014')+'</td><td>'+(l.email_id||'\u2014')+'</td><td>'+(l.status||'\u2014')+'</td><td>'+bdg(l.status)+'</td><td><div class="tbl-actions"><button class="tbl-btn tbl-btn-edit" onclick="openLeadEdit(\''+l.name+'\')">Edit</button></div></td></tr>';
-  }).join('');
-  renderKanban(filtered);
-}
-
-function leadView(view,btn) {
-  document.querySelectorAll('#pg-leads .ftab').forEach(function(t){t.classList.remove('active');}); if(btn) btn.classList.add('active');
-  var lk=document.getElementById('lead-kanban'); if(lk) lk.style.display=view==='kanban'?'':'none';
-  var lt=document.getElementById('lead-table');  if(lt) lt.style.display=view==='table'?'':'none';
-}
-
-function openLeadEdit(id) {
-  var l=(D.leads||[]).find(function(x){return x.name===id;}); if(!l)return;
-  var t=document.getElementById('mo-lead-title'); if(t) t.textContent='Edit Lead';
-  var f=document.getElementById('lead-edit-id'); if(f) f.value=l.name;
-  var fields={'l-name':l.full_name,'l-mobile':l.mobile_no,'l-email':l.email_id,'l-status':l.status,'l-consultant':l.assigned_consultant,'l-dest':l.suggested_package,'l-month':l.preferred_month,'l-pax':l.pax_count};
-  Object.keys(fields).forEach(function(k){var e=document.getElementById(k);if(e)e.value=fields[k]||'';});
-  openModal('mo-new-lead');
-}
-
-function saveLead() {
-  var id=(document.getElementById('lead-edit-id')||{}).value||'';
-  var name=(document.getElementById('l-name')||{}).value||''; var mobile=(document.getElementById('l-mobile')||{}).value||'';
-  if(!name||!mobile){showToast('\u274c','Name and mobile required.');return;}
-  _fc({
-    method: id ? 'travel_tour.api.founder.update_lead' : 'travel_tour.api.founder.create_lead',
-    args:{lead_id:id||null,full_name:name,mobile_no:mobile,email_id:(document.getElementById('l-email')||{}).value,status:(document.getElementById('l-status')||{}).value||'Open',assigned_consultant:(document.getElementById('l-consultant')||{}).value},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-lead');loadData();showToast('\u2705',id?'Lead updated!':'Lead created!');}else showToast('\u274c',(r.message&&r.message.error)||'Could not save.');},
-    error:function(){showToast('\u274c','Network error.');}
-  });
-}
-
-function renderBookings() {
-  var nb=document.getElementById('nb-bk'); if(nb) nb.textContent=D.bookings.length||0;
-  var tb=document.getElementById('bk-tbody'); if(!tb)return;
-  tb.innerHTML=(D.bookings||[]).map(function(b){
-    return '<tr><td><span class="tbl-link">'+b.name+'</span></td><td>'+(b.travel_lead||'\u2014')+'</td><td>'+(b.tour_package||'\u2014')+'</td><td>'+fmtDate(b.travel_date)+'</td><td>'+(b.pax_count||0)+'</td><td>\u20b9'+fmt(b.total_amount||0)+'</td><td>'+bdg(b.status||'Draft')+'</td><td><button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button></td></tr>';
-  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No bookings yet</td></tr>';
-}
-
-function filterBk() {
-  var q=((document.getElementById('bk-search')||{}).value||'').toLowerCase();
-  renderBkTable((D.bookings||[]).filter(function(b){return (b.name||'').toLowerCase().includes(q)||(b.travel_lead||'').toLowerCase().includes(q);}));
-}
-function renderBkTable(list){var tb=document.getElementById('bk-tbody');if(!tb)return;tb.innerHTML=list.map(function(b){return '<tr><td>'+b.name+'</td><td>'+(b.travel_lead||'\u2014')+'</td><td>'+(b.tour_package||'\u2014')+'</td><td>'+fmtDate(b.travel_date)+'</td><td>'+(b.pax_count||0)+'</td><td>\u20b9'+fmt(b.total_amount||0)+'</td><td>'+bdg(b.status||'Draft')+'</td><td><button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button></td></tr>';}).join('')||'<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No bookings</td></tr>';}
-function filterBkStatus(s,btn){document.querySelectorAll('#pg-bookings .ftab').forEach(function(t){t.classList.remove('active');});if(btn)btn.classList.add('active');renderBkTable(s==='all'?D.bookings:(D.bookings||[]).filter(function(b){return b.status===s;}));}
-
-function openBkDetail(id) {
-  var b=(D.bookings||[]).find(function(x){return x.name===id;}); if(!b)return; curBk=b;
-  var t=document.getElementById('mo-bk-title'); if(t) t.textContent=id;
-  var mb=document.getElementById('mo-bk-body'); if(!mb)return;
-  mb.innerHTML='<div class="ms"><div class="dg"><div class="df"><label>Lead</label><span>'+(b.travel_lead||'\u2014')+'</span></div><div class="df"><label>Package</label><span>'+(b.tour_package||'\u2014')+'</span></div><div class="df"><label>Travel Date</label><span>'+fmtDate(b.travel_date)+'</span></div><div class="df"><label>Pax</label><span>'+(b.pax_count||0)+'</span></div><div class="df"><label>Amount</label><span>\u20b9'+fmt(b.total_amount||0)+'</span></div><div class="df"><label>Status</label><span>'+bdg(b.status||'Draft')+'</span></div></div></div>';
-  openModal('mo-bk-detail');
-}
-
-function editBooking(){if(curBk)openModal('mo-new-bk');}
-function cancelBooking(){if(!curBk)return;if(!confirm('Cancel '+curBk.name+'?'))return;_fc({method:'travel_tour.api.founder.update_booking_status',args:{booking_name:curBk.name,status:'Cancelled'},callback:function(r){if(r.message&&r.message.success){closeModal('mo-bk-detail');loadData();showToast('\u2705','Cancelled.');}},error:function(){}});}
-
-function saveBooking() {
-  var id=(document.getElementById('bk-edit-id')||{}).value||'';
-  _fc({method:id?'travel_tour.api.founder.create_booking':'travel_tour.api.founder.create_booking',
-    args:{booking_id:id||null,travel_lead:(document.getElementById('bk-customer')||{}).value,tour_package:(document.getElementById('bk-package')||{}).value,travel_date:(document.getElementById('bk-dep')||{}).value,pax_count:(document.getElementById('bk-adults')||{}).value||0,total_amount:(document.getElementById('bk-total')||{}).value||0,status:(document.getElementById('bk-status')||{}).value||'Draft'},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-bk');loadData();showToast('\u2705','Booking saved!');}else showToast('\u274c',(r.message&&r.message.error)||'Error');},
-    error:function(){closeModal('mo-new-bk');}
-  });
-}
-
-function renderPayments() {
-  var el=document.getElementById('pay-tbody'); if(!el)return;
-  el.innerHTML=(D.bookings||[]).map(function(b){return '<tr><td>'+b.name+'</td><td>'+(b.travel_lead||'\u2014')+'</td><td>\u20b9'+fmt(b.total_amount||0)+'</td><td>'+bdg(b.status||'Pending')+'</td><td><button class="tbl-btn tbl-btn-edit" onclick="document.getElementById(\'rp-bk\').value=\''+b.name+'\';openModal(\'mo-record-pay\')">Record</button></td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--t3)">No payments</td></tr>';
-}
-function filterPay(t,btn){document.querySelectorAll('#pg-payments .ftab').forEach(function(x){x.classList.remove('active');});if(btn)btn.classList.add('active');}
-
-function recordPayment() {
-  var bk=(document.getElementById('rp-bk')||{}).value||''; var amt=(document.getElementById('rp-amt')||{}).value||'';
-  if(!bk||!amt){showToast('\u274c','Booking ID and amount required.');return;}
-  _fc({method:'travel_tour.api.founder.record_payment',args:{booking_name:bk,amount:amt},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-record-pay');loadData();showToast('\u2705','Payment recorded!');}else showToast('\u274c','Error');},
-    error:function(){closeModal('mo-record-pay');}
-  });
-}
-
-function renderPackages() {
-  var el=document.getElementById('pkg-grid'); if(!el)return;
-  var pkgs=D.packages||[];
-  el.innerHTML=pkgs.length?pkgs.map(function(p){return '<div class="card" style="cursor:pointer"><div style="background:var(--ink);padding:18px 20px"><div style="font-size:24px;margin-bottom:8px">'+destEmoji(p.destination)+'</div><div style="font-family:Sora,sans-serif;font-weight:700;font-size:15px;color:#fff">'+(p.package_name||p.name)+'</div><div style="font-size:12px;color:rgba(255,255,255,0.4)">'+(p.destination||'\u2014')+'</div></div><div style="padding:14px 18px"><button class="tbl-btn tbl-btn-edit" onclick="openPkgEdit(\''+p.name+'\')">Edit</button></div></div>';}).join(''):'<div class="es" style="grid-column:1/-1"><div class="es-ico">\uD83D\uDCE6</div><div class="es-title">No packages yet</div><div class="es-sub">Click + New Package to add one</div></div>';
-}
-
-function openPkgEdit(id) {
-  var p=(D.packages||[]).find(function(x){return x.name===id;}); if(!p)return;
-  var t=document.getElementById('mo-pkg-title'); if(t) t.textContent='Edit Package';
-  var f=document.getElementById('pkg-edit-id'); if(f) f.value=p.name;
-  var fields={'pkg-name':p.package_name,'pkg-dest':p.destination};
-  Object.keys(fields).forEach(function(k){var e=document.getElementById(k);if(e)e.value=fields[k]||'';});
-  openModal('mo-new-pkg');
-}
-
-function savePackage() {
-  // Map frontend tour type to DocType options
-  var tt = document.getElementById('pkg-type').value || 'Domestic';
-  var ttMap = {'Group':'Domestic','FIT':'Domestic','Honeymoon':'Domestic','Corporate':'Domestic','Adventure':'Domestic','Domestic':'Domestic','International':'International'};
-  tt = ttMap[tt] || 'Domestic';
-  document.getElementById('pkg-type').value = tt;
-  var id=(document.getElementById('pkg-edit-id')||{}).value||'';
-  _fc({method:'travel_tour.api.founder.save_package',
-    args:{pkg_id:id||null,package_name:(document.getElementById('pkg-name')||{}).value,destination:(document.getElementById('pkg-dest')||{}).value,duration:(document.getElementById('pkg-days')||{}).value,price_per_person:(document.getElementById('pkg-price')||{}).value},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-pkg');loadData();showToast('\u2705','Package saved!');}else showToast('\u274c','Error');},
-    error:function(){closeModal('mo-new-pkg');}
-  });
-}
-
-function renderCustomers(){var el=document.getElementById('cust-tbody');if(!el)return;el.innerHTML=(D.customers||[]).map(function(c){return '<tr><td>'+(c.full_name||c.name)+'</td><td>'+(c.mobile_no||'\u2014')+'</td><td>'+(c.email_id||'\u2014')+'</td><td>'+bdg(c.status)+'</td></tr>';}).join('')||'<tr><td colspan="4" style="text-align:center;padding:28px;color:var(--t3)">No customers yet</td></tr>';}
-function filterCust(){var q=((document.getElementById('cust-search')||{}).value||'').toLowerCase();var el=document.getElementById('cust-tbody');if(!el)return;el.innerHTML=(D.customers||[]).filter(function(c){return (c.full_name||'').toLowerCase().includes(q)||(c.mobile_no||'').includes(q);}).map(function(c){return '<tr><td>'+(c.full_name||c.name)+'</td><td>'+(c.mobile_no||'\u2014')+'</td><td>'+(c.email_id||'\u2014')+'</td><td>'+bdg(c.status)+'</td></tr>';}).join('')||'<tr><td colspan="4" style="text-align:center;padding:28px">No results</td></tr>';}
-function renderDepartures(){var tb=document.getElementById('dep-tbody');if(!tb)return;tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--t3)">No departures yet</td></tr>';}
-function renderVisa(){var tb=document.getElementById('visa-tbody');if(!tb)return;tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No visa records</td></tr>';}
-function filterVisa(s,btn){document.querySelectorAll('#pg-visa .ftab').forEach(function(t){t.classList.remove('active');});if(btn)btn.classList.add('active');}
-function updateVisaStatus(bk,pax){var val=prompt('Visa status?','Applied');if(!val)return;_fc({method:'travel_tour.api.founder.update_visa_status',args:{booking_name:bk,pax_name:pax,visa_status:val},callback:function(r){if(r.message&&r.message.success){loadData();showToast('\u2705','Updated!');}},error:function(){}});}
-function renderTeam(){var el=document.getElementById('team-grid');if(!el)return;el.innerHTML='<div class="es" style="grid-column:1/-1"><div class="es-ico">\uD83E\uDDD1\u200D\uD83D\uDCBC</div><div class="es-title">No team members yet</div></div>';}
-function saveTeamMember(){showToast('\u2705','Feature coming soon');}
-function renderReports(){renderDestReport();renderConsultReport();renderTourTypeReport();}
-function renderRevChart(){}
-function renderActivityFeed(){}
-function renderDestReport(){var el=document.getElementById('dest-report');if(el)el.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3)">No data yet</div>';}
-function renderConsultReport(){var el=document.getElementById('consult-report');if(el)el.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3)">No data yet</div>';}
-function renderTourTypeReport(){var el=document.getElementById('tourtype-report');if(el)el.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3)">No data yet</div>';}
-function saveSettings(s){showToast('\u2705',s+' saved.');}
-function confirmDelete(type,id,name){if(!confirm('Delete '+name+'?'))return;_fc({method:'travel_tour.api.founder.delete_record',args:{doctype:type,record_name:id},callback:function(r){if(r.message&&r.message.success){loadData();showToast('\u2705','Deleted.');}},error:function(){}});}
-
-var PAGE_TITLES={overview:'Overview',leads:'Leads & Enquiries',bookings:'Bookings',payments:'Payments',packages:'Tour Packages',customers:'Customers',departures:'Departures',visa:'Visa Tracker',team:'My Team',reports:'Reports & Analytics',settings:'Settings'};
-
-function goPage(id,navEl) {
-  document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active');});
-  var pg=document.getElementById('pg-'+id); if(pg) pg.classList.add('active');
-  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('active');});
-  if(navEl) navEl.classList.add('active');
-  var tt=document.getElementById('tb-title'); if(tt) tt.textContent=PAGE_TITLES[id]||'';
-  var sb=document.getElementById('sb'); if(sb) sb.classList.remove('open');
-}
-
-function toggleSb(){var e=document.getElementById('sb');if(e)e.classList.toggle('open');}
-function toggleNotif(){var e=document.getElementById('notif-panel');if(e)e.classList.toggle('open');}
-
-function openModal(id){var el=document.getElementById(id);if(!el){console.warn('openModal: not found:',id);return;}el.classList.add('open');}
-function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('open');}
-
-
-function saveDeparture() {
-  var pkg = document.getElementById('dep-pkg').value;
-  var date = document.getElementById('dep-date').value;
-  var pax = document.getElementById('dep-pax').value || 1;
-  var consultant = document.getElementById('dep-consultant').value;
-  if (!pkg || !date) { showToast('⚠️', 'Package and date required.'); return; }
-  _fc({
-    method: 'travel_tour.api.founder.create_booking',
-    args: { tour_package: pkg, departure_date: date, total_pax: pax, sales_consultant: consultant },
-    callback: function(r) {
-      if (r.message && r.message.success) {
-        closeModal('mo-new-dep');
-        loadData();
-        showToast('✅', 'Departure added!');
       } else {
-        showToast('❌', (r.message && r.message.error) || 'Error saving departure.');
+        showToast('\u274c', 'Could not load data. Please refresh.');
+        console.error('loadData:', r);
       }
     },
-    error: function() { showToast('❌', 'Network error.'); }
+    error: function(e) {
+      console.error('loadData error:', e);
+      showToast('\u274c', 'Network error. Please refresh.');
+    }
   });
 }
 
-function populateDepPackages() {
-  var sel = document.getElementById('dep-pkg');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Select Package</option>';
-  (D.packages || []).forEach(function(p) {
-    sel.innerHTML += '<option value="' + p.name + '">' + p.package_name + '</option>';
+/* ── RENDER ALL ── */
+function renderAll() {
+  var f = D.founder || {};
+  var fn = f.first_name || (f.full_name ? f.full_name.split(' ')[0] : 'Founder');
+  var ini = fn ? fn[0].toUpperCase() : 'T';
+  function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+  set('ov-fname', fn);
+  set('sb-oname', f.full_name || 'Founder');
+  set('sb-ava', ini);
+  set('tb-ava', ini);
+  renderStats();
+  renderRevChart();
+  renderActivityFeed();
+  renderDashWidgets();
+  renderLeads();
+  renderBookings();
+  renderPayments();
+  renderPackages();
+  renderCustomers();
+  renderDepartures();
+  renderVisa();
+  renderTeam();
+  renderReports();
+}
+
+/* ── STATS ── */
+function renderStats() {
+  var s = D.stats || {};
+  var bks = D.bookings || [];
+  function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+  var rev = s.total_revenue !== undefined ? s.total_revenue :
+    bks.reduce(function(a,b){return a+(b.grand_total||0);},0);
+  set('st-rev',   '\u20b9' + fmtL(rev));
+  set('st-bk',    s.active_bookings !== undefined ? s.active_bookings :
+    bks.filter(function(b){return b.booking_status==='Confirmed';}).length);
+  set('st-due',   '\u20b9' + fmtL(s.total_balance_due||0));
+  set('st-leads', s.open_leads !== undefined ? s.open_leads :
+    (D.leads||[]).filter(function(l){return ['Converted','Lost'].indexOf(l.status)===-1;}).length);
+  set('st-dep',   s.departures_30d||0);
+  /* Reports stats */
+  var conv = (D.leads||[]).filter(function(l){return l.status==='Converted';}).length;
+  var tl   = (D.leads||[]).length || 1;
+  var tRev = bks.reduce(function(a,b){return a+(b.grand_total||0);},0);
+  var tPaid= bks.reduce(function(a,b){return a+(b.advance_paid||0);},0);
+  var tPax = bks.reduce(function(a,b){return a+(b.total_pax||0);},0);
+  set('rep-conv', Math.round((conv/tl)*100)+'%');
+  set('rep-abv',  bks.length ? '\u20b9'+fmtL(tRev/bks.length) : '\u2014');
+  set('rep-pax',  bks.length ? (tPax/bks.length).toFixed(1) : '\u2014');
+  set('rep-coll', tRev ? Math.round((tPaid/tRev)*100)+'%' : '\u2014');
+  var dc={};
+  bks.forEach(function(b){if(b.destination)dc[b.destination]=(dc[b.destination]||0)+1;});
+  var top=Object.entries(dc).sort(function(a,b){return b[1]-a[1];})[0];
+  set('rep-dest', top ? top[0] : '\u2014');
+}
+
+/* ── REVENUE CHART ── */
+function renderRevChart() {
+  var mr = D.monthly_revenue || [];
+  if (!mr.length) return;
+  var maxV = mr.reduce(function(m,x){return Math.max(m,x.rev||0);},0) || 1;
+  var el = document.getElementById('rev-chart');
+  if (el) el.innerHTML = mr.map(function(m) {
+    var pct = Math.round(((m.rev||0)/maxV)*100);
+    return '<div class="rev-bar-wrap"><div class="rev-bar" style="height:'+pct+'%" title="\u20b9'+fmt(m.rev||0)+'">'+
+      '<span class="rev-bar-val">\u20b9'+fmtL(m.rev||0)+'</span></div>'+
+      '<div class="rev-month">'+m.month+'</div></div>';
+  }).join('');
+  var total = mr.reduce(function(s,m){return s+(m.rev||0);},0);
+  var best  = mr.reduce(function(a,b){return (a.rev||0)>(b.rev||0)?a:b;}, mr[0]);
+  var e1=document.getElementById('rev-total'); if(e1) e1.textContent='\u20b9'+fmtL(total);
+  var e2=document.getElementById('rev-best');  if(e2) e2.textContent=(best.month||'')+' \u20b9'+fmtL(best.rev||0);
+  renderDestReport(); renderConsultReport(); renderTourTypeReport();
+}
+
+function renderDestReport() {
+  var bks=D.bookings||[], dc={};
+  bks.forEach(function(b){if(b.destination)dc[b.destination]=(dc[b.destination]||0)+1;});
+  var sorted=Object.entries(dc).sort(function(a,b){return b[1]-a[1];});
+  var maxV=sorted[0]?sorted[0][1]:1;
+  var el=document.getElementById('dest-report'); if(!el)return;
+  el.innerHTML=sorted.slice(0,6).map(function(x){
+    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px"><span>'+x[0]+'</span><span>'+x[1]+' bookings</span></div>'+
+      '<div class="prog-bar"><div class="prog-fill" style="width:'+Math.round((x[1]/maxV)*100)+'%"></div></div></div>';
+  }).join('')||'<div class="es"><div class="es-title">No data yet</div></div>';
+}
+function renderConsultReport() {
+  var cc={};
+  (D.bookings||[]).forEach(function(b){if(b.sales_consultant)cc[b.sales_consultant]=(cc[b.sales_consultant]||0)+1;});
+  var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];});
+  var el=document.getElementById('consult-report'); if(!el)return;
+  el.innerHTML=sorted.map(function(x){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.06)">'+
+      '<div style="width:32px;height:32px;background:var(--jade-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--jade2)">'+x[0][0]+'</div>'+
+      '<div style="flex:1;font-weight:700;font-size:13px;color:var(--ink)">'+x[0]+'</div>'+
+      '<div style="font-weight:800;font-size:16px;color:var(--ink)">'+x[1]+'</div></div>';
+  }).join('')||'<div style="text-align:center;padding:20px;color:var(--t3)">No data</div>';
+}
+function renderTourTypeReport() {
+  var tc={};
+  (D.bookings||[]).forEach(function(b){var t=b.tour_type||'Other';tc[t]=(tc[t]||0)+1;});
+  var total=(D.bookings||[]).length||1;
+  var colors=['var(--jade)','var(--blue)','var(--amber)','var(--purple)','var(--red)'];
+  var el=document.getElementById('tourtype-report'); if(!el)return;
+  el.innerHTML=Object.entries(tc).map(function(x,i){
+    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px"><span>'+x[0]+'</span><span>'+Math.round((x[1]/total)*100)+'%</span></div>'+
+      '<div class="prog-bar"><div style="height:100%;background:'+colors[i%colors.length]+';border-radius:10px;width:'+Math.round((x[1]/total)*100)+'%"></div></div></div>';
+  }).join('')||'<div style="text-align:center;padding:20px;color:var(--t3)">No data</div>';
+}
+
+/* ── ACTIVITY FEED ── */
+function renderActivityFeed() {
+  var el=document.getElementById('activity-feed'); if(!el)return;
+  el.innerHTML='<div class="act-item"><div class="act-ico" style="background:var(--jade-bg)">\uD83C\uDFAB</div>'+
+    '<div class="act-text"><div class="act-title">Dashboard loaded</div><div class="act-time">Just now</div></div></div>'+
+    '<div class="act-item"><div class="act-ico" style="background:rgba(75,171,247,.12)">\uD83C\uDFAF</div>'+
+    '<div class="act-text"><div class="act-title">'+((D.leads||[]).length)+' leads in pipeline</div><div class="act-time"></div></div></div>'+
+    '<div class="act-item"><div class="act-ico" style="background:rgba(255,181,71,.12)">\uD83D\uDCB3</div>'+
+    '<div class="act-text"><div class="act-title">'+
+    (D.bookings||[]).filter(function(b){return (b.balance_due||0)>0;}).length+
+    ' pending payments</div><div class="act-time"></div></div></div>';
+}
+
+/* ── DASHBOARD WIDGETS ── */
+function renderDashWidgets() {
+  var upcoming=(D.bookings||[]).filter(function(b){
+    return b.booking_status==='Confirmed' && b.departure_date && new Date(b.departure_date)>=new Date();
+  }).sort(function(a,b){return new Date(a.departure_date)-new Date(b.departure_date);}).slice(0,4);
+  var depEl=document.getElementById('dep-list-dash');
+  if(depEl) depEl.innerHTML=upcoming.length?upcoming.map(function(b){
+    var d=new Date(b.departure_date);
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.05);cursor:pointer" onclick="openBkDetail(\''+b.name+'\')">'+
+      '<div style="text-align:center;min-width:44px"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:16px;color:var(--ink)">'+d.getDate()+'</div>'+
+      '<div style="font-size:10px;color:var(--t3)">'+d.toLocaleString('en',{month:'short'})+'</div></div>'+
+      '<div style="flex:1"><div style="font-weight:700;font-size:13px;color:var(--ink)">'+(b.tour_package||'\u2014')+'</div>'+
+      '<div style="font-size:11.5px;color:var(--t3)">'+(b.total_pax||0)+' pax</div></div>'+bdg(b.booking_status)+'</div>';
+  }).join(''):'<div class="es"><div class="es-ico">\uD83D\uDEEB</div><div class="es-title">No upcoming departures</div></div>';
+
+  var hot=(D.leads||[]).filter(function(l){return ['New','Contacted','Negotiation'].indexOf(l.status)!==-1;}).slice(0,4);
+  var hlEl=document.getElementById('hot-leads-dash');
+  if(hlEl) hlEl.innerHTML=hot.length?hot.map(function(l){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.05);cursor:pointer" onclick="openLeadEdit(\''+l.name+'\')">'+
+      '<div style="width:36px;height:36px;background:var(--jade-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--jade2)">'+((l.lead_name||'?')[0].toUpperCase())+'</div>'+
+      '<div style="flex:1"><div style="font-weight:700;font-size:13px;color:var(--ink)">'+(l.lead_name||'\u2014')+'</div>'+
+      '<div style="font-size:11.5px;color:var(--t3)">'+(l.travel_month||'\u2014')+' \u00b7 '+(l.pax_count||0)+' pax</div></div>'+bdg(l.status)+'</div>';
+  }).join(''):'<div class="es"><div class="es-ico">\uD83C\uDFAF</div><div class="es-title">No open leads</div></div>';
+
+  var overdue=(D.bookings||[]).filter(function(b){return (b.balance_due||0)>0;}).sort(function(a,b){return (b.balance_due||0)-(a.balance_due||0);}).slice(0,4);
+  var ppEl=document.getElementById('pending-pay-dash');
+  if(ppEl) ppEl.innerHTML=overdue.length?overdue.map(function(b){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.05);cursor:pointer" onclick="openBkDetail(\''+b.name+'\')">'+
+      '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">'+(b.customer||b.customer_mobile||'\u2014')+'</div>'+
+      '<div style="font-size:11.5px;color:var(--t3)">'+b.name+'</div></div>'+
+      '<div style="font-family:Sora;font-weight:800;font-size:13px;color:var(--amber)">\u20b9'+fmt(b.balance_due||0)+'</div></div>';
+  }).join(''):'<div class="es"><div class="es-ico">\u2705</div><div class="es-title">All payments received!</div></div>';
+}
+
+/* ── LEADS ── */
+function renderLeads() {
+  renderKanban(D.leads||[]); renderLeadTable(D.leads||[]);
+  var nb=document.getElementById('nb-leads');
+  if(nb) nb.textContent=(D.leads||[]).filter(function(l){return ['Converted','Lost'].indexOf(l.status)===-1;}).length||0;
+}
+var STAGES=['New','Contacted','Proposal Sent','Negotiation','Converted','Lost'];
+var STAGE_COLORS={New:'var(--blue)',Contacted:'var(--amber)','Proposal Sent':'var(--purple)',Negotiation:'var(--red)',Converted:'var(--jade)',Lost:'var(--t4)'};
+function renderKanban(leads) {
+  var el=document.getElementById('kanban-board'); if(!el)return;
+  el.innerHTML=STAGES.map(function(stage){
+    var sl=leads.filter(function(l){return l.status===stage;});
+    return '<div class="kol"><div class="kol-head"><span class="kol-title" style="color:'+STAGE_COLORS[stage]+'">'+stage+'</span><span class="kol-count">'+sl.length+'</span></div>'+
+      sl.map(function(l){
+        return '<div class="kcard" onclick="openLeadEdit(\''+l.name+'\')">'+
+          '<div class="kc-name">'+(l.lead_name||'')+'</div>'+
+          '<div class="kc-dest">\u2708\uFE0F '+(l.interested_destination||l.travel_month||'\u2014')+'</div>'+
+          '<div style="font-size:11.5px;color:var(--t3);margin-bottom:6px">'+(l.pax_count||0)+' pax \u00b7 \u20b9'+(l.budget_per_person||0)+'/pax</div>'+
+          '<div class="kc-foot"><span class="kc-mobile">\uD83D\uDCF1 '+(l.mobile||'\u2014')+'</span>'+
+          '<span style="font-size:11px;color:var(--t3)">'+(l.assigned_consultant||'Unassigned')+'</span></div></div>';
+      }).join('')+'</div>';
+  }).join('');
+}
+function renderLeadTable(leads) {
+  var tb=document.getElementById('leads-tbody'); if(!tb)return;
+  tb.innerHTML=leads.map(function(l){
+    return '<tr><td><span class="tbl-link" onclick="openLeadEdit(\''+l.name+'\')">'+(l.lead_name||'')+'</span></td>'+
+      '<td>'+(l.mobile||'\u2014')+'</td><td>'+(l.interested_destination||'\u2014')+'</td>'+
+      '<td>'+(l.tour_type_pref||'\u2014')+'</td><td>'+(l.travel_month||'\u2014')+'</td>'+
+      '<td>'+(l.pax_count||0)+'</td><td>\u20b9'+fmt(l.budget_per_person||0)+'</td>'+
+      '<td>'+(l.assigned_consultant||'\u2014')+'</td><td>'+bdg(l.status)+'</td>'+
+      '<td><div class="tbl-actions">'+
+      '<button class="tbl-btn tbl-btn-edit" onclick="openLeadEdit(\''+l.name+'\')">Edit</button>'+
+      '<button class="tbl-btn tbl-btn-del" onclick="confirmDelete(\'lead\',\''+l.name+'\',\''+(l.lead_name||'').replace(/'/g,'')+'\')">Del</button>'+
+      '</div></td></tr>';
+  }).join('');
+}
+function filterLeads() {
+  var q=((document.getElementById('lead-search')||{}).value||'').toLowerCase();
+  var f=(D.leads||[]).filter(function(l){return (l.lead_name||'').toLowerCase().indexOf(q)!==-1||(l.mobile||'').indexOf(q)!==-1;});
+  renderKanban(f); renderLeadTable(f);
+}
+function leadView(v,btn) {
+  document.querySelectorAll('#pg-leads .ftab').forEach(function(t){t.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  var lk=document.getElementById('lead-kanban'); if(lk)lk.style.display=v==='kanban'?'':'none';
+  var lt=document.getElementById('lead-table');  if(lt)lt.style.display=v==='table'?'':'none';
+}
+function openLeadEdit(id) {
+  var l=(D.leads||[]).filter(function(x){return x.name===id;})[0]; if(!l)return;
+  document.getElementById('mo-lead-title').textContent='Edit Lead \u2014 '+(l.lead_name||'');
+  document.getElementById('lead-edit-id').value=l.name;
+  document.getElementById('l-name').value=l.lead_name||'';
+  document.getElementById('l-mobile').value=l.mobile||'';
+  document.getElementById('l-email').value=l.email||'';
+  document.getElementById('l-dest').value=l.interested_destination||'';
+  document.getElementById('l-type').value=l.tour_type_pref||'';
+  document.getElementById('l-month').value=l.travel_month||'';
+  document.getElementById('l-pax').value=l.pax_count||'';
+  document.getElementById('l-budget').value=l.budget_per_person||'';
+  document.getElementById('l-status').value=l.status||'New';
+  document.getElementById('l-consultant').value=l.assigned_consultant||'';
+  openModal('mo-new-lead');
+}
+function saveLead() {
+  var id=document.getElementById('lead-edit-id').value;
+  var nm=document.getElementById('l-name').value.trim();
+  var mob=document.getElementById('l-mobile').value.trim();
+  if(!nm||!mob){showToast('\u274c','Name and mobile required.');return;}
+  _fc({
+    method:id?'travel_tour.www.founder_dash.update_lead':'travel_tour.www.founder_dash.create_lead',
+    args:{lead_id:id||null,lead_name:nm,mobile:mob,
+      email:document.getElementById('l-email').value,
+      interested_destination:document.getElementById('l-dest').value,
+      tour_type_pref:document.getElementById('l-type').value,
+      travel_month:document.getElementById('l-month').value,
+      pax_count:document.getElementById('l-pax').value||0,
+      budget_per_person:document.getElementById('l-budget').value||0,
+      status:document.getElementById('l-status').value,
+      assigned_consultant:document.getElementById('l-consultant').value,
+      notes:document.getElementById('l-notes').value},
+    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-lead');loadData();showToast('\u2705',id?'Lead updated!':'Lead created!');}
+      else showToast('\u274c',(r.message&&r.message.error)||'Could not save.');},
+    error:function(){closeModal('mo-new-lead');showToast('\u274c','Network error.');}
   });
 }
-function doLogout(){fetch('/api/method/logout',{method:'POST',credentials:'same-origin',headers:{'X-Frappe-CSRF-Token':_csrf()}}).then(function(){window.location.href='/login';}).catch(function(){window.location.href='/login';});}
 
-function fmt(n){return(Number(n)||0).toLocaleString('en-IN',{maximumFractionDigits:0});}
+/* ── BOOKINGS ── */
+function renderBookings() {
+  renderBkTable(D.bookings||[]);
+  var nb=document.getElementById('nb-bk'); if(nb)nb.textContent=(D.bookings||[]).length;
+}
+function renderBkTable(list) {
+  var tb=document.getElementById('bk-tbody'); if(!tb)return;
+  tb.innerHTML=list.map(function(b){
+    return '<tr><td><span class="tbl-link" onclick="openBkDetail(\''+b.name+'\')">'+(b.name||'')+'</span></td>'+
+      '<td>'+(b.customer||b.customer_mobile||'\u2014')+'</td>'+
+      '<td>'+(b.tour_package||'\u2014')+'</td>'+
+      '<td>'+fmtDate(b.departure_date)+'</td>'+
+      '<td>'+(b.total_pax||0)+'</td>'+
+      '<td style="font-weight:700">\u20b9'+fmt(b.grand_total||0)+'</td>'+
+      '<td style="color:#0aab7d">\u20b9'+fmt(b.advance_paid||0)+'</td>'+
+      '<td style="color:'+((b.balance_due||0)>0?'var(--amber)':'#0aab7d')+'">\u20b9'+fmt(b.balance_due||0)+'</td>'+
+      '<td>'+bdg(b.booking_status)+'</td>'+
+      '<td><div class="tbl-actions">'+
+      '<button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button>'+
+      '<button class="tbl-btn tbl-btn-edit" onclick="openBkEdit(\''+b.name+'\')">Edit</button>'+
+      '</div></td></tr>';
+  }).join('');
+}
+function filterBk() {
+  var q=((document.getElementById('bk-search')||{}).value||'').toLowerCase();
+  renderBkTable((D.bookings||[]).filter(function(b){
+    return (b.name||'').toLowerCase().indexOf(q)!==-1||(b.customer||'').toLowerCase().indexOf(q)!==-1||(b.tour_package||'').toLowerCase().indexOf(q)!==-1;
+  }));
+}
+function filterBkStatus(status,btn) {
+  document.querySelectorAll('#pg-bookings .ftab').forEach(function(t){t.classList.remove('active');}); if(btn)btn.classList.add('active');
+  renderBkTable(status==='all'?D.bookings:(D.bookings||[]).filter(function(b){return b.booking_status===status;}));
+}
+function openBkDetail(id) {
+  var b=(D.bookings||[]).filter(function(x){return x.name===id;})[0]; if(!b)return;
+  curBk=b;
+  var t=document.getElementById('mo-bk-title'); if(t)t.textContent=id+' \u2014 '+(b.customer||b.customer_mobile||'');
+  var paid=(b.advance_paid||0);
+  var pct=(b.grand_total||0)>0?Math.round((paid/(b.grand_total||1))*100):0;
+  var payBtn=document.getElementById('mb-pay-btn');
+  if(payBtn){payBtn.style.display=(b.balance_due||0)>0?'':'none';payBtn.textContent='Pay \u20b9'+fmt(b.balance_due||0);}
+  var mb=document.getElementById('mo-bk-body'); if(!mb)return;
+  var paxHtml='<tr><td colspan="4" style="text-align:center;color:var(--t3)">No travellers added</td></tr>';
+  if((b.pax_details||[]).length) {
+    paxHtml=(b.pax_details||[]).map(function(p){
+      return '<tr><td>'+(p.pax_name||'\u2014')+'</td><td>'+(p.pax_type||'Adult')+'</td>'+
+        '<td>'+(p.id_number||'\u2014')+'</td><td>'+bdg(p.visa_status||'Not Applied')+'</td></tr>';
+    }).join('');
+  }
+  mb.innerHTML='<div class="ms"><div class="ms-t">Booking Summary</div><div class="dg">'+
+    '<div class="df"><label>Customer</label><span>'+(b.customer||b.customer_mobile||'\u2014')+'</span></div>'+
+    '<div class="df"><label>Package</label><span>'+(b.tour_package||'\u2014')+'</span></div>'+
+    '<div class="df"><label>Departure</label><span>'+fmtDate(b.departure_date)+'</span></div>'+
+    '<div class="df"><label>Pax</label><span>'+(b.total_pax||0)+'</span></div>'+
+    '<div class="df"><label>Status</label><span>'+bdg(b.booking_status)+'</span></div>'+
+    '<div class="df"><label>Payment</label><span>'+bdg(b.payment_status||'Pending')+'</span></div>'+
+    '</div></div>'+
+    '<div class="ms"><div class="ms-t">Payment</div>'+
+    '<div class="pay-row"><span>Grand Total</span><span style="font-weight:700">\u20b9'+fmt(b.grand_total||0)+'</span></div>'+
+    '<div class="pay-row paid"><span>\u2713 Advance Paid</span><span>\u20b9'+fmt(paid)+'</span></div>'+
+    ((b.balance_due||0)>0?'<div class="pay-row bal"><span>\u26a0 Balance Due</span><span>\u20b9'+fmt(b.balance_due||0)+'</span></div>':'')+
+    '<div style="margin-top:8px"><div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div></div>'+
+    '</div>'+
+    '<div class="ms"><div class="ms-t">Travellers</div>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">'+
+    '<thead><tr style="background:rgba(5,19,60,.04)"><th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Name</th>'+
+    '<th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Type</th>'+
+    '<th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Passport</th>'+
+    '<th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Visa</th></tr></thead>'+
+    '<tbody>'+paxHtml+'</tbody></table></div></div>';
+  openModal('mo-bk-detail');
+}
+function openBkEdit(id) {
+  var b=(D.bookings||[]).filter(function(x){return x.name===id;})[0]; if(!b)return;
+  var t=document.getElementById('mo-nbk-title'); if(t)t.textContent='Edit Booking \u2014 '+id;
+  document.getElementById('bk-edit-id').value=b.name;
+  document.getElementById('bk-customer').value=b.customer||b.customer_mobile||'';
+  document.getElementById('bk-package').value=b.tour_package||'';
+  document.getElementById('bk-dep').value=b.departure_date||'';
+  document.getElementById('bk-ret').value=b.return_date||'';
+  document.getElementById('bk-adults').value=b.total_pax||0;
+  document.getElementById('bk-children').value=b.child_pax||0;
+  document.getElementById('bk-total').value=b.grand_total||0;
+  document.getElementById('bk-advance').value=b.advance_paid||0;
+  document.getElementById('bk-status').value=b.booking_status||'Draft';
+  openModal('mo-new-bk');
+}
+function editBooking(){if(curBk)openBkEdit(curBk.name);closeModal('mo-bk-detail');}
+function cancelBooking(){
+  if(!curBk)return; if(!confirm('Cancel booking '+curBk.name+'?'))return;
+  _fc({method:'travel_tour.www.founder_dash.update_booking_status',args:{booking_name:curBk.name,status:'Cancelled'},
+    callback:function(r){if(r.message&&r.message.success){closeModal('mo-bk-detail');loadData();showToast('\u2705','Cancelled.');}},
+    error:function(){closeModal('mo-bk-detail');}});
+}
+function saveBooking(){
+  var id=document.getElementById('bk-edit-id').value;
+  _fc({
+    method:id?'travel_tour.www.founder_dash.update_booking':'travel_tour.www.founder_dash.create_booking',
+    args:{booking_id:id||null,
+      customer:document.getElementById('bk-customer').value,
+      tour_package:document.getElementById('bk-package').value,
+      departure_date:document.getElementById('bk-dep').value,
+      return_date:document.getElementById('bk-ret').value,
+      adult_pax:document.getElementById('bk-adults').value||0,
+      child_pax:document.getElementById('bk-children').value||0,
+      grand_total:document.getElementById('bk-total').value||0,
+      advance_paid:document.getElementById('bk-advance').value||0,
+      booking_status:document.getElementById('bk-status').value,
+      special_requests:document.getElementById('bk-notes').value},
+    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-bk');loadData();showToast('\u2705',id?'Booking updated!':'Booking created!');}
+      else showToast('\u274c',(r.message&&r.message.error)||'Could not save.');},
+    error:function(){closeModal('mo-new-bk');showToast('\u274c','Network error.');}
+  });
+}
+
+/* ── PAYMENTS ── */
+function renderPayments(){
+  var el=document.getElementById('pay-tbody'); if(!el)return;
+  var list=(D.bookings||[]).filter(function(b){return (b.grand_total||0)>0;});
+  el.innerHTML=list.map(function(b){
+    return '<tr><td><span class="tbl-link" onclick="openBkDetail(\''+b.name+'\')">'+(b.name||'')+'</span></td>'+
+      '<td>'+(b.customer||b.customer_mobile||'\u2014')+'</td><td>'+(b.tour_package||'\u2014')+'</td>'+
+      '<td style="font-weight:700">\u20b9'+fmt(b.grand_total||0)+'</td>'+
+      '<td style="color:#0aab7d">\u20b9'+fmt(b.advance_paid||0)+'</td>'+
+      '<td style="color:'+((b.balance_due||0)>0?'var(--amber)':'#0aab7d')+';font-weight:700">\u20b9'+fmt(b.balance_due||0)+'</td>'+
+      '<td>'+(b.balance_due_date?fmtDate(b.balance_due_date):'\u2014')+'</td>'+
+      '<td>'+bdg(b.payment_status||(b.balance_due>0?'Partial':'Paid'))+'</td>'+
+      '<td><div class="tbl-actions">'+
+      ((b.balance_due||0)>0?'<button class="tbl-btn tbl-btn-edit" onclick="document.getElementById(\'rp-bk\').value=\''+b.name+'\';openModal(\'mo-record-pay\')">Record</button>':'')+
+      '<button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button></div></td></tr>';
+  }).join('');
+  var nb=document.getElementById('nb-pay');
+  if(nb)nb.style.display=list.filter(function(b){return (b.balance_due||0)>0;}).length?'':'none';
+}
+function filterPay(type,btn){
+  document.querySelectorAll('#pg-payments .ftab').forEach(function(t){t.classList.remove('active');}); if(btn)btn.classList.add('active');
+  renderPayments();
+}
+function recordPayment(){
+  var bk=document.getElementById('rp-bk').value.trim();
+  var amt=document.getElementById('rp-amt').value;
+  if(!bk||!amt){showToast('\u274c','Booking and amount required.');return;}
+  _fc({method:'travel_tour.www.founder_dash.record_payment',
+    args:{booking_name:bk,amount:amt,
+      payment_date:document.getElementById('rp-date').value,
+      mode:document.getElementById('rp-mode').value,
+      reference:document.getElementById('rp-ref').value,
+      notes:document.getElementById('rp-notes').value},
+    callback:function(r){if(r.message&&r.message.success){closeModal('mo-record-pay');loadData();showToast('\u2705','Payment recorded!');}
+      else showToast('\u274c',(r.message&&r.message.error)||'Error');},
+    error:function(){closeModal('mo-record-pay');}});
+}
+
+/* ── PACKAGES ── */
+function renderPackages(){
+  var el=document.getElementById('pkg-grid'); if(!el)return;
+  var pkgs=D.packages||[];
+  if(!pkgs.length){el.innerHTML='<div class="es" style="grid-column:1/-1"><div class="es-ico">\uD83D\uDCE6</div><div class="es-title">No packages yet</div><div class="es-sub">Add your first tour package.</div></div>';return;}
+  el.innerHTML=pkgs.map(function(p){
+    return '<div class="card" style="cursor:pointer">'+
+      '<div style="background:var(--ink);padding:18px 20px;position:relative;overflow:hidden">'+
+      '<div style="font-size:24px;margin-bottom:8px">'+destEmoji(p.destination)+'</div>'+
+      '<div style="font-family:Sora,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-bottom:3px">'+(p.package_name||p.name)+'</div>'+
+      '<div style="font-size:12px;color:rgba(255,255,255,.4)">'+(p.destination||'\u2014')+' \u00b7 '+(p.duration||0)+'D/'+(p.nights||0)+'N \u00b7 '+
+      (p.tour_type||'Domestic')+'</div></div>'+
+      '<div style="padding:14px 18px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+      '<div><div style="font-family:Sora,sans-serif;font-weight:800;font-size:18px;color:var(--ink)">\u20b9'+fmt(p.price_per_person||0)+'</div>'+
+      '<div style="font-size:11px;color:var(--t3)">per person</div></div>'+bdg(p.status||'Active')+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between">'+
+      '<span style="font-size:12px;color:var(--t3)">\uD83C\uDFAB '+(p.bookings_count||0)+' bookings</span>'+
+      '<div style="display:flex;gap:6px"><button class="tbl-btn tbl-btn-edit" onclick="openPkgEdit(\''+p.name+'\')">Edit</button></div></div>'+
+      '</div></div>';
+  }).join('');
+}
+function openPkgEdit(id){
+  var p=(D.packages||[]).filter(function(x){return x.name===id;})[0]; if(!p)return;
+  var t=document.getElementById('mo-pkg-title'); if(t)t.textContent='Edit Package';
+  document.getElementById('pkg-edit-id').value=p.name;
+  document.getElementById('pkg-name').value=p.package_name||'';
+  document.getElementById('pkg-dest').value=p.destination||'';
+  document.getElementById('pkg-days').value=p.duration||'';
+  document.getElementById('pkg-nights').value=p.nights||'';
+  document.getElementById('pkg-type').value=p.tour_type||'Domestic';
+  document.getElementById('pkg-price').value=p.price_per_person||'';
+  document.getElementById('pkg-status').value=p.status||'Active';
+  openModal('mo-new-pkg');
+}
+function savePackage(){
+  _fc({method:'travel_tour.www.founder_dash.save_package',
+    args:{pkg_id:document.getElementById('pkg-edit-id').value||null,
+      package_name:document.getElementById('pkg-name').value,
+      destination:document.getElementById('pkg-dest').value,
+      duration:document.getElementById('pkg-days').value,
+      nights:document.getElementById('pkg-nights').value,
+      tour_type:document.getElementById('pkg-type').value,
+      price_per_person:document.getElementById('pkg-price').value,
+      status:document.getElementById('pkg-status').value,
+      description:document.getElementById('pkg-desc').value},
+    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-pkg');loadData();showToast('\u2705','Package saved!');}
+      else showToast('\u274c',(r.message&&r.message.error)||'Error saving.');},
+    error:function(){closeModal('mo-new-pkg');}});
+}
+
+/* ── CUSTOMERS ── */
+function renderCustomers(){
+  var el=document.getElementById('cust-tbody'); if(!el)return;
+  el.innerHTML=(D.customers||[]).map(function(c){
+    return '<tr><td><span class="tbl-link">'+(c.customer_name||c.name||'\u2014')+'</span></td>'+
+      '<td>'+(c.mobile||'\u2014')+'</td><td>'+(c.email||'\u2014')+'</td>'+
+      '<td style="font-weight:700">'+(c.total_bookings||0)+'</td>'+
+      '<td style="font-weight:700">\u20b9'+fmt(c.total_spent||0)+'</td>'+
+      '<td>'+(c.last_trip||'\u2014')+'</td>'+
+      '<td><button class="tbl-btn tbl-btn-view">View</button></td></tr>';
+  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--t3)">No customers yet</td></tr>';
+}
+function filterCust(){
+  var q=((document.getElementById('cust-search')||{}).value||'').toLowerCase();
+  var el=document.getElementById('cust-tbody'); if(!el)return;
+  el.innerHTML=(D.customers||[]).filter(function(c){
+    return (c.customer_name||'').toLowerCase().indexOf(q)!==-1||(c.mobile||'').indexOf(q)!==-1;
+  }).map(function(c){
+    return '<tr><td><span class="tbl-link">'+(c.customer_name||c.name)+'</span></td>'+
+      '<td>'+(c.mobile||'\u2014')+'</td><td>'+(c.email||'\u2014')+'</td>'+
+      '<td>'+(c.total_bookings||0)+'</td><td>\u20b9'+fmt(c.total_spent||0)+'</td>'+
+      '<td>'+(c.last_trip||'\u2014')+'</td><td><button class="tbl-btn tbl-btn-view">View</button></td></tr>';
+  }).join('');
+}
+
+/* ── DEPARTURES ── */
+function renderDepartures(){
+  var bks=(D.bookings||[]).filter(function(b){return b.booking_status==='Confirmed';}).sort(function(a,b){return new Date(a.departure_date||0)-new Date(b.departure_date||0);});
+  var strip=document.getElementById('dep-strip');
+  if(strip)strip.innerHTML=bks.slice(0,8).map(function(b){
+    var d=new Date(b.departure_date||Date.now());
+    return '<div class="dep-card" onclick="openBkDetail(\''+b.name+'\')">'+
+      '<div class="dep-date">'+d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+'</div>'+
+      '<div class="dep-pkg">'+(b.tour_package||'\u2014')+'</div>'+
+      '<div class="dep-pax">\uD83D\uDC65 '+(b.total_pax||0)+' pax</div></div>';
+  }).join('')||'<div style="color:var(--t3);font-size:13px;padding:10px">No upcoming departures</div>';
+  var tb=document.getElementById('dep-tbody');
+  if(tb)tb.innerHTML=bks.map(function(b){
+    return '<tr><td style="font-weight:700">'+fmtDate(b.departure_date)+'</td>'+
+      '<td>'+(b.tour_package||'\u2014')+'</td><td>'+(b.destination||'\u2014')+'</td>'+
+      '<td>'+(b.total_pax||0)+'</td><td>\u2014</td>'+
+      '<td>'+(b.sales_consultant||'\u2014')+'</td><td>'+bdg(b.booking_status)+'</td>'+
+      '<td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button></div></td></tr>';
+  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No departures yet</td></tr>';
+}
+
+/* ── VISA ── */
+function renderVisa(){
+  var allPax=[];
+  (D.bookings||[]).forEach(function(b){(b.pax_details||[]).forEach(function(p){
+    allPax.push(Object.assign({},p,{bk:b.name,pkg:b.tour_package,dep:b.departure_date,dest:b.destination}));
+  });});
+  renderVisaTable(allPax);
+}
+function renderVisaTable(list){
+  var tb=document.getElementById('visa-tbody'); if(!tb)return;
+  tb.innerHTML=list.map(function(p){
+    return '<tr><td style="font-weight:600">'+(p.pax_name||'\u2014')+'</td>'+
+      '<td><span class="tbl-link" onclick="openBkDetail(\''+p.bk+'\')">'+(p.bk||'\u2014')+'</span></td>'+
+      '<td>'+(p.dest||'\u2014')+'</td><td>'+fmtDate(p.dep)+'</td>'+
+      '<td>'+(p.id_number||'\u2014')+'</td><td>'+fmtDate(p.passport_expiry)+'</td>'+
+      '<td>'+bdg(p.visa_status||'Not Applied')+'</td>'+
+      '<td><button class="tbl-btn tbl-btn-edit" onclick="updateVisaStatus(\''+p.bk+'\',\''+(p.pax_name||'').replace(/'/g,'')+'\')">Update</button></td></tr>';
+  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No visa records</td></tr>';
+}
+function filterVisa(status,btn){
+  document.querySelectorAll('#pg-visa .ftab').forEach(function(t){t.classList.remove('active');}); if(btn)btn.classList.add('active');
+  var allPax=[];
+  (D.bookings||[]).forEach(function(b){(b.pax_details||[]).forEach(function(p){
+    allPax.push(Object.assign({},p,{bk:b.name,pkg:b.tour_package,dep:b.departure_date,dest:b.destination}));
+  });});
+  renderVisaTable(status==='all'?allPax:allPax.filter(function(p){return (p.visa_status||'Not Applied')===status;}));
+}
+function updateVisaStatus(bk,pax){
+  var statuses=['Not Applied','Applied','Approved','Rejected'];
+  var val=prompt('Visa status for '+pax+':\n('+statuses.join(' / ')+')', 'Applied');
+  if(!val||statuses.indexOf(val)===-1)return;
+  _fc({method:'travel_tour.www.founder_dash.update_visa_status',args:{booking_name:bk,pax_name:pax,visa_status:val},
+    callback:function(r){if(r.message&&r.message.success){loadData();showToast('\u2705','Visa updated!');}},
+    error:function(){}});
+}
+
+/* ── TEAM ── */
+function renderTeam(){
+  var el=document.getElementById('team-grid'); if(!el)return;
+  el.innerHTML=(D.team||[]).map(function(m){
+    var ini=(m.employee_name||m.name||'?')[0].toUpperCase();
+    return '<div class="tcard"><div class="tc-ava">'+ini+'</div>'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between">'+
+      '<div><div class="tc-name">'+(m.employee_name||m.name)+'</div><div class="tc-role">'+(m.role||'\u2014')+'</div></div>'+
+      bdg(m.status||'Active')+'</div>'+
+      '<div style="font-size:12px;color:var(--t3);margin-top:6px">\uD83D\uDCF1 '+(m.mobile||'\u2014')+'</div>'+
+      '<div class="tc-stat"><div class="tc-stat-item"><div class="tc-stat-val">'+(m.leads_handled||0)+'</div><div class="tc-stat-lbl">Leads</div></div>'+
+      '<div class="tc-stat-item"><div class="tc-stat-val">'+(m.bookings_confirmed||0)+'</div><div class="tc-stat-lbl">Bookings</div></div></div>'+
+      '<div style="margin-top:12px"><button class="btn btn-danger btn-sm" onclick="confirmDelete(\'team\',\''+m.name+'\',\''+(m.employee_name||m.name).replace(/'/g,'')+'\')">Remove</button></div></div>';
+  }).join('')||'<div class="es" style="grid-column:1/-1"><div class="es-ico">\uD83E\uDDD1\u200D\uD83D\uDCBC</div><div class="es-title">No team members yet</div><div class="es-sub">Add your consultants.</div></div>';
+}
+function saveTeamMember(){
+  _fc({method:'travel_tour.www.founder_dash.save_team_member',
+    args:{employee_name:document.getElementById('tm-name').value,
+      mobile:document.getElementById('tm-mobile').value,
+      email:document.getElementById('tm-email').value,
+      role:document.getElementById('tm-role').value,
+      access_level:document.getElementById('tm-access').value},
+    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-member');loadData();showToast('\u2705','Team member added!');}
+      else showToast('\u274c','Error: '+(r.message&&r.message.error||'Unknown'));},
+    error:function(){closeModal('mo-new-member');}});
+}
+
+/* ── REPORTS ── */
+function renderReports(){renderDestReport();renderConsultReport();renderTourTypeReport();}
+function saveSettings(section){showToast('\u2705',section+' settings saved.');}
+
+/* ── DELETE ── */
+function confirmDelete(type,id,name){
+  var mc=document.getElementById('mo-confirm-msg'); if(mc)mc.textContent='Delete '+type+': '+name+' ('+id+')?';
+  var mb=document.getElementById('mo-confirm-btn'); if(mb)mb.onclick=function(){
+    _fc({method:'travel_tour.www.founder_dash.delete_record',args:{doctype:type,record_name:id},
+      callback:function(r){closeModal('mo-confirm');if(r.message&&r.message.success){loadData();showToast('\u2705','Deleted.');}},
+      error:function(){closeModal('mo-confirm');}});
+  };
+  openModal('mo-confirm');
+}
+
+/* ── NAVIGATION ── */
+var PAGE_TITLES={overview:'Overview',leads:'Leads & Enquiries',bookings:'Bookings',
+  payments:'Payments',packages:'Tour Packages',customers:'Customers',departures:'Departures',
+  visa:'Visa Tracker',team:'My Team',reports:'Reports & Analytics',settings:'Settings'};
+
+function goPage(id,navEl){
+  document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active');});
+  var pg=document.getElementById('pg-'+id); if(pg)pg.classList.add('active');
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('active');});
+  if(navEl)navEl.classList.add('active');
+  var tt=document.getElementById('tb-title'); if(tt)tt.textContent=PAGE_TITLES[id]||'';
+  var sb=document.getElementById('sb'); if(sb)sb.classList.remove('open');
+}
+function toggleSb(){var e=document.getElementById('sb');if(e)e.classList.toggle('open');}
+function toggleNotif(){var e=document.getElementById('notif-panel');if(e)e.classList.toggle('open');}
+function openModal(id){var el=document.getElementById(id);if(!el){console.warn('openModal: not found:',id);return;}el.classList.add('open');}
+function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('open');}
+function doLogout(){
+  fetch('/api/method/logout',{method:'POST',credentials:'same-origin',headers:{'X-Frappe-CSRF-Token':_csrf()}})
+  .then(function(){window.location.href='/login';}).catch(function(){window.location.href='/login';});
+}
+
+/* ── UTILS ── */
+function fmt(n){return (Number(n)||0).toLocaleString('en-IN',{maximumFractionDigits:0});}
 function fmtL(n){n=Number(n)||0;if(n>=10000000)return(n/10000000).toFixed(1)+'Cr';if(n>=100000)return(n/100000).toFixed(1)+'L';if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toString();}
-function fmtDate(d){if(!d)return '\u2014';try{return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;}}
-function bdg(status){var map={Confirmed:'bdg-confirmed',Completed:'bdg-completed',Cancelled:'bdg-cancelled',Draft:'bdg-draft',Pending:'bdg-pending',Paid:'bdg-paid',Partial:'bdg-partial',New:'bdg-new',Open:'bdg-new',Contacted:'bdg-warm','Proposal Sent':'bdg-warm',Negotiation:'bdg-hot',Converted:'bdg-confirmed',Lost:'bdg-draft','Not Applied':'bdg-draft',Applied:'bdg-completed',Approved:'bdg-approved',Rejected:'bdg-rejected',Active:'bdg-active',Inactive:'bdg-inactive'};return '<span class="bdg '+(map[status]||'bdg-draft')+'">'+(status||'\u2014')+'</span>';}
-function destEmoji(d){if(!d)return '\u2708\uFE0F';var s=d.toLowerCase();if(s.includes('bali')||s.includes('thai')||s.includes('maldiv'))return '\uD83C\uDFDD\uFE0F';if(s.includes('goa'))return '\uD83C\uDFD6\uFE0F';if(s.includes('europe')||s.includes('paris'))return '\uD83C\uDFF0';return '\u2708\uFE0F';}
-
-var toastT;
-function showToast(ico,msg){var t=document.getElementById('toast');if(!t)return;var ti=document.getElementById('toast-ico');if(ti)ti.textContent=ico;var tm=document.getElementById('toast-msg');if(tm)tm.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},3500);}
+function fmtDate(d){if(!d)return'\u2014';return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function bdg(status){
+  var map={Confirmed:'bdg-confirmed',Completed:'bdg-completed',Cancelled:'bdg-cancelled',Draft:'bdg-draft',Pending:'bdg-pending',
+    Paid:'bdg-paid',Partial:'bdg-partial',New:'bdg-new',Contacted:'bdg-warm','Proposal Sent':'bdg-warm',
+    Negotiation:'bdg-hot',Converted:'bdg-confirmed',Lost:'bdg-draft','Not Applied':'bdg-draft',
+    Applied:'bdg-completed',Approved:'bdg-approved',Rejected:'bdg-rejected',
+    Active:'bdg-active',Inactive:'bdg-inactive',Seasonal:'bdg-warm',Overdue:'bdg-overdue'};
+  return '<span class="bdg '+(map[status]||'bdg-draft')+'">'+(status||'\u2014')+'</span>';
+}
+function destEmoji(d){if(!d)return'\u2708\uFE0F';var s=d.toLowerCase();
+  if(s.indexOf('bali')!==-1||s.indexOf('thai')!==-1||s.indexOf('maldiv')!==-1)return'\uD83C\uDFDD\uFE0F';
+  if(s.indexOf('manali')!==-1||s.indexOf('kashmir')!==-1)return'\uD83C\uDFD4\uFE0F';
+  if(s.indexOf('goa')!==-1)return'\uD83C\uDFD6\uFE0F';
+  if(s.indexOf('europe')!==-1||s.indexOf('paris')!==-1)return'\uD83C\uDFF0';
+  if(s.indexOf('dubai')!==-1)return'\uD83C\uDFD9\uFE0F';
+  if(s.indexOf('kerala')!==-1)return'\uD83C\uDF34';
+  return'\u2708\uFE0F';}
+var _toastT;
+function showToast(ico,msg){
+  var t=document.getElementById('toast'); if(!t)return;
+  var ti=document.getElementById('toast-ico'); if(ti)ti.textContent=ico;
+  var tm=document.getElementById('toast-msg'); if(tm)tm.textContent=msg;
+  t.classList.add('show'); clearTimeout(_toastT);
+  _toastT=setTimeout(function(){t.classList.remove('show');},3500);
+}
 </script>
-
-<!-- Modal: New Departure -->
-<div class="mo" id="mo-new-dep"
-  <div class="modal-box">
-    <div class="modal-hdr">
-      <span>Add Departure</span>
-      <button class="modal-close" onclick="closeModal('mo-new-dep')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Tour Package *</label>
-          <select id="dep-pkg" style="width:100%;padding:8px;border:1px solid var(--br);border-radius:6px;background:var(--bg2)">
-            <option value="">Select Package</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Departure Date *</label>
-          <input type="date" id="dep-date">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Total Pax</label>
-          <input type="number" id="dep-pax" placeholder="0" min="1">
-        </div>
-        <div class="form-group">
-          <label>Sales Consultant</label>
-          <input type="text" id="dep-consultant" placeholder="Consultant name">
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('mo-new-dep')">Cancel</button>
-      <button class="btn btn-jade" onclick="saveDeparture()">Save Departure</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
