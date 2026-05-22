@@ -1,2361 +1,1771 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tour Travels — Founder Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+{% extends "templates/web.html" %}
+{% block title %}Tour Travels — Founder Dashboard{% endblock %}
+{% block head_include %}
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════════════════ */
 :root{
-  /* Brand */
-  --ink:     #05133c;
-  --ink2:    #0a1f5c;
-  --ink3:    #0d2468;
-  --jade:    #14f1b1;
-  --jade2:   #0fd49a;
-  --jade-bg: rgba(20,241,177,0.10);
-  --jade-bd: rgba(20,241,177,0.20);
-  /* Surface */
-  --surface: #f2f5fc;
-  --card:    #ffffff;
-  --card2:   #f8faff;
-  /* Text */
-  --t1:  #05133c;
-  --t2:  #3d5080;
-  --t3:  #7a8fb5;
-  --t4:  #aabbd4;
-  /* Status */
-  --red:     #ff4d6d;
-  --amber:   #ffb547;
-  --green:   #14f1b1;
-  --blue:    #4dabf7;
-  --purple:  #b197fc;
-  /* Layout */
-  --sb: 272px;
-  --r:  14px;
-  --sh: 0 2px 16px rgba(5,19,60,0.07);
-  --sh2:0 8px 32px rgba(5,19,60,0.12);
+  --jade:#1a7a5e;--jade2:#22967a;--jade3:#e8f5f1;
+  --ink:#0f1923;--ink2:#2d3a47;--ink3:#5a6978;
+  --bg:#f4f6f8;--bg2:#ffffff;--br:#dde2e8;
+  --red:#dc3545;--amber:#e8820c;--blue:#1a5fa8;
+  --t1:var(--ink);--t2:var(--ink2);--t3:var(--ink3);
+  --shadow:0 2px 12px rgba(0,0,0,.08);
+  --radius:10px;
+  --font:'DM Sans',sans-serif;
+  --serif:'DM Serif Display',serif;
 }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);font-size:14px;min-height:100vh}
+a{color:inherit;text-decoration:none}
+input,select,textarea{font-family:var(--font);font-size:13px;color:var(--t1);background:var(--bg2);border:1.5px solid var(--br);border-radius:7px;padding:8px 11px;width:100%;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--jade)}
+textarea{resize:vertical;min-height:70px}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 
-/* ═══════════════════════════════════════════════════════
-   BASE
-═══════════════════════════════════════════════════════ */
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--surface);
-  color:var(--t1);
-  display:flex;min-height:100vh;
-}
-a{text-decoration:none;color:inherit}
-button{font-family:'DM Sans',sans-serif;cursor:pointer}
-input,select,textarea{font-family:'DM Sans',sans-serif}
+/* ── Layout ── */
+.app{display:flex;min-height:100vh}
+.sb{width:220px;background:var(--ink);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s}
+.main{margin-left:220px;display:flex;flex-direction:column;min-height:100vh}
+@media(max-width:768px){.sb{transform:translateX(-100%)}.sb.open{transform:translateX(0)}.main{margin-left:0}}
 
-/* ═══════════════════════════════════════════════════════
-   SIDEBAR
-═══════════════════════════════════════════════════════ */
-.sb{
-  width:var(--sb);
-  background:var(--ink);
-  min-height:100vh;
-  position:fixed;left:0;top:0;
-  display:flex;flex-direction:column;
-  z-index:100;
-  transition:transform .3s ease;
-  overflow:hidden;
-}
-/* ink texture lines */
-.sb::before{
-  content:'';position:absolute;inset:0;
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(20,241,177,0.025) 0 1px,
-      transparent 1px 56px
-    );
-  pointer-events:none;
-}
+/* ── Sidebar ── */
+.sb-brand{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:36px;height:36px;background:var(--jade);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.sb-logo-text{font-family:var(--serif);font-size:17px;color:#fff;line-height:1.1}
+.sb-logo-sub{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.06em;text-transform:uppercase}
+.sb-user{padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:var(--jade);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+.sb-uname{color:#fff;font-size:13px;font-weight:600}
+.sb-urole{color:rgba(255,255,255,.45);font-size:11px}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 0}
+.sb-section{padding:14px 18px 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:rgba(26,122,94,.25);color:#fff;border-left-color:var(--jade2)}
+.nav-item .ni-ico{font-size:15px;width:18px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--jade);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px}
+.sb-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-signout{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer}
+.sb-signout:hover{color:#fff}
 
-.sb-top{
-  padding:24px 20px 18px;
-  border-bottom:1px solid rgba(255,255,255,0.07);
-  position:relative;z-index:1;
-}
-.sb-brand{display:flex;align-items:center;gap:12px}
-.sb-logo{
-  width:44px;height:44px;
-  background:var(--jade);
-  border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;flex-shrink:0;
-  box-shadow:0 4px 20px rgba(20,241,177,0.4);
-}
-.sb-title{
-  font-family:'Sora',sans-serif;
-  font-size:15px;font-weight:700;color:#fff;line-height:1.2;
-}
-.sb-role{
-  font-size:10px;color:var(--jade);
-  letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;
-}
+/* ── Topbar ── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--br);padding:0 24px;height:56px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.hamburger{display:none;font-size:20px;cursor:pointer;color:var(--t2)}
+@media(max-width:768px){.hamburger{display:block}}
+.topbar-title{font-family:var(--serif);font-size:20px;color:var(--ink);flex:1}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-jade{background:var(--jade);color:#fff}.btn-jade:hover{background:var(--jade2)}
+.btn-ghost{background:transparent;color:var(--t2);border:1.5px solid var(--br)}.btn-ghost:hover{border-color:var(--jade);color:var(--jade)}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{opacity:.88}
+.btn-sm{padding:5px 12px;font-size:12px}
 
-.sb-owner{
-  margin:12px 12px 4px;
-  padding:12px 14px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.07);
-  border-radius:11px;
-  display:flex;align-items:center;gap:10px;
-  position:relative;z-index:1;
-}
-.sb-ava{
-  width:34px;height:34px;
-  background:var(--jade);border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Sora',sans-serif;font-weight:800;font-size:14px;
-  color:var(--ink);flex-shrink:0;
-}
-.sb-oname{
-  font-family:'Sora',sans-serif;font-size:13px;font-weight:600;
-  color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.sb-otag{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px}
+/* ── Content ── */
+.content{flex:1;padding:24px;max-width:1400px;width:100%}
+.pg{display:none}.pg.active{display:block}
 
-.sb-nav{flex:1;padding:8px 10px;overflow-y:auto;position:relative;z-index:1}
-.sb-nav::-webkit-scrollbar{width:3px}
-.sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+/* ── Stats Grid ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow);border-left:4px solid var(--jade)}
+.stat-val{font-family:var(--serif);font-size:26px;color:var(--ink);line-height:1}
+.stat-lbl{font-size:11px;color:var(--t3);margin-top:5px;text-transform:uppercase;letter-spacing:.05em}
+.stat-icon{font-size:20px;margin-bottom:8px}
 
-.nav-lbl{
-  font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.2);
-  letter-spacing:1.8px;text-transform:uppercase;
-  padding:14px 8px 5px;
-}
-.ni{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:10px;
-  color:rgba(255,255,255,0.45);
-  font-size:13px;font-weight:500;
-  transition:all .18s;margin-bottom:1px;
-  cursor:pointer;position:relative;
-}
-.ni:hover{background:rgba(255,255,255,0.06);color:#fff}
-.ni.active{background:var(--jade);color:var(--ink);font-weight:700}
-.ni-ico{font-size:16px;width:20px;text-align:center;flex-shrink:0}
-.ni-badge{
-  margin-left:auto;
-  background:var(--red);color:#fff;
-  font-size:10px;font-weight:700;
-  border-radius:20px;padding:1px 7px;min-width:18px;text-align:center;
-}
-.ni.active .ni-badge{background:rgba(5,19,60,0.22);color:var(--ink)}
+/* ── Cards ── */
+.card{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+.card-hdr{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--br)}
+.card-hdr h3{font-family:var(--serif);font-size:17px;flex:1}
+.card-body{padding:20px}
 
-.sb-bot{
-  padding:12px 10px;
-  border-top:1px solid rgba(255,255,255,0.07);
-  position:relative;z-index:1;
-}
-.logout{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:10px;
-  color:rgba(255,255,255,0.3);font-size:13px;
-  background:none;border:none;width:100%;
-  transition:all .2s;
-}
-.logout:hover{background:rgba(255,77,109,0.1);color:var(--red)}
-
-/* ═══════════════════════════════════════════════════════
-   MAIN
-═══════════════════════════════════════════════════════ */
-.main{margin-left:var(--sb);flex:1;display:flex;flex-direction:column;min-height:100vh}
-
-/* TOPBAR */
-.topbar{
-  background:var(--card);
-  border-bottom:1px solid rgba(5,19,60,0.07);
-  padding:0 28px;height:62px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:50;
-}
-.tb-left{display:flex;align-items:center;gap:14px}
-.hamburger{
-  display:none;width:36px;height:36px;
-  background:var(--jade-bg);border:1px solid var(--jade-bd);
-  border-radius:8px;align-items:center;justify-content:center;
-  cursor:pointer;font-size:18px;color:var(--ink);
-}
-.tb-title{
-  font-family:'Sora',sans-serif;
-  font-size:17px;font-weight:700;color:var(--ink);
-}
-.tb-right{display:flex;align-items:center;gap:10px;position:relative}
-
-.tb-btn{
-  width:38px;height:38px;
-  background:var(--jade-bg);border:1px solid var(--jade-bd);
-  border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:17px;transition:all .2s;position:relative;
-}
-.tb-btn:hover{background:var(--jade)}
-.notif-dot{
-  position:absolute;top:7px;right:7px;
-  width:8px;height:8px;
-  background:var(--red);border-radius:50%;
-  border:2px solid var(--card);
-}
-
-.tb-avatar{
-  width:38px;height:38px;
-  background:var(--ink);color:var(--jade);
-  border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Sora',sans-serif;font-weight:700;font-size:14px;
-  cursor:pointer;
-}
-
-/* NOTIF PANEL */
-.notif-panel{
-  position:absolute;top:52px;right:0;
-  width:320px;background:var(--card);
-  border-radius:14px;border:1px solid rgba(5,19,60,0.1);
-  box-shadow:var(--sh2);z-index:200;display:none;overflow:hidden;
-}
-.notif-panel.open{display:block;animation:fadeUp .2s ease}
-.np-head{
-  padding:13px 16px;
-  border-bottom:1px solid rgba(5,19,60,0.07);
-  font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--ink);
-  display:flex;align-items:center;justify-content:space-between;
-}
-.np-clear{font-size:11px;color:var(--jade);background:none;border:none;cursor:pointer;font-weight:600}
-.np-item{
-  padding:12px 16px;border-bottom:1px solid rgba(5,19,60,0.05);
-  display:flex;gap:10px;cursor:pointer;transition:background .15s;
-}
-.np-item:hover{background:var(--surface)}
-.np-item:last-child{border-bottom:none}
-.np-ico{
-  width:34px;height:34px;border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;flex-shrink:0;
-}
-.np-title{font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:2px}
-.np-sub{font-size:11px;color:var(--t3)}
-.np-unread{width:7px;height:7px;background:var(--red);border-radius:50%;margin-top:3px;flex-shrink:0}
-
-/* CONTENT */
-.content{padding:26px 28px;flex:1}
-
-/* ═══════════════════════════════════════════════════════
-   PAGES
-═══════════════════════════════════════════════════════ */
-.pg{display:none}
-.pg.active{display:block;animation:fadeUp .22s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-/* ═══════════════════════════════════════════════════════
-   REUSABLE CARD
-═══════════════════════════════════════════════════════ */
-.card{
-  background:var(--card);border-radius:var(--r);
-  border:1px solid rgba(5,19,60,0.07);
-  box-shadow:var(--sh);overflow:hidden;
-}
-.card-hd{
-  padding:15px 20px 13px;
-  border-bottom:1px solid rgba(5,19,60,0.07);
-  display:flex;align-items:center;justify-content:space-between;
-}
-.card-title{
-  font-family:'Sora',sans-serif;
-  font-size:14px;font-weight:700;color:var(--ink);
-}
-.card-body{padding:16px 20px}
-.card-act{
-  font-size:12px;color:var(--jade2);
-  font-weight:700;background:none;border:none;
-  padding:4px 10px;border-radius:6px;transition:background .2s;
-}
-.card-act:hover{background:var(--jade-bg)}
-
-/* ═══════════════════════════════════════════════════════
-   PAGE HEADER
-═══════════════════════════════════════════════════════ */
-.ph{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:22px;
-}
-.ph h2{
-  font-family:'Sora',sans-serif;
-  font-size:21px;font-weight:700;color:var(--ink);
-}
-.ph-actions{display:flex;gap:8px;align-items:center}
-
-/* ═══════════════════════════════════════════════════════
-   STAT CARDS
-═══════════════════════════════════════════════════════ */
-.stats-row{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:12px;margin-bottom:22px;
-}
-.sc{
-  background:var(--card);border-radius:var(--r);
-  padding:18px 16px;border:1px solid rgba(5,19,60,0.07);
-  box-shadow:var(--sh);position:relative;overflow:hidden;
-  transition:transform .18s,box-shadow .18s;cursor:default;
-}
-.sc:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
-.sc::after{
-  content:'';position:absolute;
-  bottom:0;left:0;right:0;height:3px;
-  background:var(--accent,var(--jade));
-  border-radius:0 0 var(--r) var(--r);
-}
-.sc-jade  {--accent:var(--jade)}
-.sc-navy  {--accent:var(--ink)}
-.sc-amber {--accent:var(--amber)}
-.sc-blue  {--accent:var(--blue)}
-.sc-purple{--accent:var(--purple)}
-
-.sc-lbl{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
-.sc-val{
-  font-family:'Sora',sans-serif;
-  font-size:27px;font-weight:800;color:var(--ink);
-  line-height:1;margin-bottom:4px;
-}
-.sc-sub{font-size:11.5px;color:var(--t3)}
-.sc-ico{position:absolute;right:14px;top:14px;font-size:24px;opacity:.1}
-
-.sc-trend{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:11px;font-weight:700;margin-top:6px;
-  padding:2px 8px;border-radius:20px;
-}
-.trend-up  {background:rgba(20,241,177,0.12);color:#0aab7d}
-.trend-dn  {background:rgba(255,77,109,0.1);color:var(--red)}
-.trend-flat{background:rgba(5,19,60,0.06);color:var(--t3)}
-
-/* ═══════════════════════════════════════════════════════
-   BADGES
-═══════════════════════════════════════════════════════ */
-.bdg{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:11px;font-weight:600;
-  padding:3px 9px;border-radius:20px;
-}
-.bdg::before{content:'●';font-size:7px}
-.bdg-confirmed{background:rgba(20,241,177,0.12);color:#0aab7d}
-.bdg-pending  {background:rgba(255,181,71,0.12);color:#c47a00}
-.bdg-cancelled{background:rgba(255,77,109,0.12);color:var(--red)}
-.bdg-completed{background:rgba(75,171,247,0.12);color:#1a7fd4}
-.bdg-draft    {background:rgba(5,19,60,0.07);color:var(--t3)}
-.bdg-new      {background:rgba(75,171,247,0.12);color:#1a7fd4}
-.bdg-converted{background:rgba(20,241,177,0.12);color:#0aab7d}
-.bdg-hot      {background:rgba(255,77,109,0.12);color:var(--red)}
-.bdg-warm     {background:rgba(255,181,71,0.12);color:#c47a00}
-.bdg-cold     {background:rgba(75,171,247,0.12);color:#1a7fd4}
-.bdg-paid     {background:rgba(20,241,177,0.12);color:#0aab7d}
-.bdg-partial  {background:rgba(255,181,71,0.12);color:#c47a00}
-.bdg-overdue  {background:rgba(255,77,109,0.12);color:var(--red)}
-.bdg-active   {background:rgba(20,241,177,0.12);color:#0aab7d}
-.bdg-inactive {background:rgba(5,19,60,0.07);color:var(--t3)}
-.bdg-approved {background:rgba(20,241,177,0.12);color:#0aab7d}
-.bdg-rejected {background:rgba(255,77,109,0.12);color:var(--red)}
-
-/* ═══════════════════════════════════════════════════════
-   DATA TABLE
-═══════════════════════════════════════════════════════ */
+/* ── Table ── */
 .tbl-wrap{overflow-x:auto}
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{
-  background:rgba(5,19,60,0.03);
-  padding:9px 14px;text-align:left;
-  font-size:10.5px;font-weight:700;color:var(--t3);
-  letter-spacing:.6px;text-transform:uppercase;
-  border-bottom:1px solid rgba(5,19,60,0.07);white-space:nowrap;
-}
-.tbl td{
-  padding:11px 14px;
-  border-bottom:1px solid rgba(5,19,60,0.05);
-  color:var(--t1);font-weight:500;vertical-align:middle;
-}
-.tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:rgba(5,19,60,0.02)}
-.tbl-link{
-  color:var(--ink2);font-weight:700;cursor:pointer;
-  transition:color .2s;
-}
-.tbl-link:hover{color:var(--jade2)}
-.tbl-actions{display:flex;gap:6px}
-.tbl-btn{
-  padding:5px 10px;border-radius:6px;
-  font-size:11.5px;font-weight:600;
-  border:none;cursor:pointer;transition:all .18s;
-}
-.tbl-btn-edit{background:var(--jade-bg);color:var(--jade2)}
-.tbl-btn-edit:hover{background:var(--jade);color:var(--ink)}
-.tbl-btn-del{background:rgba(255,77,109,0.1);color:var(--red)}
-.tbl-btn-del:hover{background:rgba(255,77,109,0.2)}
-.tbl-btn-view{background:rgba(5,19,60,0.06);color:var(--ink)}
-.tbl-btn-view:hover{background:rgba(5,19,60,0.12)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);border-bottom:2px solid var(--br);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--br);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--jade3)}
+.tbl-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none}
+.tbl-edit{background:var(--jade3);color:var(--jade)}.tbl-edit:hover{background:var(--jade);color:#fff}
+.tbl-del{background:#fdecea;color:var(--red)}.tbl-del:hover{background:var(--red);color:#fff}
 
-/* ═══════════════════════════════════════════════════════
-   FILTER TABS
-═══════════════════════════════════════════════════════ */
-.ftabs{
-  display:flex;gap:5px;
-  background:rgba(5,19,60,0.05);
-  border-radius:10px;padding:4px;
-  margin-bottom:16px;flex-wrap:wrap;
-}
-.ftab{
-  padding:7px 14px;border-radius:7px;
-  font-size:12.5px;font-weight:600;
-  cursor:pointer;color:var(--t3);
-  border:none;background:none;transition:all .18s;
-}
-.ftab.active{
-  background:var(--card);color:var(--ink);
-  box-shadow:0 2px 8px rgba(5,19,60,0.08);
-}
+/* ── Badge ── */
+.bdg{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.bdg-green{background:#e6f4f0;color:#1a7a5e}
+.bdg-amber{background:#fff3e0;color:#e8820c}
+.bdg-red{background:#fdecea;color:#dc3545}
+.bdg-blue{background:#e8f0fe;color:#1a5fa8}
+.bdg-grey{background:#f0f2f5;color:#5a6978}
 
-/* SEARCH BAR */
-.search-wrap{
-  position:relative;flex:1;max-width:280px;
-}
-.search-wrap input{
-  width:100%;padding:9px 14px 9px 36px;
-  border:1.5px solid rgba(5,19,60,0.12);
-  border-radius:10px;font-size:13px;color:var(--ink);
-  background:var(--card);outline:none;transition:border .2s;
-}
-.search-wrap input:focus{border-color:var(--jade)}
-.search-ico{
-  position:absolute;left:11px;top:50%;
-  transform:translateY(-50%);font-size:14px;pointer-events:none;
-}
+/* ── Empty State ── */
+.empty{text-align:center;padding:48px 20px;color:var(--t3)}
+.empty-ico{font-size:40px;margin-bottom:12px}
+.empty-ttl{font-size:15px;font-weight:600;margin-bottom:6px}
+.empty-sub{font-size:12px}
 
-/* ═══════════════════════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════════════════════ */
-.btn{
-  padding:10px 20px;border-radius:10px;
-  font-size:13.5px;font-weight:600;
-  border:none;transition:all .2s;
-}
-.btn-jade{background:var(--jade);color:var(--ink)}
-.btn-jade:hover{background:var(--jade2);transform:translateY(-1px)}
-.btn-navy{background:var(--ink);color:#fff}
-.btn-navy:hover{background:var(--ink2);transform:translateY(-1px)}
-.btn-outline{background:transparent;color:var(--ink);border:1.5px solid rgba(5,19,60,0.14)}
-.btn-outline:hover{background:rgba(5,19,60,0.04)}
-.btn-danger{background:rgba(255,77,109,0.1);color:var(--red);border:1px solid rgba(255,77,109,0.2)}
-.btn-danger:hover{background:rgba(255,77,109,0.2)}
-.btn-sm{padding:7px 14px;font-size:12.5px;border-radius:8px}
-.btn-icon{
-  width:36px;height:36px;border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:17px;
-}
+/* ── Modal ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.modal-box{background:var(--bg2);border-radius:14px;width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);margin:16px}
+.modal-hdr{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--br)}
+.modal-hdr h3{font-family:var(--serif);font-size:18px;flex:1}
+.modal-close{width:30px;height:30px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:16px;color:var(--t3)}
+.modal-close:hover{background:var(--br)}
+.modal-body{padding:22px;overflow-y:auto;flex:1}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--br);display:flex;justify-content:flex-end;gap:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-row.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--t3)}
 
-/* ═══════════════════════════════════════════════════════
-   FORMS
-═══════════════════════════════════════════════════════ */
-.ff{margin-bottom:16px}
-.ff label{
-  display:block;font-size:11px;font-weight:700;
-  color:var(--ink);letter-spacing:.5px;text-transform:uppercase;
-  margin-bottom:6px;
-}
-.ff input,.ff select,.ff textarea{
-  width:100%;border:1.5px solid rgba(5,19,60,0.12);
-  border-radius:10px;padding:11px 13px;
-  font-size:14px;color:var(--ink);background:var(--card);
-  outline:none;transition:border .2s;
-}
-.ff input:focus,.ff select:focus,.ff textarea:focus{
-  border-color:var(--jade);background:rgba(20,241,177,0.02);
-}
-.ff textarea{resize:vertical;min-height:80px}
-.ff-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.ff-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+/* ── Toast ── */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);animation:slideIn .3s ease;max-width:320px}
+.toast.toast-ok{background:#1a7a5e}
+.toast.toast-err{background:var(--red)}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
 
-/* ═══════════════════════════════════════════════════════
-   MODALS
-═══════════════════════════════════════════════════════ */
-.mo{
-  position:fixed;inset:0;
-  background:rgba(5,19,60,0.6);backdrop-filter:blur(5px);
-  z-index:300;display:none;
-  align-items:center;justify-content:center;padding:16px;
-}
-.mo.open{display:flex}
-.mo-box{
-  background:var(--card);border-radius:20px;
-  width:100%;max-width:720px;max-height:92vh;
-  overflow-y:auto;
-  box-shadow:0 32px 80px rgba(5,19,60,0.3);
-  animation:popIn .28s cubic-bezier(.175,.885,.32,1.1);
-}
-.mo-sm{max-width:500px}
-.mo-lg{max-width:900px}
-@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.mo-head{
-  padding:18px 24px 15px;
-  border-bottom:1px solid rgba(5,19,60,0.07);
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;background:var(--card);z-index:1;
-}
-.mo-title{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--ink)}
-.mo-close{
-  width:30px;height:30px;border-radius:8px;
-  background:rgba(5,19,60,0.06);border:none;cursor:pointer;
-  font-size:17px;color:var(--t3);
-  display:flex;align-items:center;justify-content:center;transition:all .2s;
-}
-.mo-close:hover{background:rgba(255,77,109,0.1);color:var(--red)}
-.mo-body{padding:22px 24px}
-.mo-foot{
-  padding:14px 24px 20px;
-  display:flex;gap:8px;justify-content:flex-end;
-  border-top:1px solid rgba(5,19,60,0.07);
-}
-
-/* SECTION TITLE inside modal */
-.ms-t{
-  font-family:'Sora',sans-serif;font-size:11px;font-weight:700;
-  color:var(--t3);letter-spacing:1px;text-transform:uppercase;
-  margin-bottom:12px;padding-bottom:7px;
-  border-bottom:1px solid rgba(5,19,60,0.07);
-}
-.ms{margin-bottom:20px}
-
-/* DETAIL GRID */
-.dg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.df label{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--t4);display:block;margin-bottom:4px}
-.df span{font-size:14px;font-weight:600;color:var(--ink)}
-
-/* ═══════════════════════════════════════════════════════
-   KANBAN (LEADS)
-═══════════════════════════════════════════════════════ */
-.kanban{
-  display:flex;gap:14px;
-  overflow-x:auto;padding-bottom:4px;
-}
-.kol{
-  min-width:240px;flex:1;
-  background:rgba(5,19,60,0.03);
-  border-radius:12px;padding:12px;
-}
-.kol-head{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:10px;
-}
-.kol-title{font-family:'Sora',sans-serif;font-size:12.5px;font-weight:700;color:var(--ink)}
-.kol-count{
-  font-size:10.5px;font-weight:700;
-  background:rgba(5,19,60,0.08);
-  color:var(--t2);border-radius:20px;padding:2px 8px;
-}
-.kcard{
-  background:var(--card);border-radius:10px;
-  padding:12px 14px;margin-bottom:8px;
-  border:1px solid rgba(5,19,60,0.07);
-  box-shadow:var(--sh);cursor:pointer;
-  transition:transform .15s,box-shadow .15s;
-}
-.kcard:hover{transform:translateY(-1px);box-shadow:var(--sh2)}
-.kc-name{font-weight:700;font-size:13px;color:var(--ink);margin-bottom:3px}
-.kc-dest{font-size:11.5px;color:var(--t3);margin-bottom:6px}
-.kc-foot{display:flex;align-items:center;justify-content:space-between}
-.kc-mobile{font-size:11px;color:var(--t3)}
-.kc-score{
-  width:22px;height:22px;border-radius:6px;
-  background:var(--jade-bg);color:var(--jade2);
-  font-size:10px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-}
-
-/* ═══════════════════════════════════════════════════════
-   CALENDAR / TIMELINE STRIP
-═══════════════════════════════════════════════════════ */
-.dep-strip{
-  display:flex;gap:10px;
-  overflow-x:auto;padding-bottom:4px;margin-bottom:20px;
-}
-.dep-card{
-  min-width:200px;
-  background:var(--card);border-radius:12px;
-  padding:14px 16px;
-  border:1px solid rgba(5,19,60,0.07);
-  box-shadow:var(--sh);cursor:pointer;
-  transition:transform .15s;flex-shrink:0;
-}
-.dep-card:hover{transform:translateY(-2px)}
-.dep-card.today{border-color:var(--jade);background:rgba(20,241,177,0.04)}
-.dep-date{
-  font-family:'Sora',sans-serif;font-size:11px;font-weight:700;
-  color:var(--jade2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;
-}
-.dep-pkg{font-weight:700;font-size:13px;color:var(--ink);margin-bottom:3px}
-.dep-pax{font-size:11.5px;color:var(--t3)}
-
-/* ═══════════════════════════════════════════════════════
-   REVENUE CHART (CSS BARS)
-═══════════════════════════════════════════════════════ */
-.rev-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding:0 4px}
-.rev-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
-.rev-bar{
-  width:100%;background:var(--jade-bg);border-radius:6px 6px 0 0;
-  position:relative;transition:background .2s;cursor:pointer;
-  min-height:4px;
-}
-.rev-bar:hover{background:var(--jade)}
-.rev-bar-val{
-  position:absolute;top:-18px;left:50%;transform:translateX(-50%);
-  font-size:9px;font-weight:700;color:var(--jade2);white-space:nowrap;
-}
-.rev-month{font-size:10px;color:var(--t4);font-weight:600}
-
-/* ═══════════════════════════════════════════════════════
-   ACTIVITY FEED
-═══════════════════════════════════════════════════════ */
-.act-item{
-  display:flex;gap:12px;padding:10px 0;
-  border-bottom:1px solid rgba(5,19,60,0.05);
-}
-.act-item:last-child{border-bottom:none}
-.act-ico{
-  width:32px;height:32px;border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;flex-shrink:0;
-}
-.act-text{flex:1;padding-top:1px}
-.act-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
-.act-time{font-size:11px;color:var(--t3)}
-
-/* ═══════════════════════════════════════════════════════
-   PROGRESS
-═══════════════════════════════════════════════════════ */
-.prog-bar{height:6px;background:rgba(5,19,60,0.08);border-radius:10px;overflow:hidden}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--jade),var(--jade2));border-radius:10px;transition:width .5s ease}
-
-/* ═══════════════════════════════════════════════════════
-   PAYMENT ROWS
-═══════════════════════════════════════════════════════ */
-.pay-row{
-  display:flex;justify-content:space-between;
-  padding:7px 0;font-size:13.5px;
-  border-bottom:1px solid rgba(5,19,60,0.05);
-}
-.pay-row:last-child{border-bottom:none}
-.pay-row.total{font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--ink);padding-top:10px}
-.pay-row.paid{color:#0aab7d;font-weight:600}
-.pay-row.bal{color:var(--amber);font-weight:600}
-
-/* ═══════════════════════════════════════════════════════
-   TEAM CARD
-═══════════════════════════════════════════════════════ */
-.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.tcard{
-  background:var(--card);border-radius:var(--r);
-  border:1px solid rgba(5,19,60,0.07);
-  box-shadow:var(--sh);padding:20px;
-  transition:transform .2s;
-}
-.tcard:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
-.tc-ava{
-  width:52px;height:52px;
-  border-radius:14px;background:var(--ink);
-  color:var(--jade);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Sora',sans-serif;font-weight:700;font-size:20px;
-  margin-bottom:12px;
-}
-.tc-name{font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:3px}
-.tc-role{font-size:12px;color:var(--t3);margin-bottom:10px}
-.tc-stat{display:flex;gap:12px;margin-top:10px}
-.tc-stat-item{flex:1;text-align:center}
-.tc-stat-val{font-family:'Sora',sans-serif;font-weight:700;font-size:17px;color:var(--ink)}
-.tc-stat-lbl{font-size:10px;color:var(--t4);margin-top:2px}
-
-/* ═══════════════════════════════════════════════════════
-   EMPTY STATE
-═══════════════════════════════════════════════════════ */
-.es{text-align:center;padding:44px 20px}
-.es-ico{font-size:48px;margin-bottom:12px;opacity:.3}
-.es-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:5px}
-.es-sub{font-size:13px;color:var(--t3)}
-
-/* TOAST */
-.toast{
-  position:fixed;bottom:26px;right:26px;
-  background:var(--ink);color:#fff;
-  padding:13px 18px;border-radius:12px;
-  font-size:13.5px;font-weight:600;
-  box-shadow:var(--sh2);z-index:9999;
-  transform:translateY(80px);opacity:0;
-  transition:all .3s cubic-bezier(.175,.885,.32,1.2);
-  display:flex;align-items:center;gap:10px;max-width:360px;
-}
-.toast.show{transform:translateY(0);opacity:1}
-
-/* CONFIRM DELETE */
-.confirm-strip{
-  background:rgba(255,77,109,0.07);
-  border:1px solid rgba(255,77,109,0.2);
-  border-radius:10px;padding:14px 16px;
-  margin-bottom:16px;font-size:13.5px;color:var(--red);font-weight:600;
-}
-
-/* ═══════════════════════════════════════════════════════
-   DASHBOARD SPECIFIC GRIDS
-═══════════════════════════════════════════════════════ */
-.dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
-.dash-grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
-
-/* ═══════════════════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════════════════ */
-@media(max-width:1280px){
-  .stats-row{grid-template-columns:repeat(3,1fr)}
-  .dash-grid{grid-template-columns:1fr 1fr}
-  .team-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:1024px){
-  .dash-grid2{grid-template-columns:1fr}
-  .ff-row3{grid-template-columns:1fr 1fr}
-}
-@media(max-width:768px){
-  .sb{transform:translateX(-100%)}
-  .sb.open{transform:translateX(0)}
-  .main{margin-left:0}
-  .hamburger{display:flex}
-  .content{padding:16px 14px}
-  .topbar{padding:0 14px}
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-  .dash-grid,.dash-grid2{grid-template-columns:1fr}
-  .team-grid{grid-template-columns:1fr}
-  .dg,.ff-row,.ff-row3{grid-template-columns:1fr}
-  .bc-body{grid-template-columns:1fr 1fr}
-}
+/* ── Search ── */
+.search-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.search-row input{max-width:260px}
 </style>
-</head>
-<body>
+{% endblock %}
 
-<!-- ═══════════════════════════════════════════════════════
-     SIDEBAR
-═══════════════════════════════════════════════════════ -->
-<aside class="sb" id="sb">
-  <div class="sb-top">
-    <div class="sb-brand">
-      <div class="sb-logo">✈️</div>
+{% block page_content %}
+<div class="app">
+
+<!-- ════════ SIDEBAR ════════ -->
+<div class="sb" id="sb">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">✈️</div>
       <div>
-        <div class="sb-title">Tour Travels</div>
-        <div class="sb-role">Founder Access</div>
+        <div class="sb-logo-text">Tour Travels</div>
+        <div class="sb-logo-sub">Founder Access</div>
       </div>
     </div>
   </div>
-
-  <div class="sb-owner">
-    <div class="sb-ava" id="sb-ava">T</div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-av">F</div>
     <div>
-      <div class="sb-oname" id="sb-oname">Loading...</div>
-      <div class="sb-otag">Founder &amp; CEO</div>
+      <div class="sb-uname" id="sb-uname">Founder</div>
+      <div class="sb-urole">Founder &amp; CEO</div>
     </div>
   </div>
-
   <nav class="sb-nav">
-    <div class="nav-lbl">Overview</div>
-    <div class="ni active" onclick="goPage('overview',this)">
-      <span class="ni-ico">🏠</span>Overview
-    </div>
+    <div class="sb-section">Sales Pipeline</div>
+    <div class="nav-item active" onclick="goPage('overview',this)"><span class="ni-ico">🏠</span>Overview</div>
+    <div class="nav-item" onclick="goPage('leads',this)"><span class="ni-ico">👤</span>Leads &amp; Enquiries<span class="nav-badge" id="nb-leads">0</span></div>
+    <div class="nav-item" onclick="goPage('bookings',this)"><span class="ni-ico">📋</span>Bookings<span class="nav-badge" id="nb-bk">0</span></div>
+    <div class="nav-item" onclick="goPage('payments',this)"><span class="ni-ico">💳</span>Payments</div>
 
-    <div class="nav-lbl">Sales Pipeline</div>
-    <div class="ni" onclick="goPage('leads',this)">
-      <span class="ni-ico">🎯</span>Leads & Enquiries
-      <span class="ni-badge" id="nb-leads">0</span>
-    </div>
-    <div class="ni" onclick="goPage('bookings',this)">
-      <span class="ni-ico">🎫</span>Bookings
-      <span class="ni-badge" id="nb-bk">0</span>
-    </div>
-    <div class="ni" onclick="goPage('payments',this)">
-      <span class="ni-ico">💳</span>Payments
-      <span class="ni-badge" id="nb-pay" style="display:none">!</span>
-    </div>
+    <div class="sb-section">Operations</div>
+    <div class="nav-item" onclick="goPage('packages',this)"><span class="ni-ico">🗺️</span>Tour Packages</div>
+    <div class="nav-item" onclick="goPage('destinations',this)"><span class="ni-ico">📍</span>Destinations</div>
+    <div class="nav-item" onclick="goPage('departures',this)"><span class="ni-ico">🛫</span>Departures</div>
+    <div class="nav-item" onclick="goPage('runsheets',this)"><span class="ni-ico">📄</span>Run Sheets</div>
+    <div class="nav-item" onclick="goPage('guides',this)"><span class="ni-ico">🧑‍✈️</span>Guide Allocation</div>
 
-    <div class="nav-lbl">Operations</div>
-    <div class="ni" onclick="goPage('packages',this)">
-      <span class="ni-ico">📦</span>Tour Packages
-    </div>
-    <div class="ni" onclick="goPage('customers',this)">
-      <span class="ni-ico">👥</span>Customers
-    </div>
-    <div class="ni" onclick="goPage('departures',this)">
-      <span class="ni-ico">🛫</span>Departures
-    </div>
-    <div class="ni" onclick="goPage('visa',this)">
-      <span class="ni-ico">🛂</span>Visa Tracker
-    </div>
+    <div class="sb-section">Visa</div>
+    <div class="nav-item" onclick="goPage('visas',this)"><span class="ni-ico">🛂</span>Visa Applications<span class="nav-badge" id="nb-visa">0</span></div>
+    <div class="nav-item" onclick="goPage('visa_agents',this)"><span class="ni-ico">🏢</span>Visa Agents</div>
+    <div class="nav-item" onclick="goPage('visa_config',this)"><span class="ni-ico">⚙️</span>Visa Config</div>
+    <div class="nav-item" onclick="goPage('visa_billing',this)"><span class="ni-ico">🧾</span>Visa Billing</div>
+    <div class="nav-item" onclick="goPage('visa_delivery',this)"><span class="ni-ico">📦</span>Visa Delivery</div>
 
-    <div class="nav-lbl">Business</div>
-    <div class="ni" onclick="goPage('team',this)">
-      <span class="ni-ico">🧑‍💼</span>My Team
-    </div>
-    <div class="ni" onclick="goPage('reports',this)">
-      <span class="ni-ico">📊</span>Reports &amp; Analytics
-    </div>
-    <div class="ni" onclick="goPage('settings',this)">
-      <span class="ni-ico">⚙️</span>Settings
-    </div>
+    <div class="sb-section">Business</div>
+    <div class="nav-item" onclick="goPage('hotels',this)"><span class="ni-ico">🏨</span>Hotel Allotments</div>
+    <div class="nav-item" onclick="goPage('contracts',this)"><span class="ni-ico">📝</span>Supplier Contracts</div>
+    <div class="nav-item" onclick="goPage('cancellations',this)"><span class="ni-ico">❌</span>Cancel Policies</div>
+    <div class="nav-item" onclick="goPage('customers',this)"><span class="ni-ico">⭐</span>Customers</div>
+    <div class="nav-item" onclick="goPage('settings',this)"><span class="ni-ico">⚙️</span>Settings</div>
   </nav>
-
-  <div class="sb-bot">
-    <button class="logout" onclick="doLogout()">
-      <span>🚪</span>Sign Out
-    </button>
+  <div class="sb-footer">
+    <div class="sb-signout" onclick="doLogout()">🚪 Sign Out</div>
   </div>
-</aside>
+</div>
 
-<!-- ═══════════════════════════════════════════════════════
-     MAIN
-═══════════════════════════════════════════════════════ -->
+<!-- ════════ MAIN ════════ -->
 <div class="main">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="tb-left">
-      <div class="hamburger" onclick="toggleSb()">☰</div>
-      <div class="tb-title" id="tb-title">Overview</div>
-    </div>
-    <div class="tb-right">
-      <div class="tb-btn" onclick="openModal('mo-new-lead')" title="Quick Add Lead">➕</div>
-      <div class="tb-btn" onclick="toggleNotif()">
-        🔔<span class="notif-dot"></span>
-      </div>
-      <div class="notif-panel" id="notif-panel">
-        <div class="np-head">
-          Notifications
-          <button class="np-clear">Mark all read</button>
-        </div>
-        <div id="notif-list">
-          <div class="np-item">
-            <div class="np-ico" style="background:var(--jade-bg)">🎫</div>
-            <div>
-              <div class="np-title">New booking received</div>
-              <div class="np-sub">Goa Package · 4 pax · 2 min ago</div>
-            </div>
-            <div class="np-unread"></div>
-          </div>
-          <div class="np-item">
-            <div class="np-ico" style="background:rgba(255,181,71,0.12)">💰</div>
-            <div>
-              <div class="np-title">Balance overdue</div>
-              <div class="np-sub">BK-0042 · ₹32,000 due · 1 hr ago</div>
-            </div>
-            <div class="np-unread"></div>
-          </div>
-          <div class="np-item">
-            <div class="np-ico" style="background:rgba(75,171,247,0.12)">🎯</div>
-            <div>
-              <div class="np-title">5 new leads today</div>
-              <div class="np-sub">Via website enquiry form</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="tb-avatar" id="tb-ava">T</div>
-    </div>
+    <span class="hamburger" onclick="document.getElementById('sb').classList.toggle('open')">☰</span>
+    <span class="topbar-title" id="page-title">Overview</span>
+    <button class="btn btn-jade btn-sm" id="topbar-add-btn" onclick="topbarAdd()">+ Add</button>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
 
-    <!-- ═════════════════════════════════
-         OVERVIEW PAGE
-    ═════════════════════════════════ -->
+    <!-- ── OVERVIEW ── -->
     <div class="pg active" id="pg-overview">
-      <div class="ph">
-        <div>
-          <h2>Good Morning, <span id="ov-fname">Founder</span> 👋</h2>
-          <p style="font-size:14px;color:var(--t3);margin-top:3px">Here's your business at a glance today</p>
-        </div>
-        <div class="ph-actions">
-          <button class="btn btn-outline btn-sm" onclick="loadData()">🔄 Refresh</button>
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-lead')">+ New Lead</button>
-        </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-val" id="st-rev">₹0</div><div class="stat-lbl">Total Revenue</div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val" id="st-bk">0</div><div class="stat-lbl">Active Bookings</div></div>
+        <div class="stat-card"><div class="stat-icon">👤</div><div class="stat-val" id="st-leads">0</div><div class="stat-lbl">Open Leads</div></div>
+        <div class="stat-card"><div class="stat-icon">🗺️</div><div class="stat-val" id="st-pkg">0</div><div class="stat-lbl">Tour Packages</div></div>
+        <div class="stat-card"><div class="stat-icon">🛂</div><div class="stat-val" id="st-visa">0</div><div class="stat-lbl">Visa Pending</div></div>
+        <div class="stat-card"><div class="stat-icon">📍</div><div class="stat-val" id="st-dest">0</div><div class="stat-lbl">Destinations</div></div>
       </div>
-
-      <!-- STATS -->
-      <div class="stats-row">
-        <div class="sc sc-jade">
-          <div class="sc-lbl">Total Revenue</div>
-          <div class="sc-val" id="st-rev">—</div>
-          <div class="sc-sub">This financial year</div>
-          <div class="sc-trend trend-up" id="st-rev-trend">↑ +18%</div>
-          <div class="sc-ico">💰</div>
-        </div>
-        <div class="sc sc-navy">
-          <div class="sc-lbl">Active Bookings</div>
-          <div class="sc-val" id="st-bk">—</div>
-          <div class="sc-sub">Confirmed + upcoming</div>
-          <div class="sc-trend trend-up" id="st-bk-trend">↑ +3 this week</div>
-          <div class="sc-ico">🎫</div>
-        </div>
-        <div class="sc sc-amber">
-          <div class="sc-lbl">Balance Dues</div>
-          <div class="sc-val" id="st-due">—</div>
-          <div class="sc-sub">Pending collection</div>
-          <div class="sc-ico">⚠️</div>
-        </div>
-        <div class="sc sc-blue">
-          <div class="sc-lbl">Open Leads</div>
-          <div class="sc-val" id="st-leads">—</div>
-          <div class="sc-sub">Need follow-up</div>
-          <div class="sc-trend trend-flat" id="st-leads-trend">→ Same as yesterday</div>
-          <div class="sc-ico">🎯</div>
-        </div>
-        <div class="sc sc-purple">
-          <div class="sc-lbl">Departures (30d)</div>
-          <div class="sc-val" id="st-dep">—</div>
-          <div class="sc-sub">Trips leaving soon</div>
-          <div class="sc-ico">🛫</div>
-        </div>
+      <div class="card">
+        <div class="card-hdr"><h3>Recent Leads</h3></div>
+        <div class="card-body tbl-wrap"><table><thead><tr><th>Name</th><th>Mobile</th><th>Status</th><th>Package</th><th>Action</th></tr></thead><tbody id="ov-leads"></tbody></table></div>
       </div>
-
-      <!-- CHARTS + ACTIVITY -->
-      <div class="dash-grid2">
-        <!-- Revenue Chart -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Monthly Revenue</div>
-            <select style="font-size:12px;border:1px solid rgba(5,19,60,0.12);border-radius:7px;padding:4px 8px;color:var(--ink)" id="rev-year">
-              <option>2025</option><option>2024</option>
-            </select>
-          </div>
-          <div class="card-body">
-            <div class="rev-chart" id="rev-chart"></div>
-            <div style="display:flex;justify-content:space-between;margin-top:10px;padding:0 4px">
-              <div style="font-size:11.5px;color:var(--t3)">Total: <strong id="rev-total" style="color:var(--ink)">—</strong></div>
-              <div style="font-size:11.5px;color:var(--t3)">Best: <strong id="rev-best" style="color:var(--jade2)">—</strong></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Activity Feed -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Live Activity</div>
-            <button class="card-act">View all</button>
-          </div>
-          <div class="card-body" id="activity-feed">
-            <div style="text-align:center;padding:20px;color:var(--t3);font-size:13px">Loading...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOTTOM GRID -->
-      <div class="dash-grid">
-        <!-- Upcoming Departures -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Next Departures</div>
-            <button class="card-act" onclick="goPage('departures',null)">All →</button>
-          </div>
-          <div class="card-body" id="dep-list-dash"></div>
-        </div>
-
-        <!-- Hot Leads -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Hot Leads 🔥</div>
-            <button class="card-act" onclick="goPage('leads',null)">Pipeline →</button>
-          </div>
-          <div class="card-body" id="hot-leads-dash"></div>
-        </div>
-
-        <!-- Pending Collections -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Pending Collections</div>
-            <button class="card-act" onclick="goPage('payments',null)">All →</button>
-          </div>
-          <div class="card-body" id="pending-pay-dash"></div>
-        </div>
+      <div class="card">
+        <div class="card-hdr"><h3>Recent Bookings</h3></div>
+        <div class="card-body tbl-wrap"><table><thead><tr><th>Booking</th><th>Package</th><th>Date</th><th>Pax</th><th>Total</th></tr></thead><tbody id="ov-bookings"></tbody></table></div>
       </div>
     </div>
 
-    <!-- ═════════════════════════════════
-         LEADS PAGE
-    ═════════════════════════════════ -->
+    <!-- ── LEADS ── -->
     <div class="pg" id="pg-leads">
-      <div class="ph">
-        <h2>Leads &amp; Enquiries</h2>
-        <div class="ph-actions">
-          <div class="search-wrap">
-            <span class="search-ico">🔍</span>
-            <input type="text" placeholder="Search leads..." id="lead-search" oninput="filterLeads()">
-          </div>
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-lead')">+ New Lead</button>
-        </div>
+      <div class="search-row">
+        <input type="text" id="lead-search" placeholder="🔍 Search leads..." oninput="filterLeads()">
+        <select id="lead-status-filter" onchange="filterLeads()">
+          <option value="">All Status</option>
+          <option>Open</option><option>Interested</option><option>converted</option><option>Lost</option>
+        </select>
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-lead');clearLeadForm()">+ New Lead</button>
       </div>
-
-      <!-- Kanban View -->
-      <div class="ftabs">
-        <button class="ftab active" onclick="leadView('kanban',this)">🗂 Kanban</button>
-        <button class="ftab" onclick="leadView('table',this)">📋 Table</button>
-      </div>
-
-      <div id="lead-kanban">
-        <div class="kanban" id="kanban-board"></div>
-      </div>
-      <div id="lead-table" style="display:none">
-        <div class="card">
-          <div class="card-body" style="padding:0">
-            <div class="tbl-wrap">
-              <table class="tbl" id="leads-tbl">
-                <thead><tr>
-                  <th>Name</th><th>Mobile</th><th>Destination</th>
-                  <th>Tour Type</th><th>Travel Month</th><th>Pax</th>
-                  <th>Budget/Pax</th><th>Consultant</th><th>Status</th><th>Actions</th>
-                </tr></thead>
-                <tbody id="leads-tbody"></tbody>
-              </table>
-            </div>
-          </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Status</th><th>Package</th><th>Pax</th><th>Source</th><th>Actions</th></tr></thead>
+          <tbody id="leads-tbody"></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- ═════════════════════════════════
-         BOOKINGS PAGE
-    ═════════════════════════════════ -->
+    <!-- ── BOOKINGS ── -->
     <div class="pg" id="pg-bookings">
-      <div class="ph">
-        <h2>Bookings</h2>
-        <div class="ph-actions">
-          <div class="search-wrap">
-            <span class="search-ico">🔍</span>
-            <input type="text" placeholder="Search bookings..." id="bk-search" oninput="filterBk()">
-          </div>
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-bk')">+ New Booking</button>
-        </div>
-      </div>
-      <div class="ftabs">
-        <button class="ftab active" onclick="filterBkStatus('all',this)">All</button>
-        <button class="ftab" onclick="filterBkStatus('Confirmed',this)">Confirmed</button>
-        <button class="ftab" onclick="filterBkStatus('Completed',this)">Completed</button>
-        <button class="ftab" onclick="filterBkStatus('Cancelled',this)">Cancelled</button>
-        <button class="ftab" onclick="filterBkStatus('Draft',this)">Draft</button>
+      <div class="search-row">
+        <input type="text" id="bk-search" placeholder="🔍 Search bookings..." oninput="filterBookings()">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-booking');clearBookingForm()">+ New Booking</button>
       </div>
       <div class="card">
-        <div class="card-body" style="padding:0">
-          <div class="tbl-wrap">
-            <table class="tbl" id="bk-tbl">
-              <thead><tr>
-                <th>Booking ID</th><th>Customer</th><th>Package</th>
-                <th>Departure</th><th>Pax</th><th>Total</th>
-                <th>Advance</th><th>Balance</th><th>Status</th><th>Actions</th>
-              </tr></thead>
-              <tbody id="bk-tbody"></tbody>
-            </table>
-          </div>
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Booking ID</th><th>Customer</th><th>Package</th><th>Departure</th><th>Pax</th><th>Grand Total</th><th>Actions</th></tr></thead>
+          <tbody id="bookings-tbody"></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- ═════════════════════════════════
-         PAYMENTS PAGE
-    ═════════════════════════════════ -->
+    <!-- ── PAYMENTS ── -->
     <div class="pg" id="pg-payments">
-      <div class="ph">
-        <h2>Payments</h2>
-        <div class="ph-actions">
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-record-pay')">+ Record Payment</button>
-        </div>
-      </div>
-      <div class="ftabs">
-        <button class="ftab active" onclick="filterPay('all',this)">All</button>
-        <button class="ftab" onclick="filterPay('Overdue',this)">⚠ Overdue</button>
-        <button class="ftab" onclick="filterPay('Partial',this)">Partial</button>
-        <button class="ftab" onclick="filterPay('Paid',this)">Paid</button>
-      </div>
       <div class="card">
-        <div class="card-body" style="padding:0">
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr>
-                <th>Booking</th><th>Customer</th><th>Package</th>
-                <th>Grand Total</th><th>Advance Paid</th><th>Balance Due</th>
-                <th>Due Date</th><th>Status</th><th>Actions</th>
-              </tr></thead>
-              <tbody id="pay-tbody"></tbody>
-            </table>
-          </div>
+        <div class="card-hdr"><h3>Payment Records</h3><button class="btn btn-jade btn-sm" onclick="openModal('mo-payment')">+ Record Payment</button></div>
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Booking</th><th>Package</th><th>Base Amt</th><th>GST</th><th>Grand Total</th><th>Action</th></tr></thead>
+          <tbody id="payments-tbody"></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- ═════════════════════════════════
-         PACKAGES PAGE
-    ═════════════════════════════════ -->
+    <!-- ── PACKAGES ── -->
     <div class="pg" id="pg-packages">
-      <div class="ph">
-        <h2>Tour Packages</h2>
-        <div class="ph-actions">
-          <div class="search-wrap">
-            <span class="search-ico">🔍</span>
-            <input type="text" placeholder="Search packages...">
-          </div>
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-pkg')">+ New Package</button>
-        </div>
-      </div>
-      <div id="pkg-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
-    </div>
-
-    <!-- ═════════════════════════════════
-         CUSTOMERS PAGE
-    ═════════════════════════════════ -->
-    <div class="pg" id="pg-customers">
-      <div class="ph">
-        <h2>Customers</h2>
-        <div class="ph-actions">
-          <div class="search-wrap">
-            <span class="search-ico">🔍</span>
-            <input type="text" placeholder="Search customers..." id="cust-search" oninput="filterCust()">
-          </div>
-        </div>
+      <div class="search-row">
+        <input type="text" id="pkg-search" placeholder="🔍 Search packages..." oninput="filterPackages()">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-package');clearPackageForm()">+ New Package</button>
       </div>
       <div class="card">
-        <div class="card-body" style="padding:0">
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr>
-                <th>Name</th><th>Mobile</th><th>Email</th>
-                <th>Total Bookings</th><th>Total Spent</th><th>Last Trip</th><th>Actions</th>
-              </tr></thead>
-              <tbody id="cust-tbody"></tbody>
-            </table>
-          </div>
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Package Name</th><th>Type</th><th>Destination</th><th>Nights</th><th>Days</th><th>Visa Req</th><th>Actions</th></tr></thead>
+          <tbody id="packages-tbody"></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- ═════════════════════════════════
-         DEPARTURES PAGE
-    ═════════════════════════════════ -->
+    <!-- ── DESTINATIONS ── -->
+    <div class="pg" id="pg-destinations">
+      <div class="search-row">
+        <input type="text" id="dest-search" placeholder="🔍 Search..." oninput="filterDestinations()">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-dest');clearDestForm()">+ New Destination</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody id="dest-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DEPARTURES ── -->
     <div class="pg" id="pg-departures">
-      <div class="ph">
-        <h2>Departures Calendar</h2>
-        <div class="ph-actions">
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-dep')">+ Add Departure</button>
-        </div>
-      </div>
-      <div class="dep-strip" id="dep-strip"></div>
-      <div class="card">
-        <div class="card-body" style="padding:0">
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr>
-                <th>Date</th><th>Package</th><th>Route</th><th>Pax</th>
-                <th>Slots Left</th><th>Lead Consultant</th><th>Status</th><th>Actions</th>
-              </tr></thead>
-              <tbody id="dep-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═════════════════════════════════
-         VISA TRACKER PAGE
-    ═════════════════════════════════ -->
-    <div class="pg" id="pg-visa">
-      <div class="ph">
-        <h2>Visa Tracker</h2>
-        <div class="ph-actions">
-          <div class="ftabs" style="margin-bottom:0">
-            <button class="ftab active" onclick="filterVisa('all',this)">All</button>
-            <button class="ftab" onclick="filterVisa('Not Applied',this)">Not Applied</button>
-            <button class="ftab" onclick="filterVisa('Applied',this)">Applied</button>
-            <button class="ftab" onclick="filterVisa('Approved',this)">Approved</button>
-            <button class="ftab" onclick="filterVisa('Rejected',this)">Rejected</button>
-          </div>
-        </div>
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-dep');populateDepPackages()">+ Add Departure</button>
       </div>
       <div class="card">
-        <div class="card-body" style="padding:0">
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr>
-                <th>Pax Name</th><th>Booking</th><th>Destination</th>
-                <th>Departure</th><th>Passport No.</th><th>Expiry</th>
-                <th>Visa Status</th><th>Actions</th>
-              </tr></thead>
-              <tbody id="visa-tbody"></tbody>
-            </table>
-          </div>
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Booking</th><th>Package</th><th>Departure Date</th><th>Pax</th><th>Consultant</th><th>Total</th></tr></thead>
+          <tbody id="dep-tbody"></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- ═════════════════════════════════
-         TEAM PAGE
-    ═════════════════════════════════ -->
-    <div class="pg" id="pg-team">
-      <div class="ph">
-        <h2>My Team</h2>
-        <div class="ph-actions">
-          <button class="btn btn-jade btn-sm" onclick="openModal('mo-new-member')">+ Add Member</button>
-        </div>
+    <!-- ── RUN SHEETS ── -->
+    <div class="pg" id="pg-runsheets">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-runsheet')">+ New Run Sheet</button>
       </div>
-      <div class="team-grid" id="team-grid"></div>
-    </div>
-
-    <!-- ═════════════════════════════════
-         REPORTS PAGE
-    ═════════════════════════════════ -->
-    <div class="pg" id="pg-reports">
-      <div class="ph"><h2>Reports &amp; Analytics</h2></div>
-
-      <div class="stats-row">
-        <div class="sc sc-jade">
-          <div class="sc-lbl">Conversion Rate</div>
-          <div class="sc-val" id="rep-conv">—</div>
-          <div class="sc-sub">Leads → Bookings</div>
-          <div class="sc-ico">📈</div>
-        </div>
-        <div class="sc sc-navy">
-          <div class="sc-lbl">Avg Booking Value</div>
-          <div class="sc-val" id="rep-abv">—</div>
-          <div class="sc-sub">Per booking</div>
-          <div class="sc-ico">💎</div>
-        </div>
-        <div class="sc sc-amber">
-          <div class="sc-lbl">Avg Pax / Booking</div>
-          <div class="sc-val" id="rep-pax">—</div>
-          <div class="sc-sub">Group size</div>
-          <div class="sc-ico">👥</div>
-        </div>
-        <div class="sc sc-blue">
-          <div class="sc-lbl">Collection Rate</div>
-          <div class="sc-val" id="rep-coll">—</div>
-          <div class="sc-sub">Amount collected</div>
-          <div class="sc-ico">💳</div>
-        </div>
-        <div class="sc sc-purple">
-          <div class="sc-lbl">Top Destination</div>
-          <div class="sc-val" id="rep-dest" style="font-size:17px">—</div>
-          <div class="sc-sub">Most booked</div>
-          <div class="sc-ico">🌍</div>
-        </div>
-      </div>
-
-      <div class="dash-grid">
-        <div class="card">
-          <div class="card-hd"><div class="card-title">Destination-wise Bookings</div></div>
-          <div class="card-body" id="dest-report"></div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><div class="card-title">Consultant Performance</div></div>
-          <div class="card-body" id="consult-report"></div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><div class="card-title">Tour Type Split</div></div>
-          <div class="card-body" id="tourtype-report"></div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Run Sheet</th><th>Booking</th><th>Customer</th><th>Departure</th><th>Pax</th><th>Actions</th></tr></thead>
+          <tbody id="rs-tbody"></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- ═════════════════════════════════
-         SETTINGS PAGE
-    ═════════════════════════════════ -->
+    <!-- ── GUIDE ALLOCATION ── -->
+    <div class="pg" id="pg-guides">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-guide')">+ Allocate Guide</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>ID</th><th>Guide</th><th>Booking</th><th>Departure</th><th>Return</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="guides-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VISAS ── -->
+    <div class="pg" id="pg-visas">
+      <div class="search-row">
+        <input type="text" id="visa-search" placeholder="🔍 Search visas..." oninput="filterVisas()">
+        <select id="visa-status-filter" onchange="filterVisas()">
+          <option value="">All Status</option>
+          <option>Pending Documents</option><option>Documents Collected</option>
+          <option>Submitted</option><option>Approved</option>
+          <option>Rejected</option><option>Delivered</option>
+        </select>
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-visa');clearVisaForm()">+ New Application</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>ID</th><th>Applicant</th><th>Booking</th><th>Country</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="visas-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VISA AGENTS ── -->
+    <div class="pg" id="pg-visa_agents">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-visa-agent')">+ New Agent</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Agent Name</th><th>Contact</th><th>Mobile</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody id="vagents-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VISA CONFIG ── -->
+    <div class="pg" id="pg-visa_config">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-visa-config')">+ New Config</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Country</th><th>Visa Type</th><th>Processing Days</th><th>Embassy Fee</th><th>Service Charge</th><th>Actions</th></tr></thead>
+          <tbody id="vconfig-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VISA BILLING ── -->
+    <div class="pg" id="pg-visa_billing">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-visa-billing')">+ New Bill</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>ID</th><th>Customer</th><th>Booking</th><th>Embassy Fee</th><th>Service</th><th>Grand Total</th><th>Actions</th></tr></thead>
+          <tbody id="vbilling-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VISA DELIVERY ── -->
+    <div class="pg" id="pg-visa_delivery">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-visa-delivery')">+ Log Delivery</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>ID</th><th>Applicant</th><th>Application</th><th>Delivery Date</th><th>Mode</th><th>Tracking</th><th>Actions</th></tr></thead>
+          <tbody id="vdelivery-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HOTELS ── -->
+    <div class="pg" id="pg-hotels">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-hotel')">+ New Allotment</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>ID</th><th>Supplier</th><th>From</th><th>To</th><th>Rooms</th><th>Actions</th></tr></thead>
+          <tbody id="hotels-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONTRACTS ── -->
+    <div class="pg" id="pg-contracts">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-contract')">+ New Contract</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>ID</th><th>Supplier</th><th>Start</th><th>End</th><th>Cost/Pax</th><th>Actions</th></tr></thead>
+          <tbody id="contracts-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CANCELLATION POLICIES ── -->
+    <div class="pg" id="pg-cancellations">
+      <div class="search-row">
+        <button class="btn btn-jade btn-sm" onclick="openModal('mo-cancel-policy')">+ New Policy</button>
+      </div>
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Policy Name</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody id="cancel-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CUSTOMERS ── -->
+    <div class="pg" id="pg-customers">
+      <div class="card">
+        <div class="card-body tbl-wrap">
+          <table><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Package</th><th>Pax</th></tr></thead>
+          <tbody id="customers-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
     <div class="pg" id="pg-settings">
-      <div class="ph"><h2>Settings</h2></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px">
-
-        <!-- Company -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Company Info</div>
-            <button class="card-act" onclick="saveSettings('company')">Save</button>
+      <div class="card">
+        <div class="card-hdr"><h3>Travel Tour Settings</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Operations Email</label><input type="email" id="set-email" placeholder="ops@example.com"></div>
+            <div class="form-group"><label>Site URL</label><input type="text" id="set-url" placeholder="https://yourtours.com"></div>
           </div>
-          <div class="card-body">
-            <div class="ff"><label>Company Name</label><input type="text" id="set-company" placeholder="Tour Travels Pvt Ltd"></div>
-            <div class="ff"><label>Address</label><textarea id="set-addr" rows="2" placeholder="Full address"></textarea></div>
-            <div class="ff"><label>GST Number</label><input type="text" id="set-gst" placeholder="27AAPFM5901J1Z5"></div>
-            <div class="ff"><label>Support Email</label><input type="email" id="set-email" placeholder="support@yourtravels.com"></div>
-            <div class="ff"><label>Support Phone</label><input type="tel" id="set-phone" placeholder="+91 98765 43210"></div>
+          <div class="form-row">
+            <div class="form-group"><label>Razorpay Key ID</label><input type="text" id="set-rzp-key" placeholder="rzp_live_..."></div>
+            <div class="form-group"><label>Consultant Commission (%)</label><input type="number" id="set-commission" step="0.1"></div>
           </div>
+          <div class="form-row">
+            <div class="form-group"><label>Website Booking Bonus (₹)</label><input type="number" id="set-bonus"></div>
+          </div>
+          <button class="btn btn-jade" onclick="saveSettings()">Save Settings</button>
         </div>
-
-        <!-- WhatsApp / Payments -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Integrations</div>
-            <button class="card-act" onclick="saveSettings('integrations')">Save</button>
-          </div>
-          <div class="card-body">
-            <div class="ff"><label>WhatsApp API Key</label><input type="password" id="set-wa" placeholder="••••••••••••"></div>
-            <div class="ff"><label>Razorpay Key ID</label><input type="text" id="set-rzp-key" placeholder="rzp_live_..."></div>
-            <div class="ff"><label>Razorpay Secret</label><input type="password" id="set-rzp-sec" placeholder="••••••••••••"></div>
-            <div class="ff"><label>TCS Rate (%)</label><input type="number" id="set-tcs" placeholder="5" step="0.1"></div>
-            <div class="ff"><label>GST Rate (%)</label><input type="number" id="set-gst-rate" placeholder="5" step="0.1"></div>
-          </div>
-        </div>
-
-        <!-- Lead Statuses -->
-        <div class="card">
-          <div class="card-hd"><div class="card-title">Lead Stage Configuration</div></div>
-          <div class="card-body">
-            <p style="font-size:13px;color:var(--t3);margin-bottom:12px">Stages used in the Kanban pipeline:</p>
-            <div style="display:flex;flex-wrap:wrap;gap:8px" id="stage-pills">
-              <span style="background:var(--jade-bg);color:var(--jade2);font-weight:700;padding:5px 12px;border-radius:20px;font-size:12px">New</span>
-              <span style="background:rgba(75,171,247,0.12);color:#1a7fd4;font-weight:700;padding:5px 12px;border-radius:20px;font-size:12px">Contacted</span>
-              <span style="background:rgba(255,181,71,0.12);color:#c47a00;font-weight:700;padding:5px 12px;border-radius:20px;font-size:12px">Proposal Sent</span>
-              <span style="background:rgba(177,151,252,0.15);color:#7048e8;font-weight:700;padding:5px 12px;border-radius:20px;font-size:12px">Negotiation</span>
-              <span style="background:rgba(20,241,177,0.12);color:#0aab7d;font-weight:700;padding:5px 12px;border-radius:20px;font-size:12px">Converted</span>
-              <span style="background:rgba(255,77,109,0.1);color:var(--red);font-weight:700;padding:5px 12px;border-radius:20px;font-size:12px">Lost</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Notifications -->
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Notification Preferences</div>
-            <button class="card-act" onclick="saveSettings('notifs')">Save</button>
-          </div>
-          <div class="card-body">
-            <div style="display:flex;flex-direction:column;gap:12px" id="notif-prefs">
-              <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-                <span style="font-size:13.5px;font-weight:600">New lead received</span>
-                <input type="checkbox" checked style="width:16px;height:16px">
-              </label>
-              <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-                <span style="font-size:13.5px;font-weight:600">New booking confirmed</span>
-                <input type="checkbox" checked style="width:16px;height:16px">
-              </label>
-              <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-                <span style="font-size:13.5px;font-weight:600">Balance due reminders</span>
-                <input type="checkbox" checked style="width:16px;height:16px">
-              </label>
-              <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-                <span style="font-size:13.5px;font-weight:600">Departure day alerts</span>
-                <input type="checkbox" checked style="width:16px;height:16px">
-              </label>
-              <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-                <span style="font-size:13.5px;font-weight:600">Visa expiry warnings</span>
-                <input type="checkbox" style="width:16px;height:16px">
-              </label>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
   </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- ═══════════════════════════════════════════════════════
+<!-- ════════════════════════════════════════════════
      MODALS
-═══════════════════════════════════════════════════════ -->
+════════════════════════════════════════════════ -->
 
-<!-- NEW / EDIT LEAD -->
-<div class="mo" id="mo-new-lead">
-  <div class="mo-box mo-sm">
-    <div class="mo-head">
-      <div class="mo-title" id="mo-lead-title">New Lead</div>
-      <button class="mo-close" onclick="closeModal('mo-new-lead')">✕</button>
+<!-- Lead Modal -->
+<div class="modal" id="mo-lead">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="lead-modal-title">New Lead</h3><button class="modal-close" onclick="closeModal('mo-lead')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="lead-name">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input id="lead-full_name" placeholder="Customer name"></div>
+        <div class="form-group"><label>Mobile No</label><input id="lead-mobile_no" placeholder="9xxxxxxxxx"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Email</label><input id="lead-email_id" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="lead-status"><option>Open</option><option>Interested</option><option>converted</option><option>Lost</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Source</label>
+          <select id="lead-source"><option value="">—</option><option>Website</option><option>Social Media</option><option>Walk-in</option><option>Referral</option></select></div>
+        <div class="form-group"><label>Pax Count</label><input type="number" id="lead-pax_count" min="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Suggested Package</label>
+          <select id="lead-suggested_package"><option value="">—</option></select></div>
+        <div class="form-group"><label>Preferred Month</label><input id="lead-preferred_month" placeholder="e.g. June 2026"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Remarks</label><textarea id="lead-remarks" rows="2"></textarea></div>
+      </div>
     </div>
-    <div class="mo-body">
-      <input type="hidden" id="lead-edit-id">
-      <div class="ff-row">
-        <div class="ff"><label>Full Name *</label><input type="text" id="l-name" placeholder="Rahul Sharma"></div>
-        <div class="ff"><label>Mobile *</label><input type="tel" id="l-mobile" placeholder="98765 43210" maxlength="10"></div>
-      </div>
-      <div class="ff-row">
-        <div class="ff"><label>Email</label><input type="email" id="l-email" placeholder="rahul@email.com"></div>
-        <div class="ff"><label>Destination</label><input type="text" id="l-dest" placeholder="e.g. Goa, Bali"></div>
-      </div>
-      <div class="ff-row">
-        <div class="ff"><label>Tour Type</label>
-          <select id="l-type">
-            <option value="">Select</option>
-            <option>Group</option><option>FIT</option><option>Honeymoon</option>
-            <option>Corporate</option><option>Adventure</option>
-          </select>
-        </div>
-        <div class="ff"><label>Travel Month</label>
-          <select id="l-month">
-            <option value="">Select</option>
-            <option>January</option><option>February</option><option>March</option>
-            <option>April</option><option>May</option><option>June</option>
-            <option>July</option><option>August</option><option>September</option>
-            <option>October</option><option>November</option><option>December</option>
-          </select>
-        </div>
-      </div>
-      <div class="ff-row">
-        <div class="ff"><label>No. of Pax</label><input type="number" id="l-pax" placeholder="2" min="1"></div>
-        <div class="ff"><label>Budget / Person (₹)</label><input type="number" id="l-budget" placeholder="25000"></div>
-      </div>
-      <div class="ff-row">
-        <div class="ff"><label>Lead Status</label>
-          <select id="l-status">
-            <option>New</option><option>Contacted</option><option>Proposal Sent</option>
-            <option>Negotiation</option><option>Converted</option><option>Lost</option>
-          </select>
-        </div>
-        <div class="ff"><label>Assign Consultant</label>
-          <select id="l-consultant">
-            <option value="">Unassigned</option>
-          </select>
-        </div>
-      </div>
-      <div class="ff"><label>Notes / Source</label><textarea id="l-notes" placeholder="How did they enquire? Any specifics..."></textarea></div>
-    </div>
-    <div class="mo-foot">
-      <button class="btn btn-outline" onclick="closeModal('mo-new-lead')">Cancel</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-lead')">Cancel</button>
       <button class="btn btn-jade" onclick="saveLead()">Save Lead</button>
     </div>
   </div>
 </div>
 
-<!-- BOOKING DETAIL / EDIT -->
-<div class="mo" id="mo-bk-detail">
-  <div class="mo-box mo-lg">
-    <div class="mo-head">
-      <div class="mo-title" id="mo-bk-title">Booking Details</div>
-      <button class="mo-close" onclick="closeModal('mo-bk-detail')">✕</button>
+<!-- Booking Modal -->
+<div class="modal" id="mo-booking">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="bk-modal-title">New Booking</h3><button class="modal-close" onclick="closeModal('mo-booking')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="bk-name">
+      <div class="form-row">
+        <div class="form-group"><label>Customer Mobile *</label><input id="bk-customer_mobile" placeholder="9xxxxxxxxx"></div>
+        <div class="form-group"><label>Tour Package *</label>
+          <select id="bk-tour_package"><option value="">Select Package</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Departure Date *</label><input type="date" id="bk-departure_date"></div>
+        <div class="form-group"><label>Total Pax *</label><input type="number" id="bk-total_pax" min="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Sales Consultant</label><input id="bk-sales_consultant" placeholder="User email"></div>
+      </div>
     </div>
-    <div class="mo-body" id="mo-bk-body">Loading...</div>
-    <div class="mo-foot">
-      <button class="btn btn-outline" onclick="closeModal('mo-bk-detail')">Close</button>
-      <button class="btn btn-danger btn-sm" id="mo-bk-cancel-btn" onclick="cancelBooking()">Cancel Booking</button>
-      <button class="btn btn-jade" id="mo-bk-edit-btn" onclick="editBooking()">Edit Booking ✏️</button>
-    </div>
-  </div>
-</div>
-
-<!-- NEW BOOKING -->
-<div class="mo" id="mo-new-bk">
-  <div class="mo-box">
-    <div class="mo-head">
-      <div class="mo-title" id="mo-nbk-title">New Booking</div>
-      <button class="mo-close" onclick="closeModal('mo-new-bk')">✕</button>
-    </div>
-    <div class="mo-body">
-      <input type="hidden" id="bk-edit-id">
-      <div class="ff-row">
-        <div class="ff"><label>Customer *</label><input type="text" id="bk-customer" placeholder="Customer name or mobile"></div>
-        <div class="ff"><label>Tour Package *</label><input type="text" id="bk-package" placeholder="Package name or ID"></div>
-      </div>
-      <div class="ff-row">
-        <div class="ff"><label>Departure Date *</label><input type="date" id="bk-dep"></div>
-        <div class="ff"><label>Return Date *</label><input type="date" id="bk-ret"></div>
-      </div>
-      <div class="ff-row3">
-        <div class="ff"><label>Adults</label><input type="number" id="bk-adults" value="2" min="0"></div>
-        <div class="ff"><label>Children</label><input type="number" id="bk-children" value="0" min="0"></div>
-        <div class="ff"><label>Room Category</label>
-          <select id="bk-room">
-            <option>Standard</option><option>Deluxe</option>
-            <option>Premium</option><option>Suite</option>
-          </select>
-        </div>
-      </div>
-      <div class="ff-row">
-        <div class="ff"><label>Grand Total (₹)</label><input type="number" id="bk-total" placeholder="85000"></div>
-        <div class="ff"><label>Advance Paid (₹)</label><input type="number" id="bk-advance" placeholder="20000"></div>
-      </div>
-      <div class="ff-row">
-        <div class="ff"><label>Balance Due Date</label><input type="date" id="bk-due-date"></div>
-        <div class="ff"><label>Sales Consultant</label>
-          <select id="bk-consultant">
-            <option value="">Unassigned</option>
-          </select>
-        </div>
-      </div>
-      <div class="ff"><label>Status</label>
-        <select id="bk-status">
-          <option>Draft</option><option>Confirmed</option>
-          <option>Completed</option><option>Cancelled</option>
-        </select>
-      </div>
-      <div class="ff"><label>Special Requests</label><textarea id="bk-notes" placeholder="Dietary, accessibility, room preferences..."></textarea></div>
-    </div>
-    <div class="mo-foot">
-      <button class="btn btn-outline" onclick="closeModal('mo-new-bk')">Cancel</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-booking')">Cancel</button>
       <button class="btn btn-jade" onclick="saveBooking()">Save Booking</button>
     </div>
   </div>
 </div>
 
-<!-- RECORD PAYMENT -->
-<div class="mo" id="mo-record-pay">
-  <div class="mo-box mo-sm">
-    <div class="mo-head">
-      <div class="mo-title">Record Payment</div>
-      <button class="mo-close" onclick="closeModal('mo-record-pay')">✕</button>
-    </div>
-    <div class="mo-body">
-      <div class="ff"><label>Booking ID *</label><input type="text" id="rp-bk" placeholder="BK-0001"></div>
-      <div class="ff-row">
-        <div class="ff"><label>Amount (₹) *</label><input type="number" id="rp-amt" placeholder="25000"></div>
-        <div class="ff"><label>Payment Date *</label><input type="date" id="rp-date"></div>
+<!-- Package Modal -->
+<div class="modal" id="mo-package">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="pkg-modal-title">New Tour Package</h3><button class="modal-close" onclick="closeModal('mo-package')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pkg-name">
+      <div class="form-row">
+        <div class="form-group"><label>Package Name *</label><input id="pkg-package_name" placeholder="e.g. Goa Delight"></div>
+        <div class="form-group"><label>Tour Type *</label>
+          <select id="pkg-tour_type"><option>Domestic</option><option>International</option></select></div>
       </div>
-      <div class="ff-row">
-        <div class="ff"><label>Mode</label>
-          <select id="rp-mode">
-            <option>Bank Transfer</option><option>UPI</option>
-            <option>Cheque</option><option>Cash</option><option>Online</option>
-          </select>
-        </div>
-        <div class="ff"><label>Reference No.</label><input type="text" id="rp-ref" placeholder="UTR / Cheque no."></div>
+      <div class="form-row">
+        <div class="form-group"><label>Destination</label>
+          <select id="pkg-destination"><option value="">—</option></select></div>
+        <div class="form-group"><label>Visa Required</label>
+          <select id="pkg-visa_required"><option value="0">No</option><option value="1">Yes</option></select></div>
       </div>
-      <div class="ff"><label>Notes</label><textarea id="rp-notes" rows="2" placeholder="Any notes..."></textarea></div>
-    </div>
-    <div class="mo-foot">
-      <button class="btn btn-outline" onclick="closeModal('mo-record-pay')">Cancel</button>
-      <button class="btn btn-jade" onclick="recordPayment()">Record Payment</button>
-    </div>
-  </div>
-</div>
-
-<!-- NEW PACKAGE -->
-<div class="mo" id="mo-new-pkg">
-  <div class="mo-box">
-    <div class="mo-head">
-      <div class="mo-title" id="mo-pkg-title">New Tour Package</div>
-      <button class="mo-close" onclick="closeModal('mo-new-pkg')">✕</button>
-    </div>
-    <div class="mo-body">
-      <input type="hidden" id="pkg-edit-id">
-      <div class="ff-row">
-        <div class="ff"><label>Package Name *</label><input type="text" id="pkg-name" placeholder="Goa Delight 4N/5D"></div>
-        <div class="ff"><label>Destination</label><input type="text" id="pkg-dest" placeholder="Goa"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Duration (Nights) *</label><input type="number" id="pkg-duration_nights" min="1"></div>
+        <div class="form-group"><label>Duration (Days)</label><input type="number" id="pkg-duration_days" min="1"></div>
       </div>
-      <div class="ff-row3">
-        <div class="ff"><label>Duration (Days)</label><input type="number" id="pkg-days" placeholder="5" min="1"></div>
-        <div class="ff"><label>Nights</label><input type="number" id="pkg-nights" placeholder="4" min="0"></div>
-        <div class="ff"><label>Tour Type</label>
-          <select id="pkg-type">
-            <option value="Domestic">Domestic</option>
-            <option value="International">International</option>
-          </select>
-        </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Description</label><textarea id="pkg-description" rows="3"></textarea></div>
       </div>
-      <div class="ff-row">
-        <div class="ff"><label>Price per Person (₹)</label><input type="number" id="pkg-price" placeholder="18500"></div>
-        <div class="ff"><label>Status</label>
-          <select id="pkg-status">
-            <option>Active</option><option>Inactive</option><option>Seasonal</option>
-          </select>
-        </div>
-      </div>
-      <div class="ff"><label>Inclusions</label><textarea id="pkg-incl" placeholder="Flights, Hotels, Transfers, Meals..."></textarea></div>
-      <div class="ff"><label>Exclusions</label><textarea id="pkg-excl" placeholder="Visa fees, personal expenses..."></textarea></div>
-      <div class="ff"><label>Description</label><textarea id="pkg-desc" placeholder="Short marketing description..."></textarea></div>
     </div>
-    <div class="mo-foot">
-      <button class="btn btn-outline" onclick="closeModal('mo-new-pkg')">Cancel</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-package')">Cancel</button>
       <button class="btn btn-jade" onclick="savePackage()">Save Package</button>
     </div>
   </div>
 </div>
 
-<!-- ADD TEAM MEMBER -->
-<div class="mo" id="mo-new-member">
-  <div class="mo-box mo-sm">
-    <div class="mo-head">
-      <div class="mo-title">Add Team Member</div>
-      <button class="mo-close" onclick="closeModal('mo-new-member')">✕</button>
-    </div>
-    <div class="mo-body">
-      <div class="ff-row">
-        <div class="ff"><label>Full Name *</label><input type="text" id="tm-name" placeholder="Priya Mehta"></div>
-        <div class="ff"><label>Mobile</label><input type="tel" id="tm-mobile" placeholder="98765 43210"></div>
+<!-- Departure Modal -->
+<div class="modal" id="mo-dep">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Add Departure</h3><button class="modal-close" onclick="closeModal('mo-dep')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Tour Package *</label>
+          <select id="dep-tour_package"><option value="">Select Package</option></select></div>
+        <div class="form-group"><label>Departure Date *</label><input type="date" id="dep-departure_date"></div>
       </div>
-      <div class="ff-row">
-        <div class="ff"><label>Email</label><input type="email" id="tm-email" placeholder="priya@company.com"></div>
-        <div class="ff"><label>Role</label>
-          <select id="tm-role">
-            <option>Sales Consultant</option><option>Operations</option>
-            <option>Accounts</option><option>Visa Executive</option><option>Manager</option>
-          </select>
-        </div>
-      </div>
-      <div class="ff"><label>Portal Access Level</label>
-        <select id="tm-access">
-          <option>Sales Only</option><option>Sales + Operations</option>
-          <option>Full Access (No Finance)</option><option>Full Access</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group"><label>Total Pax *</label><input type="number" id="dep-total_pax" min="1"></div>
+        <div class="form-group"><label>Customer Mobile</label><input id="dep-customer_mobile" placeholder="9xxxxxxxxx"></div>
       </div>
     </div>
-    <div class="mo-foot">
-      <button class="btn btn-outline" onclick="closeModal('mo-new-member')">Cancel</button>
-      <button class="btn btn-jade" onclick="saveTeamMember()">Add Member</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-dep')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveDeparture()">Save Departure</button>
     </div>
   </div>
 </div>
 
-<!-- CONFIRM DELETE -->
-<div class="mo" id="mo-confirm">
-  <div class="mo-box mo-sm">
-    <div class="mo-head">
-      <div class="mo-title">Confirm Action</div>
-      <button class="mo-close" onclick="closeModal('mo-confirm')">✕</button>
+<!-- Payment Modal -->
+<div class="modal" id="mo-payment">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Record Payment</h3><button class="modal-close" onclick="closeModal('mo-payment')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Booking ID *</label><input id="pay-booking_id" placeholder="BOOK-..."></div>
+        <div class="form-group"><label>Amount (₹) *</label><input type="number" id="pay-amount" min="1"></div>
+      </div>
     </div>
-    <div class="mo-body">
-      <div class="confirm-strip">⚠️ This action cannot be undone. Are you sure?</div>
-      <p id="mo-confirm-msg" style="font-size:13.5px;color:var(--t2)">—</p>
-    </div>
-    <div class="mo-foot">
-      <button class="btn btn-outline" onclick="closeModal('mo-confirm')">Cancel</button>
-      <button class="btn btn-danger" id="mo-confirm-btn">Confirm Delete</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-payment')">Cancel</button>
+      <button class="btn btn-jade" onclick="savePayment()">Record Payment</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast">
-  <span id="toast-ico">✅</span>
-  <span id="toast-msg">Done!</span>
+<!-- Destination Modal -->
+<div class="modal" id="mo-dest">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="dest-modal-title">New Destination</h3><button class="modal-close" onclick="closeModal('mo-dest')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="dest-name">
+      <div class="form-row full">
+        <div class="form-group"><label>Destination Name *</label><input id="dest-destination_name"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Description</label><textarea id="dest-description" rows="3"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-dest')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveDestination()">Save</button>
+    </div>
+  </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════════════════════ -->
+<!-- Visa Application Modal -->
+<div class="modal" id="mo-visa">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="visa-modal-title">New Visa Application</h3><button class="modal-close" onclick="closeModal('mo-visa')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="visa-name">
+      <div class="form-row">
+        <div class="form-group"><label>Booking *</label>
+          <select id="visa-booking"><option value="">Select Booking</option></select></div>
+        <div class="form-group"><label>Applicant Name *</label><input id="visa-applicant_name"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Passport Number</label><input id="visa-passport_number"></div>
+        <div class="form-group"><label>Passport Expiry</label><input type="date" id="visa-passport_expiry"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Visa Type</label>
+          <select id="visa-visa_type"><option>Tourist</option><option>Business</option><option>Student</option><option>Work</option><option>Transit</option></select></div>
+        <div class="form-group"><label>Status</label>
+          <select id="visa-status">
+            <option>Pending Documents</option><option>Documents Collected</option>
+            <option>Submitted</option><option>Approved</option>
+            <option>Rejected</option><option>Delivered</option>
+          </select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Departure Date</label><input type="date" id="visa-departure_date"></div>
+        <div class="form-group"><label>Submission Deadline</label><input type="date" id="visa-submission_deadline"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-visa')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveVisa()">Save Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- Visa Agent Modal -->
+<div class="modal" id="mo-visa-agent">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="vagent-modal-title">New Visa Agent</h3><button class="modal-close" onclick="closeModal('mo-visa-agent')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="vagent-name">
+      <div class="form-row">
+        <div class="form-group"><label>Agent Name *</label><input id="vagent-agent_name"></div>
+        <div class="form-group"><label>Contact Person</label><input id="vagent-contact_person"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Mobile</label><input id="vagent-mobile_no"></div>
+        <div class="form-group"><label>Email</label><input id="vagent-email_id"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-visa-agent')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveVisaAgent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Visa Config Modal -->
+<div class="modal" id="mo-visa-config">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="vconfig-modal-title">Visa Country Config</h3><button class="modal-close" onclick="closeModal('mo-visa-config')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="vconfig-name">
+      <div class="form-row">
+        <div class="form-group"><label>Country *</label><input id="vconfig-country" placeholder="e.g. France"></div>
+        <div class="form-group"><label>Visa Type *</label>
+          <select id="vconfig-visa_type"><option>Tourist</option><option>Business</option><option>Student</option><option>Work</option><option>Transit</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Processing Days</label><input type="number" id="vconfig-processing_days"></div>
+        <div class="form-group"><label>Embassy Fee (₹)</label><input type="number" id="vconfig-embassy_fee"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Service Charge (₹)</label><input type="number" id="vconfig-service_charge"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-visa-config')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveVisaConfig()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Visa Billing Modal -->
+<div class="modal" id="mo-visa-billing">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>New Visa Bill</h3><button class="modal-close" onclick="closeModal('mo-visa-billing')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="vbill-name">
+      <div class="form-row">
+        <div class="form-group"><label>Booking</label>
+          <select id="vbill-booking"><option value="">Select</option></select></div>
+        <div class="form-group"><label>Visa Application</label>
+          <select id="vbill-visa_application"><option value="">Select</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Embassy Fee (₹)</label><input type="number" id="vbill-embassy_fee"></div>
+        <div class="form-group"><label>Service Charge (₹)</label><input type="number" id="vbill-service_charge"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-visa-billing')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveVisaBilling()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Visa Delivery Modal -->
+<div class="modal" id="mo-visa-delivery">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Log Visa Delivery</h3><button class="modal-close" onclick="closeModal('mo-visa-delivery')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="vdel-name">
+      <div class="form-row">
+        <div class="form-group"><label>Visa Application *</label>
+          <select id="vdel-visa_application"><option value="">Select</option></select></div>
+        <div class="form-group"><label>Applicant Name *</label><input id="vdel-applicant_name"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Delivery Date</label><input type="date" id="vdel-delivery_date"></div>
+        <div class="form-group"><label>Mode</label>
+          <select id="vdel-delivery_mode"><option>Courier</option><option>In-person</option><option>Digital</option><option>WhatsApp PDF</option></select></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Tracking Number</label><input id="vdel-tracking_number"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-visa-delivery')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveVisaDelivery()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hotel Allotment Modal -->
+<div class="modal" id="mo-hotel">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Hotel Allotment</h3><button class="modal-close" onclick="closeModal('mo-hotel')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="hotel-name">
+      <div class="form-row">
+        <div class="form-group"><label>Supplier *</label><input id="hotel-supplier" placeholder="Supplier name"></div>
+        <div class="form-group"><label>Total Rooms</label><input type="number" id="hotel-total_rooms"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>From Date *</label><input type="date" id="hotel-from_date"></div>
+        <div class="form-group"><label>To Date *</label><input type="date" id="hotel-to_date"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-hotel')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveHotel()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supplier Contract Modal -->
+<div class="modal" id="mo-contract">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Supplier Contract</h3><button class="modal-close" onclick="closeModal('mo-contract')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="contract-name">
+      <div class="form-row">
+        <div class="form-group"><label>Supplier *</label><input id="contract-supplier"></div>
+        <div class="form-group"><label>Cost Per Pax (₹) *</label><input type="number" id="contract-cost_per_pax"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Start Date *</label><input type="date" id="contract-contract_start_date"></div>
+        <div class="form-group"><label>End Date *</label><input type="date" id="contract-contract_end_date"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Notes</label><textarea id="contract-notes" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-contract')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveContract()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cancellation Policy Modal -->
+<div class="modal" id="mo-cancel-policy">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Cancellation Policy</h3><button class="modal-close" onclick="closeModal('mo-cancel-policy')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cp-name">
+      <div class="form-row full">
+        <div class="form-group"><label>Policy Name *</label><input id="cp-policy_name"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Description</label><textarea id="cp-description" rows="3"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-cancel-policy')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveCancelPolicy()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Run Sheet Modal -->
+<div class="modal" id="mo-runsheet">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>New Run Sheet</h3><button class="modal-close" onclick="closeModal('mo-runsheet')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Booking *</label>
+          <select id="rs-booking"><option value="">Select Booking</option></select></div>
+        <div class="form-group"><label>Departure Date</label><input type="date" id="rs-departure_date"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Total Pax</label><input type="number" id="rs-total_pax" min="1"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-runsheet')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveRunSheet()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Guide Allocation Modal -->
+<div class="modal" id="mo-guide">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Guide Allocation</h3><button class="modal-close" onclick="closeModal('mo-guide')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="guide-name">
+      <div class="form-row">
+        <div class="form-group"><label>Guide (User email) *</label><input id="guide-guide" placeholder="guide@example.com"></div>
+        <div class="form-group"><label>Booking *</label>
+          <select id="guide-booking"><option value="">Select</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Departure Date *</label><input type="date" id="guide-departure_date"></div>
+        <div class="form-group"><label>Return Date *</label><input type="date" id="guide-return_date"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Status</label>
+          <select id="guide-status"><option>Pending</option><option>Confirmed</option><option>Completed</option><option>Cancelled</option></select></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('mo-guide')">Cancel</button>
+      <button class="btn btn-jade" onclick="saveGuide()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+</div><!-- /app -->
+
 <script>
-/* ══════════════════════════════════════════════
-   TOUR TRAVELS FOUNDER DASHBOARD
-   All API calls use travel_tour.www.founder_dash.*
-   which match the whitelisted methods in founder_dash.py
-══════════════════════════════════════════════ */
-
+// ════════════════════════════════════════════════
+//  DATA STORE
+// ════════════════════════════════════════════════
 var D = {
-  leads:[], bookings:[], packages:[], customers:[], team:[],
-  stats:{}, founder:null, monthly_revenue:[]
+  leads:[], bookings:[], packages:[], destinations:[],
+  visa_apps:[], visa_agents:[], visa_configs:[],
+  visa_fee_bills:[], visa_delivery:[], guide_allocs:[],
+  run_sheets:[], hotel_allots:[], supplier_contracts:[],
+  cancel_policies:[], settings:{}, stats:{}, founder:{}
 };
-var curBk = null;
+var curPage = 'overview';
 
-/* ── CSRF: cookie-based (always works on Frappe www pages) ── */
+// ════════════════════════════════════════════════
+//  CSRF — cookie-based (always works on web pages)
+// ════════════════════════════════════════════════
 function _csrf() {
   var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  if (m && m[1] && m[1] !== 'None' && m[1].length > 8) return decodeURIComponent(m[1]);
+  if (m && m[1] && m[1] !== 'None') return decodeURIComponent(m[1]);
   try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 8) return frappe.csrf_token; } catch(e) {}
   return '';
 }
 
-/* ── FETCH WRAPPER ── */
+// ════════════════════════════════════════════════
+//  API FETCH
+// ════════════════════════════════════════════════
 function _fc(opts) {
+  var token = _csrf();
   fetch('/api/method/' + opts.method, {
-    method: 'POST',
-    credentials: 'same-origin',
+    method: 'POST', credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'X-Frappe-CSRF-Token': _csrf(),
+      'X-Frappe-CSRF-Token': token,
       'X-Requested-With': 'XMLHttpRequest'
     },
     body: JSON.stringify(opts.args || {})
   })
-  .then(function(r) {
-    if (r.status === 401 || r.status === 403) {
-      window.location.href = '/login?redirect-to=/founder_dash'; return null;
-    }
-    return r.json();
-  })
+  .then(function(r) { return r.json(); })
   .then(function(data) {
-    if (!data) return;
-    if (opts.callback) opts.callback(data);
+    if (data.exc_type) {
+      console.error('[API Error]', opts.method, data.exception);
+      if (opts.error) opts.error(data);
+    } else if (opts.callback) {
+      opts.callback(data);
+    }
   })
   .catch(function(e) {
-    console.error('[_fc] error:', opts.method, e);
+    console.error('[Network Error]', opts.method, e);
     if (opts.error) opts.error(e);
   });
 }
 
-/* ── INIT ── */
-function _initDash() {
+// ════════════════════════════════════════════════
+//  INIT & LOAD
+// ════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
   loadData();
   document.addEventListener('click', function(e) {
-    if (!e.target.closest('#notif-panel') && !e.target.closest('[onclick*="toggleNotif"]')) {
-      var np = document.getElementById('notif-panel');
-      if (np) np.classList.remove('open');
-    }
-    if (!e.target.closest('#sb') && !e.target.closest('.hamburger')) {
-      var sb = document.getElementById('sb');
-      if (sb) sb.classList.remove('open');
-    }
+    if (!e.target.closest('.sb') && !e.target.closest('.hamburger'))
+      document.getElementById('sb').classList.remove('open');
   });
-}
+});
 
-/* Wait for frappe to be available, then init */
-(function waitForFrappe() {
-  if (typeof frappe !== 'undefined' && frappe.ready) {
-    frappe.ready(_initDash);
-  } else {
-    setTimeout(waitForFrappe, 50);
-  }
-})();
-
-/* ── LOAD DATA ── */
 function loadData() {
   _fc({
-    method: 'travel_tour.www.founder_dash.get_founder_data',
+    method: 'travel_tour.api.founder.get_founder_data',
     callback: function(r) {
-      if (r && r.message) {
-        D = r.message;
-        D.leads           = D.leads           || [];
-        D.bookings        = D.bookings        || [];
-        D.packages        = D.packages        || [];
-        D.customers       = D.customers       || [];
-        D.team            = D.team            || [];
-        D.stats           = D.stats           || {};
-        D.monthly_revenue = D.monthly_revenue || [];
-        renderAll();
-      } else {
-        showToast('\u274c', 'Could not load data. Please refresh.');
-        console.error('loadData:', r);
-      }
+      if (!r.message) { showToast('err','Failed to load data'); return; }
+      var m = r.message;
+      D.leads = m.leads || [];
+      D.bookings = m.bookings || [];
+      D.packages = m.packages || [];
+      D.destinations = m.destinations || [];
+      D.visa_apps = m.visa_apps || [];
+      D.visa_agents = m.visa_agents || [];
+      D.visa_configs = m.visa_configs || [];
+      D.visa_fee_bills = m.visa_fee_bills || [];
+      D.visa_delivery = m.visa_delivery || [];
+      D.guide_allocs = m.guide_allocs || [];
+      D.run_sheets = m.run_sheets || [];
+      D.hotel_allots = m.hotel_allots || [];
+      D.supplier_contracts = m.supplier_contracts || [];
+      D.cancel_policies = m.cancel_policies || [];
+      D.settings = m.settings || {};
+      D.stats = m.stats || {};
+      D.founder = m.founder || {};
+      renderAll();
     },
-    error: function(e) {
-      console.error('loadData error:', e);
-      showToast('\u274c', 'Network error. Please refresh.');
-    }
+    error: function() { showToast('err','Network error loading data'); }
   });
 }
 
-/* ── RENDER ALL ── */
+// ════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════
+var PAGE_TITLES = {
+  overview:'Overview', leads:'Leads & Enquiries', bookings:'Bookings',
+  payments:'Payments', packages:'Tour Packages', destinations:'Destinations',
+  departures:'Departures', runsheets:'Run Sheets', guides:'Guide Allocation',
+  visas:'Visa Applications', visa_agents:'Visa Agents', visa_config:'Visa Config',
+  visa_billing:'Visa Billing', visa_delivery:'Visa Delivery',
+  hotels:'Hotel Allotments', contracts:'Supplier Contracts',
+  cancellations:'Cancellation Policies', customers:'Customers', settings:'Settings'
+};
+
+var ADD_ACTIONS = {
+  leads: function(){ openModal('mo-lead'); clearLeadForm(); },
+  bookings: function(){ openModal('mo-booking'); clearBookingForm(); populateBkPackages(); },
+  packages: function(){ openModal('mo-package'); clearPackageForm(); populatePkgDest(); },
+  destinations: function(){ openModal('mo-dest'); clearDestForm(); },
+  departures: function(){ openModal('mo-dep'); populateDepPackages(); },
+  visas: function(){ openModal('mo-visa'); clearVisaForm(); populateVisaBookings(); },
+  visa_agents: function(){ openModal('mo-visa-agent'); clearVAgentForm(); },
+  visa_config: function(){ openModal('mo-visa-config'); },
+  visa_billing: function(){ openModal('mo-visa-billing'); populateVBillDrops(); },
+  visa_delivery: function(){ openModal('mo-visa-delivery'); populateVDelDrops(); },
+  hotels: function(){ openModal('mo-hotel'); },
+  contracts: function(){ openModal('mo-contract'); },
+  cancellations: function(){ openModal('mo-cancel-policy'); },
+  runsheets: function(){ openModal('mo-runsheet'); populateRsBookings(); },
+  guides: function(){ openModal('mo-guide'); populateGuideBookings(); },
+  payments: function(){ openModal('mo-payment'); }
+};
+
+function goPage(page, el) {
+  curPage = page;
+  document.querySelectorAll('.pg').forEach(function(p){ p.classList.remove('active'); });
+  var pg = document.getElementById('pg-' + page);
+  if (pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
+  var addBtn = document.getElementById('topbar-add-btn');
+  addBtn.style.display = ADD_ACTIONS[page] ? 'inline-flex' : 'none';
+  renderPage(page);
+}
+
+function topbarAdd() {
+  if (ADD_ACTIONS[curPage]) ADD_ACTIONS[curPage]();
+}
+
+// ════════════════════════════════════════════════
+//  RENDER ALL
+// ════════════════════════════════════════════════
 function renderAll() {
-  var f = D.founder || {};
-  var fn = f.first_name || (f.full_name ? f.full_name.split(' ')[0] : 'Founder');
-  var ini = fn ? fn[0].toUpperCase() : 'T';
-  function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
-  set('ov-fname', fn);
-  set('sb-oname', f.full_name || 'Founder');
-  set('sb-ava', ini);
-  set('tb-ava', ini);
-  renderStats();
-  renderRevChart();
-  renderActivityFeed();
-  renderDashWidgets();
-  renderLeads();
-  renderBookings();
-  renderPayments();
-  renderPackages();
-  renderCustomers();
-  renderDepartures();
-  renderVisa();
-  renderTeam();
-  renderReports();
-}
+  // Sidebar badges
+  var openLeads = D.leads.filter(function(l){ return l.status === 'Open' || l.status === 'Interested'; }).length;
+  document.getElementById('nb-leads').textContent = openLeads || '';
+  document.getElementById('nb-bk').textContent = D.bookings.length || '';
+  var pv = D.visa_apps.filter(function(v){ return v.status !== 'Approved' && v.status !== 'Delivered'; }).length;
+  document.getElementById('nb-visa').textContent = pv || '';
 
-/* ── STATS ── */
-function renderStats() {
-  var s = D.stats || {};
-  var bks = D.bookings || [];
-  function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
-  var rev = s.total_revenue !== undefined ? s.total_revenue :
-    bks.reduce(function(a,b){return a+(b.grand_total||0);},0);
-  set('st-rev',   '\u20b9' + fmtL(rev));
-  set('st-bk',    s.active_bookings !== undefined ? s.active_bookings :
-    bks.filter(function(b){return b.booking_status==='Confirmed';}).length);
-  set('st-due',   '\u20b9' + fmtL(s.total_balance_due||0));
-  set('st-leads', s.open_leads !== undefined ? s.open_leads :
-    (D.leads||[]).filter(function(l){return ['Converted','Lost'].indexOf(l.status)===-1;}).length);
-  set('st-dep',   s.departures_30d||0);
-  /* Reports stats */
-  var conv = (D.leads||[]).filter(function(l){return l.status==='Converted';}).length;
-  var tl   = (D.leads||[]).length || 1;
-  var tRev = bks.reduce(function(a,b){return a+(b.grand_total||0);},0);
-  var tPaid= bks.reduce(function(a,b){return a+(b.advance_paid||0);},0);
-  var tPax = bks.reduce(function(a,b){return a+(b.total_pax||0);},0);
-  set('rep-conv', Math.round((conv/tl)*100)+'%');
-  set('rep-abv',  bks.length ? '\u20b9'+fmtL(tRev/bks.length) : '\u2014');
-  set('rep-pax',  bks.length ? (tPax/bks.length).toFixed(1) : '\u2014');
-  set('rep-coll', tRev ? Math.round((tPaid/tRev)*100)+'%' : '\u2014');
-  var dc={};
-  bks.forEach(function(b){if(b.destination)dc[b.destination]=(dc[b.destination]||0)+1;});
-  var top=Object.entries(dc).sort(function(a,b){return b[1]-a[1];})[0];
-  set('rep-dest', top ? top[0] : '\u2014');
-}
-
-/* ── REVENUE CHART ── */
-function renderRevChart() {
-  var mr = D.monthly_revenue || [];
-  if (!mr.length) return;
-  var maxV = mr.reduce(function(m,x){return Math.max(m,x.rev||0);},0) || 1;
-  var el = document.getElementById('rev-chart');
-  if (el) el.innerHTML = mr.map(function(m) {
-    var pct = Math.round(((m.rev||0)/maxV)*100);
-    return '<div class="rev-bar-wrap"><div class="rev-bar" style="height:'+pct+'%" title="\u20b9'+fmt(m.rev||0)+'">'+
-      '<span class="rev-bar-val">\u20b9'+fmtL(m.rev||0)+'</span></div>'+
-      '<div class="rev-month">'+m.month+'</div></div>';
-  }).join('');
-  var total = mr.reduce(function(s,m){return s+(m.rev||0);},0);
-  var best  = mr.reduce(function(a,b){return (a.rev||0)>(b.rev||0)?a:b;}, mr[0]);
-  var e1=document.getElementById('rev-total'); if(e1) e1.textContent='\u20b9'+fmtL(total);
-  var e2=document.getElementById('rev-best');  if(e2) e2.textContent=(best.month||'')+' \u20b9'+fmtL(best.rev||0);
-  renderDestReport(); renderConsultReport(); renderTourTypeReport();
-}
-
-function renderDestReport() {
-  var bks=D.bookings||[], dc={};
-  bks.forEach(function(b){if(b.destination)dc[b.destination]=(dc[b.destination]||0)+1;});
-  var sorted=Object.entries(dc).sort(function(a,b){return b[1]-a[1];});
-  var maxV=sorted[0]?sorted[0][1]:1;
-  var el=document.getElementById('dest-report'); if(!el)return;
-  el.innerHTML=sorted.slice(0,6).map(function(x){
-    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px"><span>'+x[0]+'</span><span>'+x[1]+' bookings</span></div>'+
-      '<div class="prog-bar"><div class="prog-fill" style="width:'+Math.round((x[1]/maxV)*100)+'%"></div></div></div>';
-  }).join('')||'<div class="es"><div class="es-title">No data yet</div></div>';
-}
-function renderConsultReport() {
-  var cc={};
-  (D.bookings||[]).forEach(function(b){if(b.sales_consultant)cc[b.sales_consultant]=(cc[b.sales_consultant]||0)+1;});
-  var sorted=Object.entries(cc).sort(function(a,b){return b[1]-a[1];});
-  var el=document.getElementById('consult-report'); if(!el)return;
-  el.innerHTML=sorted.map(function(x){
-    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.06)">'+
-      '<div style="width:32px;height:32px;background:var(--jade-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--jade2)">'+x[0][0]+'</div>'+
-      '<div style="flex:1;font-weight:700;font-size:13px;color:var(--ink)">'+x[0]+'</div>'+
-      '<div style="font-weight:800;font-size:16px;color:var(--ink)">'+x[1]+'</div></div>';
-  }).join('')||'<div style="text-align:center;padding:20px;color:var(--t3)">No data</div>';
-}
-function renderTourTypeReport() {
-  var tc={};
-  (D.bookings||[]).forEach(function(b){var t=b.tour_type||'Other';tc[t]=(tc[t]||0)+1;});
-  var total=(D.bookings||[]).length||1;
-  var colors=['var(--jade)','var(--blue)','var(--amber)','var(--purple)','var(--red)'];
-  var el=document.getElementById('tourtype-report'); if(!el)return;
-  el.innerHTML=Object.entries(tc).map(function(x,i){
-    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px"><span>'+x[0]+'</span><span>'+Math.round((x[1]/total)*100)+'%</span></div>'+
-      '<div class="prog-bar"><div style="height:100%;background:'+colors[i%colors.length]+';border-radius:10px;width:'+Math.round((x[1]/total)*100)+'%"></div></div></div>';
-  }).join('')||'<div style="text-align:center;padding:20px;color:var(--t3)">No data</div>';
-}
-
-/* ── ACTIVITY FEED ── */
-function renderActivityFeed() {
-  var el=document.getElementById('activity-feed'); if(!el)return;
-  el.innerHTML='<div class="act-item"><div class="act-ico" style="background:var(--jade-bg)">\uD83C\uDFAB</div>'+
-    '<div class="act-text"><div class="act-title">Dashboard loaded</div><div class="act-time">Just now</div></div></div>'+
-    '<div class="act-item"><div class="act-ico" style="background:rgba(75,171,247,.12)">\uD83C\uDFAF</div>'+
-    '<div class="act-text"><div class="act-title">'+((D.leads||[]).length)+' leads in pipeline</div><div class="act-time"></div></div></div>'+
-    '<div class="act-item"><div class="act-ico" style="background:rgba(255,181,71,.12)">\uD83D\uDCB3</div>'+
-    '<div class="act-text"><div class="act-title">'+
-    (D.bookings||[]).filter(function(b){return (b.balance_due||0)>0;}).length+
-    ' pending payments</div><div class="act-time"></div></div></div>';
-}
-
-/* ── DASHBOARD WIDGETS ── */
-function renderDashWidgets() {
-  var upcoming=(D.bookings||[]).filter(function(b){
-    return b.booking_status==='Confirmed' && b.departure_date && new Date(b.departure_date)>=new Date();
-  }).sort(function(a,b){return new Date(a.departure_date)-new Date(b.departure_date);}).slice(0,4);
-  var depEl=document.getElementById('dep-list-dash');
-  if(depEl) depEl.innerHTML=upcoming.length?upcoming.map(function(b){
-    var d=new Date(b.departure_date);
-    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.05);cursor:pointer" onclick="openBkDetail(\''+b.name+'\')">'+
-      '<div style="text-align:center;min-width:44px"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:16px;color:var(--ink)">'+d.getDate()+'</div>'+
-      '<div style="font-size:10px;color:var(--t3)">'+d.toLocaleString('en',{month:'short'})+'</div></div>'+
-      '<div style="flex:1"><div style="font-weight:700;font-size:13px;color:var(--ink)">'+(b.tour_package||'\u2014')+'</div>'+
-      '<div style="font-size:11.5px;color:var(--t3)">'+(b.total_pax||0)+' pax</div></div>'+bdg(b.booking_status)+'</div>';
-  }).join(''):'<div class="es"><div class="es-ico">\uD83D\uDEEB</div><div class="es-title">No upcoming departures</div></div>';
-
-  var hot=(D.leads||[]).filter(function(l){return ['New','Contacted','Negotiation'].indexOf(l.status)!==-1;}).slice(0,4);
-  var hlEl=document.getElementById('hot-leads-dash');
-  if(hlEl) hlEl.innerHTML=hot.length?hot.map(function(l){
-    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.05);cursor:pointer" onclick="openLeadEdit(\''+l.name+'\')">'+
-      '<div style="width:36px;height:36px;background:var(--jade-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--jade2)">'+((l.lead_name||'?')[0].toUpperCase())+'</div>'+
-      '<div style="flex:1"><div style="font-weight:700;font-size:13px;color:var(--ink)">'+(l.lead_name||'\u2014')+'</div>'+
-      '<div style="font-size:11.5px;color:var(--t3)">'+(l.travel_month||'\u2014')+' \u00b7 '+(l.pax_count||0)+' pax</div></div>'+bdg(l.status)+'</div>';
-  }).join(''):'<div class="es"><div class="es-ico">\uD83C\uDFAF</div><div class="es-title">No open leads</div></div>';
-
-  var overdue=(D.bookings||[]).filter(function(b){return (b.balance_due||0)>0;}).sort(function(a,b){return (b.balance_due||0)-(a.balance_due||0);}).slice(0,4);
-  var ppEl=document.getElementById('pending-pay-dash');
-  if(ppEl) ppEl.innerHTML=overdue.length?overdue.map(function(b){
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(5,19,60,.05);cursor:pointer" onclick="openBkDetail(\''+b.name+'\')">'+
-      '<div><div style="font-weight:700;font-size:13px;color:var(--ink)">'+(b.customer||b.customer_mobile||'\u2014')+'</div>'+
-      '<div style="font-size:11.5px;color:var(--t3)">'+b.name+'</div></div>'+
-      '<div style="font-family:Sora;font-weight:800;font-size:13px;color:var(--amber)">\u20b9'+fmt(b.balance_due||0)+'</div></div>';
-  }).join(''):'<div class="es"><div class="es-ico">\u2705</div><div class="es-title">All payments received!</div></div>';
-}
-
-/* ── LEADS ── */
-function renderLeads() {
-  renderKanban(D.leads||[]); renderLeadTable(D.leads||[]);
-  var nb=document.getElementById('nb-leads');
-  if(nb) nb.textContent=(D.leads||[]).filter(function(l){return ['Converted','Lost'].indexOf(l.status)===-1;}).length||0;
-}
-var STAGES=['New','Contacted','Proposal Sent','Negotiation','Converted','Lost'];
-var STAGE_COLORS={New:'var(--blue)',Contacted:'var(--amber)','Proposal Sent':'var(--purple)',Negotiation:'var(--red)',Converted:'var(--jade)',Lost:'var(--t4)'};
-function renderKanban(leads) {
-  var el=document.getElementById('kanban-board'); if(!el)return;
-  el.innerHTML=STAGES.map(function(stage){
-    var sl=leads.filter(function(l){return l.status===stage;});
-    return '<div class="kol"><div class="kol-head"><span class="kol-title" style="color:'+STAGE_COLORS[stage]+'">'+stage+'</span><span class="kol-count">'+sl.length+'</span></div>'+
-      sl.map(function(l){
-        return '<div class="kcard" onclick="openLeadEdit(\''+l.name+'\')">'+
-          '<div class="kc-name">'+(l.lead_name||'')+'</div>'+
-          '<div class="kc-dest">\u2708\uFE0F '+(l.interested_destination||l.travel_month||'\u2014')+'</div>'+
-          '<div style="font-size:11.5px;color:var(--t3);margin-bottom:6px">'+(l.pax_count||0)+' pax \u00b7 \u20b9'+(l.budget_per_person||0)+'/pax</div>'+
-          '<div class="kc-foot"><span class="kc-mobile">\uD83D\uDCF1 '+(l.mobile||'\u2014')+'</span>'+
-          '<span style="font-size:11px;color:var(--t3)">'+(l.assigned_consultant||'Unassigned')+'</span></div></div>';
-      }).join('')+'</div>';
-  }).join('');
-}
-function renderLeadTable(leads) {
-  var tb=document.getElementById('leads-tbody'); if(!tb)return;
-  tb.innerHTML=leads.map(function(l){
-    return '<tr><td><span class="tbl-link" onclick="openLeadEdit(\''+l.name+'\')">'+(l.lead_name||'')+'</span></td>'+
-      '<td>'+(l.mobile||'\u2014')+'</td><td>'+(l.interested_destination||'\u2014')+'</td>'+
-      '<td>'+(l.tour_type_pref||'\u2014')+'</td><td>'+(l.travel_month||'\u2014')+'</td>'+
-      '<td>'+(l.pax_count||0)+'</td><td>\u20b9'+fmt(l.budget_per_person||0)+'</td>'+
-      '<td>'+(l.assigned_consultant||'\u2014')+'</td><td>'+bdg(l.status)+'</td>'+
-      '<td><div class="tbl-actions">'+
-      '<button class="tbl-btn tbl-btn-edit" onclick="openLeadEdit(\''+l.name+'\')">Edit</button>'+
-      '<button class="tbl-btn tbl-btn-del" onclick="confirmDelete(\'lead\',\''+l.name+'\',\''+(l.lead_name||'').replace(/'/g,'')+'\')">Del</button>'+
-      '</div></td></tr>';
-  }).join('');
-}
-function filterLeads() {
-  var q=((document.getElementById('lead-search')||{}).value||'').toLowerCase();
-  var f=(D.leads||[]).filter(function(l){return (l.lead_name||'').toLowerCase().indexOf(q)!==-1||(l.mobile||'').indexOf(q)!==-1;});
-  renderKanban(f); renderLeadTable(f);
-}
-function leadView(v,btn) {
-  document.querySelectorAll('#pg-leads .ftab').forEach(function(t){t.classList.remove('active');});
-  if(btn)btn.classList.add('active');
-  var lk=document.getElementById('lead-kanban'); if(lk)lk.style.display=v==='kanban'?'':'none';
-  var lt=document.getElementById('lead-table');  if(lt)lt.style.display=v==='table'?'':'none';
-}
-function openLeadEdit(id) {
-  var l=(D.leads||[]).filter(function(x){return x.name===id;})[0]; if(!l)return;
-  document.getElementById('mo-lead-title').textContent='Edit Lead \u2014 '+(l.lead_name||'');
-  document.getElementById('lead-edit-id').value=l.name;
-  document.getElementById('l-name').value=l.lead_name||'';
-  document.getElementById('l-mobile').value=l.mobile||'';
-  document.getElementById('l-email').value=l.email||'';
-  document.getElementById('l-dest').value=l.interested_destination||'';
-  document.getElementById('l-type').value=l.tour_type_pref||'';
-  document.getElementById('l-month').value=l.travel_month||'';
-  document.getElementById('l-pax').value=l.pax_count||'';
-  document.getElementById('l-budget').value=l.budget_per_person||'';
-  document.getElementById('l-status').value=l.status||'New';
-  document.getElementById('l-consultant').value=l.assigned_consultant||'';
-  openModal('mo-new-lead');
-}
-function saveLead() {
-  var id=document.getElementById('lead-edit-id').value;
-  var nm=document.getElementById('l-name').value.trim();
-  var mob=document.getElementById('l-mobile').value.trim();
-  if(!nm||!mob){showToast('\u274c','Name and mobile required.');return;}
-  _fc({
-    method:id?'travel_tour.www.founder_dash.update_lead':'travel_tour.www.founder_dash.create_lead',
-    args:{lead_id:id||null,lead_name:nm,mobile:mob,
-      email:document.getElementById('l-email').value,
-      interested_destination:document.getElementById('l-dest').value,
-      tour_type_pref:document.getElementById('l-type').value,
-      travel_month:document.getElementById('l-month').value,
-      pax_count:document.getElementById('l-pax').value||0,
-      budget_per_person:document.getElementById('l-budget').value||0,
-      status:document.getElementById('l-status').value,
-      assigned_consultant:document.getElementById('l-consultant').value,
-      notes:document.getElementById('l-notes').value},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-lead');loadData();showToast('\u2705',id?'Lead updated!':'Lead created!');}
-      else showToast('\u274c',(r.message&&r.message.error)||'Could not save.');},
-    error:function(){closeModal('mo-new-lead');showToast('\u274c','Network error.');}
-  });
-}
-
-/* ── BOOKINGS ── */
-function renderBookings() {
-  renderBkTable(D.bookings||[]);
-  var nb=document.getElementById('nb-bk'); if(nb)nb.textContent=(D.bookings||[]).length;
-}
-function renderBkTable(list) {
-  var tb=document.getElementById('bk-tbody'); if(!tb)return;
-  tb.innerHTML=list.map(function(b){
-    return '<tr><td><span class="tbl-link" onclick="openBkDetail(\''+b.name+'\')">'+(b.name||'')+'</span></td>'+
-      '<td>'+(b.customer||b.customer_mobile||'\u2014')+'</td>'+
-      '<td>'+(b.tour_package||'\u2014')+'</td>'+
-      '<td>'+fmtDate(b.departure_date)+'</td>'+
-      '<td>'+(b.total_pax||0)+'</td>'+
-      '<td style="font-weight:700">\u20b9'+fmt(b.grand_total||0)+'</td>'+
-      '<td style="color:#0aab7d">\u20b9'+fmt(b.advance_paid||0)+'</td>'+
-      '<td style="color:'+((b.balance_due||0)>0?'var(--amber)':'#0aab7d')+'">\u20b9'+fmt(b.balance_due||0)+'</td>'+
-      '<td>'+bdg(b.booking_status)+'</td>'+
-      '<td><div class="tbl-actions">'+
-      '<button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button>'+
-      '<button class="tbl-btn tbl-btn-edit" onclick="openBkEdit(\''+b.name+'\')">Edit</button>'+
-      '</div></td></tr>';
-  }).join('');
-}
-function filterBk() {
-  var q=((document.getElementById('bk-search')||{}).value||'').toLowerCase();
-  renderBkTable((D.bookings||[]).filter(function(b){
-    return (b.name||'').toLowerCase().indexOf(q)!==-1||(b.customer||'').toLowerCase().indexOf(q)!==-1||(b.tour_package||'').toLowerCase().indexOf(q)!==-1;
-  }));
-}
-function filterBkStatus(status,btn) {
-  document.querySelectorAll('#pg-bookings .ftab').forEach(function(t){t.classList.remove('active');}); if(btn)btn.classList.add('active');
-  renderBkTable(status==='all'?D.bookings:(D.bookings||[]).filter(function(b){return b.booking_status===status;}));
-}
-function openBkDetail(id) {
-  var b=(D.bookings||[]).filter(function(x){return x.name===id;})[0]; if(!b)return;
-  curBk=b;
-  var t=document.getElementById('mo-bk-title'); if(t)t.textContent=id+' \u2014 '+(b.customer||b.customer_mobile||'');
-  var paid=(b.advance_paid||0);
-  var pct=(b.grand_total||0)>0?Math.round((paid/(b.grand_total||1))*100):0;
-  var payBtn=document.getElementById('mb-pay-btn');
-  if(payBtn){payBtn.style.display=(b.balance_due||0)>0?'':'none';payBtn.textContent='Pay \u20b9'+fmt(b.balance_due||0);}
-  var mb=document.getElementById('mo-bk-body'); if(!mb)return;
-  var paxHtml='<tr><td colspan="4" style="text-align:center;color:var(--t3)">No travellers added</td></tr>';
-  if((b.pax_details||[]).length) {
-    paxHtml=(b.pax_details||[]).map(function(p){
-      return '<tr><td>'+(p.pax_name||'\u2014')+'</td><td>'+(p.pax_type||'Adult')+'</td>'+
-        '<td>'+(p.id_number||'\u2014')+'</td><td>'+bdg(p.visa_status||'Not Applied')+'</td></tr>';
-    }).join('');
+  // Founder name
+  if (D.founder.name) {
+    document.getElementById('sb-uname').textContent = D.founder.name;
+    document.getElementById('sb-av').textContent = D.founder.name.charAt(0).toUpperCase();
   }
-  mb.innerHTML='<div class="ms"><div class="ms-t">Booking Summary</div><div class="dg">'+
-    '<div class="df"><label>Customer</label><span>'+(b.customer||b.customer_mobile||'\u2014')+'</span></div>'+
-    '<div class="df"><label>Package</label><span>'+(b.tour_package||'\u2014')+'</span></div>'+
-    '<div class="df"><label>Departure</label><span>'+fmtDate(b.departure_date)+'</span></div>'+
-    '<div class="df"><label>Pax</label><span>'+(b.total_pax||0)+'</span></div>'+
-    '<div class="df"><label>Status</label><span>'+bdg(b.booking_status)+'</span></div>'+
-    '<div class="df"><label>Payment</label><span>'+bdg(b.payment_status||'Pending')+'</span></div>'+
-    '</div></div>'+
-    '<div class="ms"><div class="ms-t">Payment</div>'+
-    '<div class="pay-row"><span>Grand Total</span><span style="font-weight:700">\u20b9'+fmt(b.grand_total||0)+'</span></div>'+
-    '<div class="pay-row paid"><span>\u2713 Advance Paid</span><span>\u20b9'+fmt(paid)+'</span></div>'+
-    ((b.balance_due||0)>0?'<div class="pay-row bal"><span>\u26a0 Balance Due</span><span>\u20b9'+fmt(b.balance_due||0)+'</span></div>':'')+
-    '<div style="margin-top:8px"><div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div></div>'+
-    '</div>'+
-    '<div class="ms"><div class="ms-t">Travellers</div>'+
-    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">'+
-    '<thead><tr style="background:rgba(5,19,60,.04)"><th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Name</th>'+
-    '<th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Type</th>'+
-    '<th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Passport</th>'+
-    '<th style="padding:8px;text-align:left;color:var(--t3);font-size:10.5px">Visa</th></tr></thead>'+
-    '<tbody>'+paxHtml+'</tbody></table></div></div>';
-  openModal('mo-bk-detail');
+
+  // Stats
+  var s = D.stats;
+  document.getElementById('st-rev').textContent = '₹' + fmt(s.total_revenue || 0);
+  document.getElementById('st-bk').textContent = s.active_bookings || 0;
+  document.getElementById('st-leads').textContent = s.open_leads || 0;
+  document.getElementById('st-pkg').textContent = s.package_count || 0;
+  document.getElementById('st-visa').textContent = s.pending_visas || 0;
+  document.getElementById('st-dest').textContent = s.destination_count || 0;
+
+  // Settings form
+  if (D.settings) {
+    setVal('set-email', D.settings.ops_email);
+    setVal('set-url', D.settings.site_url);
+    setVal('set-rzp-key', D.settings.razorpay_key_id);
+    setVal('set-commission', D.settings.consultant_commission_pct);
+    setVal('set-bonus', D.settings.website_booking_bonus);
+  }
+
+  renderPage(curPage);
 }
-function openBkEdit(id) {
-  var b=(D.bookings||[]).filter(function(x){return x.name===id;})[0]; if(!b)return;
-  var t=document.getElementById('mo-nbk-title'); if(t)t.textContent='Edit Booking \u2014 '+id;
-  document.getElementById('bk-edit-id').value=b.name;
-  document.getElementById('bk-customer').value=b.customer||b.customer_mobile||'';
-  document.getElementById('bk-package').value=b.tour_package||'';
-  document.getElementById('bk-dep').value=b.departure_date||'';
-  document.getElementById('bk-ret').value=b.return_date||'';
-  document.getElementById('bk-adults').value=b.total_pax||0;
-  document.getElementById('bk-children').value=b.child_pax||0;
-  document.getElementById('bk-total').value=b.grand_total||0;
-  document.getElementById('bk-advance').value=b.advance_paid||0;
-  document.getElementById('bk-status').value=b.booking_status||'Draft';
-  openModal('mo-new-bk');
+
+function renderPage(page) {
+  var fn = {
+    overview: renderOverview, leads: renderLeads, bookings: renderBookings,
+    payments: renderPayments, packages: renderPackages, destinations: renderDest,
+    departures: renderDepartures, runsheets: renderRunSheets, guides: renderGuides,
+    visas: renderVisas, visa_agents: renderVisaAgents, visa_config: renderVisaConfig,
+    visa_billing: renderVisaBilling, visa_delivery: renderVisaDelivery,
+    hotels: renderHotels, contracts: renderContracts,
+    cancellations: renderCancellations, customers: renderCustomers
+  }[page];
+  if (fn) fn();
 }
-function editBooking(){if(curBk)openBkEdit(curBk.name);closeModal('mo-bk-detail');}
-function cancelBooking(){
-  if(!curBk)return; if(!confirm('Cancel booking '+curBk.name+'?'))return;
-  _fc({method:'travel_tour.www.founder_dash.update_booking_status',args:{booking_name:curBk.name,status:'Cancelled'},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-bk-detail');loadData();showToast('\u2705','Cancelled.');}},
-    error:function(){closeModal('mo-bk-detail');}});
+
+// ════════════════════════════════════════════════
+//  RENDER FUNCTIONS
+// ════════════════════════════════════════════════
+function es(msg) {
+  return '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--t3)">'+msg+'</td></tr>';
 }
-function saveBooking(){
-  var id=document.getElementById('bk-edit-id').value;
+
+function renderOverview() {
+  // Recent leads
+  var lb = document.getElementById('ov-leads');
+  if (!lb) return;
+  var leads5 = D.leads.slice(0,5);
+  lb.innerHTML = leads5.length ? leads5.map(function(l) {
+    return '<tr><td>'+esc(l.full_name||'—')+'</td><td>'+esc(l.mobile_no||'—')+'</td><td>'+bdg(l.status)+'</td><td>'+esc(l.suggested_package||'—')+'</td><td><button class="tbl-btn tbl-edit" onclick="editLead('+JSON.stringify(l)+')">Edit</button></td></tr>';
+  }).join('') : es('No leads yet');
+
+  // Recent bookings
+  var bb = document.getElementById('ov-bookings');
+  var bk5 = D.bookings.slice(0,5);
+  bb.innerHTML = bk5.length ? bk5.map(function(b) {
+    return '<tr><td>'+esc(b.name)+'</td><td>'+esc(b.tour_package||'—')+'</td><td>'+esc(b.departure_date||'—')+'</td><td>'+esc(b.total_pax||'—')+'</td><td>₹'+fmt(b.grand_total||0)+'</td></tr>';
+  }).join('') : es('No bookings yet');
+}
+
+function renderLeads() {
+  var q = (document.getElementById('lead-search')||{}).value||'';
+  var sf = (document.getElementById('lead-status-filter')||{}).value||'';
+  var rows = D.leads.filter(function(l) {
+    var txt = (l.full_name+l.email_id+l.mobile_no+l.suggested_package).toLowerCase();
+    return txt.includes(q.toLowerCase()) && (!sf || l.status===sf);
+  });
+  var tb = document.getElementById('leads-tbody');
+  tb.innerHTML = rows.length ? rows.map(function(l) {
+    return '<tr><td><strong>'+esc(l.full_name||'—')+'</strong></td><td>'+esc(l.email_id||'—')+'</td><td>'+esc(l.mobile_no||'—')+'</td><td>'+bdg(l.status)+'</td><td>'+esc(l.suggested_package||'—')+'</td><td>'+esc(l.pax_count||'—')+'</td><td>'+esc(l.source||'—')+'</td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="editLead('+JSON.stringify(l).replace(/"/g,"&quot;")+')" style="margin-right:4px">Edit</button>'
+    +'<button class="tbl-btn tbl-del" onclick="delRecord(\'Travel Lead\',\''+l.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No leads found');
+}
+
+function renderBookings() {
+  var q = (document.getElementById('bk-search')||{}).value||'';
+  var rows = D.bookings.filter(function(b){
+    return (b.name+b.customer+b.tour_package).toLowerCase().includes(q.toLowerCase());
+  });
+  var tb = document.getElementById('bookings-tbody');
+  tb.innerHTML = rows.length ? rows.map(function(b) {
+    return '<tr><td><strong>'+esc(b.name)+'</strong></td><td>'+esc(b.customer||b.customer_mobile||'—')+'</td><td>'+esc(b.tour_package||'—')+'</td><td>'+esc(b.departure_date||'—')+'</td><td>'+esc(b.total_pax||'—')+'</td><td>₹'+fmt(b.grand_total||0)+'</td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="editBooking('+JSON.stringify(b).replace(/"/g,"&quot;")+')" style="margin-right:4px">Edit</button>'
+    +'<button class="tbl-btn tbl-del" onclick="delRecord(\'Booking\',\''+b.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No bookings found');
+}
+
+function renderPayments() {
+  var tb = document.getElementById('payments-tbody');
+  tb.innerHTML = D.bookings.length ? D.bookings.map(function(b) {
+    return '<tr><td>'+esc(b.name)+'</td><td>'+esc(b.tour_package||'—')+'</td><td>₹'+fmt(b.base_amount||0)+'</td><td>₹'+fmt(b.gst_amount||0)+'</td><td><strong>₹'+fmt(b.grand_total||0)+'</strong></td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="document.getElementById(\'pay-booking_id\').value=\''+b.name+'\';openModal(\'mo-payment\')">Record</button></td></tr>';
+  }).join('') : es('No payments');
+}
+
+function renderPackages() {
+  var q = (document.getElementById('pkg-search')||{}).value||'';
+  var rows = D.packages.filter(function(p){ return (p.package_name+p.destination).toLowerCase().includes(q.toLowerCase()); });
+  var tb = document.getElementById('packages-tbody');
+  tb.innerHTML = rows.length ? rows.map(function(p) {
+    return '<tr><td><strong>'+esc(p.package_name||p.name)+'</strong></td><td>'+bdg(p.tour_type)+'</td><td>'+esc(p.destination||'—')+'</td><td>'+esc(p.duration_nights||'—')+'</td><td>'+esc(p.duration_days||'—')+'</td><td>'+(p.visa_required?'✅':'❌')+'</td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="editPackage('+JSON.stringify(p).replace(/"/g,"&quot;")+')" style="margin-right:4px">Edit</button>'
+    +'<button class="tbl-btn tbl-del" onclick="delRecord(\'Tour Package\',\''+p.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No packages found');
+}
+
+function renderDest() {
+  var q = (document.getElementById('dest-search')||{}).value||'';
+  var rows = D.destinations.filter(function(d){ return (d.destination_name||d.name).toLowerCase().includes(q.toLowerCase()); });
+  var tb = document.getElementById('dest-tbody');
+  tb.innerHTML = rows.length ? rows.map(function(d) {
+    return '<tr><td><strong>'+esc(d.destination_name||d.name)+'</strong></td><td>'+esc((d.description||'').replace(/<[^>]*>/g,'').substr(0,60))+'</td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="editDest('+JSON.stringify(d).replace(/"/g,"&quot;")+')" style="margin-right:4px">Edit</button>'
+    +'<button class="tbl-btn tbl-del" onclick="delRecord(\'Destination\',\''+d.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No destinations');
+}
+
+function renderDepartures() {
+  var tb = document.getElementById('dep-tbody');
+  tb.innerHTML = D.bookings.length ? D.bookings.map(function(b) {
+    return '<tr><td>'+esc(b.name)+'</td><td>'+esc(b.tour_package||'—')+'</td><td>'+esc(b.departure_date||'—')+'</td><td>'+esc(b.total_pax||'—')+'</td><td>'+esc(b.sales_consultant||'—')+'</td><td>₹'+fmt(b.grand_total||0)+'</td></tr>';
+  }).join('') : es('No departures yet');
+}
+
+function renderRunSheets() {
+  var tb = document.getElementById('rs-tbody');
+  tb.innerHTML = D.run_sheets.length ? D.run_sheets.map(function(r) {
+    return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.booking||'—')+'</td><td>'+esc(r.customer||'—')+'</td><td>'+esc(r.departure_date||'—')+'</td><td>'+esc(r.total_pax||'—')+'</td>'
+    +'<td><button class="tbl-btn tbl-del" onclick="delRecord(\'Trip Run Sheet\',\''+r.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No run sheets');
+}
+
+function renderGuides() {
+  var tb = document.getElementById('guides-tbody');
+  tb.innerHTML = D.guide_allocs.length ? D.guide_allocs.map(function(g) {
+    return '<tr><td>'+esc(g.name)+'</td><td>'+esc(g.guide||'—')+'</td><td>'+esc(g.booking||'—')+'</td><td>'+esc(g.departure_date||'—')+'</td><td>'+esc(g.return_date||'—')+'</td><td>'+bdg(g.status)+'</td>'
+    +'<td><button class="tbl-btn tbl-del" onclick="delRecord(\'Guide Allocation\',\''+g.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No allocations');
+}
+
+function renderVisas() {
+  var q = (document.getElementById('visa-search')||{}).value||'';
+  var sf = (document.getElementById('visa-status-filter')||{}).value||'';
+  var rows = D.visa_apps.filter(function(v){
+    var txt = (v.applicant_name+v.booking+v.destination_country).toLowerCase();
+    return txt.includes(q.toLowerCase()) && (!sf || v.status===sf);
+  });
+  var tb = document.getElementById('visas-tbody');
+  tb.innerHTML = rows.length ? rows.map(function(v) {
+    return '<tr><td>'+esc(v.name)+'</td><td><strong>'+esc(v.applicant_name||'—')+'</strong></td><td>'+esc(v.booking||'—')+'</td><td>'+esc(v.destination_country||'—')+'</td><td>'+esc(v.visa_type||'—')+'</td><td>'+bdg(v.status)+'</td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="editVisa('+JSON.stringify(v).replace(/"/g,"&quot;")+')" style="margin-right:4px">Edit</button>'
+    +'<button class="tbl-btn tbl-del" onclick="delRecord(\'Visa Application\',\''+v.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No visa applications');
+}
+
+function renderVisaAgents() {
+  var tb = document.getElementById('vagents-tbody');
+  tb.innerHTML = D.visa_agents.length ? D.visa_agents.map(function(a) {
+    return '<tr><td><strong>'+esc(a.agent_name||a.name)+'</strong></td><td>'+esc(a.contact_person||'—')+'</td><td>'+esc(a.mobile_no||'—')+'</td><td>'+esc(a.email_id||'—')+'</td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="editVAgent('+JSON.stringify(a).replace(/"/g,"&quot;")+')" style="margin-right:4px">Edit</button>'
+    +'<button class="tbl-btn tbl-del" onclick="delRecord(\'Visa Agent\',\''+a.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No visa agents');
+}
+
+function renderVisaConfig() {
+  var tb = document.getElementById('vconfig-tbody');
+  tb.innerHTML = D.visa_configs.length ? D.visa_configs.map(function(c) {
+    return '<tr><td>'+esc(c.country||'—')+'</td><td>'+esc(c.visa_type||'—')+'</td><td>'+esc(c.processing_days||'—')+'</td><td>₹'+fmt(c.embassy_fee||0)+'</td><td>₹'+fmt(c.service_charge||0)+'</td>'
+    +'<td><button class="tbl-btn tbl-edit" onclick="editVConfig('+JSON.stringify(c).replace(/"/g,"&quot;")+')" style="margin-right:4px">Edit</button>'
+    +'<button class="tbl-btn tbl-del" onclick="delRecord(\'Visa Country Config\',\''+c.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No visa configs');
+}
+
+function renderVisaBilling() {
+  var tb = document.getElementById('vbilling-tbody');
+  tb.innerHTML = D.visa_fee_bills.length ? D.visa_fee_bills.map(function(b) {
+    return '<tr><td>'+esc(b.name)+'</td><td>'+esc(b.customer||'—')+'</td><td>'+esc(b.booking||'—')+'</td><td>₹'+fmt(b.embassy_fee||0)+'</td><td>₹'+fmt(b.service_charge||0)+'</td><td><strong>₹'+fmt(b.grand_total||0)+'</strong></td>'
+    +'<td><button class="tbl-btn tbl-del" onclick="delRecord(\'Visa Fee Billing\',\''+b.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No billing records');
+}
+
+function renderVisaDelivery() {
+  var tb = document.getElementById('vdelivery-tbody');
+  tb.innerHTML = D.visa_delivery.length ? D.visa_delivery.map(function(d) {
+    return '<tr><td>'+esc(d.name)+'</td><td>'+esc(d.applicant_name||'—')+'</td><td>'+esc(d.visa_application||'—')+'</td><td>'+esc(d.delivery_date||'—')+'</td><td>'+esc(d.delivery_mode||'—')+'</td><td>'+esc(d.tracking_number||'—')+'</td>'
+    +'<td><button class="tbl-btn tbl-del" onclick="delRecord(\'Visa Delivery Log\',\''+d.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No delivery logs');
+}
+
+function renderHotels() {
+  var tb = document.getElementById('hotels-tbody');
+  tb.innerHTML = D.hotel_allots.length ? D.hotel_allots.map(function(h) {
+    return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.supplier_name||h.supplier||'—')+'</td><td>'+esc(h.from_date||'—')+'</td><td>'+esc(h.to_date||'—')+'</td><td>'+esc(h.total_rooms||'—')+'</td>'
+    +'<td><button class="tbl-btn tbl-del" onclick="delRecord(\'Hotel Allotment\',\''+h.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No hotel allotments');
+}
+
+function renderContracts() {
+  var tb = document.getElementById('contracts-tbody');
+  tb.innerHTML = D.supplier_contracts.length ? D.supplier_contracts.map(function(c) {
+    return '<tr><td>'+esc(c.name)+'</td><td>'+esc(c.supplier_name||c.supplier||'—')+'</td><td>'+esc(c.contract_start_date||'—')+'</td><td>'+esc(c.contract_end_date||'—')+'</td><td>₹'+fmt(c.cost_per_pax||0)+'</td>'
+    +'<td><button class="tbl-btn tbl-del" onclick="delRecord(\'Supplier Contract\',\''+c.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No contracts');
+}
+
+function renderCancellations() {
+  var tb = document.getElementById('cancel-tbody');
+  tb.innerHTML = D.cancel_policies.length ? D.cancel_policies.map(function(p) {
+    return '<tr><td><strong>'+esc(p.policy_name||p.name)+'</strong></td><td>'+esc((p.description||'').substr(0,80))+'</td>'
+    +'<td><button class="tbl-btn tbl-del" onclick="delRecord(\'Cancellation Policy\',\''+p.name+'\')">Del</button></td></tr>';
+  }).join('') : es('No policies');
+}
+
+function renderCustomers() {
+  var tb = document.getElementById('customers-tbody');
+  var custs = D.leads.filter(function(l){ return l.status === 'converted'; });
+  tb.innerHTML = custs.length ? custs.map(function(l) {
+    return '<tr><td>'+esc(l.full_name||'—')+'</td><td>'+esc(l.email_id||'—')+'</td><td>'+esc(l.mobile_no||'—')+'</td><td>'+esc(l.suggested_package||'—')+'</td><td>'+esc(l.pax_count||'—')+'</td></tr>';
+  }).join('') : es('No converted customers yet');
+}
+
+// ════════════════════════════════════════════════
+//  LEAD CRUD
+// ════════════════════════════════════════════════
+function clearLeadForm() {
+  document.getElementById('lead-modal-title').textContent = 'New Lead';
+  ['name','full_name','email_id','mobile_no','remarks','preferred_month'].forEach(function(f){ setVal('lead-'+f,''); });
+  setVal('lead-status','Open'); setVal('lead-source',''); setVal('lead-pax_count','');
+  // Populate package dropdown
+  var sel = document.getElementById('lead-suggested_package');
+  sel.innerHTML = '<option value="">—</option>' + D.packages.map(function(p){
+    return '<option value="'+p.name+'">'+esc(p.package_name||p.name)+'</option>';
+  }).join('');
+}
+
+function editLead(l) {
+  clearLeadForm();
+  document.getElementById('lead-modal-title').textContent = 'Edit Lead';
+  setVal('lead-name', l.name);
+  setVal('lead-full_name', l.full_name);
+  setVal('lead-email_id', l.email_id);
+  setVal('lead-mobile_no', l.mobile_no);
+  setVal('lead-status', l.status);
+  setVal('lead-source', l.source);
+  setVal('lead-pax_count', l.pax_count);
+  setVal('lead-suggested_package', l.suggested_package);
+  setVal('lead-preferred_month', l.preferred_month);
+  setVal('lead-remarks', l.remarks);
+  openModal('mo-lead');
+}
+
+function saveLead() {
+  var name = gVal('lead-full_name');
+  if (!name) { showToast('err','Full name required'); return; }
   _fc({
-    method:id?'travel_tour.www.founder_dash.update_booking':'travel_tour.www.founder_dash.create_booking',
-    args:{booking_id:id||null,
-      customer:document.getElementById('bk-customer').value,
-      tour_package:document.getElementById('bk-package').value,
-      departure_date:document.getElementById('bk-dep').value,
-      return_date:document.getElementById('bk-ret').value,
-      adult_pax:document.getElementById('bk-adults').value||0,
-      child_pax:document.getElementById('bk-children').value||0,
-      grand_total:document.getElementById('bk-total').value||0,
-      advance_paid:document.getElementById('bk-advance').value||0,
-      booking_status:document.getElementById('bk-status').value,
-      special_requests:document.getElementById('bk-notes').value},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-bk');loadData();showToast('\u2705',id?'Booking updated!':'Booking created!');}
-      else showToast('\u274c',(r.message&&r.message.error)||'Could not save.');},
-    error:function(){closeModal('mo-new-bk');showToast('\u274c','Network error.');}
+    method: 'travel_tour.api.founder.save_lead',
+    args: {
+      name: gVal('lead-name'), full_name: name,
+      email_id: gVal('lead-email_id'), mobile_no: gVal('lead-mobile_no'),
+      status: gVal('lead-status'), source: gVal('lead-source'),
+      suggested_package: gVal('lead-suggested_package'),
+      pax_count: gVal('lead-pax_count'),
+      preferred_month: gVal('lead-preferred_month'),
+      remarks: gVal('lead-remarks')
+    },
+    callback: function(r) {
+      if (r.message && r.message.success) {
+        closeModal('mo-lead'); loadData(); showToast('ok','Lead saved!');
+      } else { showToast('err', (r.message && r.message.error) || 'Error saving'); }
+    },
+    error: function(e) { showToast('err','Network error'); }
   });
 }
 
-/* ── PAYMENTS ── */
-function renderPayments(){
-  var el=document.getElementById('pay-tbody'); if(!el)return;
-  var list=(D.bookings||[]).filter(function(b){return (b.grand_total||0)>0;});
-  el.innerHTML=list.map(function(b){
-    return '<tr><td><span class="tbl-link" onclick="openBkDetail(\''+b.name+'\')">'+(b.name||'')+'</span></td>'+
-      '<td>'+(b.customer||b.customer_mobile||'\u2014')+'</td><td>'+(b.tour_package||'\u2014')+'</td>'+
-      '<td style="font-weight:700">\u20b9'+fmt(b.grand_total||0)+'</td>'+
-      '<td style="color:#0aab7d">\u20b9'+fmt(b.advance_paid||0)+'</td>'+
-      '<td style="color:'+((b.balance_due||0)>0?'var(--amber)':'#0aab7d')+';font-weight:700">\u20b9'+fmt(b.balance_due||0)+'</td>'+
-      '<td>'+(b.balance_due_date?fmtDate(b.balance_due_date):'\u2014')+'</td>'+
-      '<td>'+bdg(b.payment_status||(b.balance_due>0?'Partial':'Paid'))+'</td>'+
-      '<td><div class="tbl-actions">'+
-      ((b.balance_due||0)>0?'<button class="tbl-btn tbl-btn-edit" onclick="document.getElementById(\'rp-bk\').value=\''+b.name+'\';openModal(\'mo-record-pay\')">Record</button>':'')+
-      '<button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button></div></td></tr>';
-  }).join('');
-  var nb=document.getElementById('nb-pay');
-  if(nb)nb.style.display=list.filter(function(b){return (b.balance_due||0)>0;}).length?'':'none';
-}
-function filterPay(type,btn){
-  document.querySelectorAll('#pg-payments .ftab').forEach(function(t){t.classList.remove('active');}); if(btn)btn.classList.add('active');
-  renderPayments();
-}
-function recordPayment(){
-  var bk=document.getElementById('rp-bk').value.trim();
-  var amt=document.getElementById('rp-amt').value;
-  if(!bk||!amt){showToast('\u274c','Booking and amount required.');return;}
-  _fc({method:'travel_tour.www.founder_dash.record_payment',
-    args:{booking_name:bk,amount:amt,
-      payment_date:document.getElementById('rp-date').value,
-      mode:document.getElementById('rp-mode').value,
-      reference:document.getElementById('rp-ref').value,
-      notes:document.getElementById('rp-notes').value},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-record-pay');loadData();showToast('\u2705','Payment recorded!');}
-      else showToast('\u274c',(r.message&&r.message.error)||'Error');},
-    error:function(){closeModal('mo-record-pay');}});
+// ════════════════════════════════════════════════
+//  PACKAGE CRUD
+// ════════════════════════════════════════════════
+function clearPackageForm() {
+  document.getElementById('pkg-modal-title').textContent = 'New Tour Package';
+  ['name','package_name','description','duration_days','duration_nights'].forEach(function(f){ setVal('pkg-'+f,''); });
+  setVal('pkg-tour_type','Domestic'); setVal('pkg-visa_required','0');
 }
 
-/* ── PACKAGES ── */
-function renderPackages(){
-  var el=document.getElementById('pkg-grid'); if(!el)return;
-  var pkgs=D.packages||[];
-  if(!pkgs.length){el.innerHTML='<div class="es" style="grid-column:1/-1"><div class="es-ico">\uD83D\uDCE6</div><div class="es-title">No packages yet</div><div class="es-sub">Add your first tour package.</div></div>';return;}
-  el.innerHTML=pkgs.map(function(p){
-    return '<div class="card" style="cursor:pointer">'+
-      '<div style="background:var(--ink);padding:18px 20px;position:relative;overflow:hidden">'+
-      '<div style="font-size:24px;margin-bottom:8px">'+destEmoji(p.destination)+'</div>'+
-      '<div style="font-family:Sora,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-bottom:3px">'+(p.package_name||p.name)+'</div>'+
-      '<div style="font-size:12px;color:rgba(255,255,255,.4)">'+(p.destination||'\u2014')+' \u00b7 '+(p.duration||0)+'D/'+(p.nights||0)+'N \u00b7 '+
-      (p.tour_type||'Domestic')+'</div></div>'+
-      '<div style="padding:14px 18px">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
-      '<div><div style="font-family:Sora,sans-serif;font-weight:800;font-size:18px;color:var(--ink)">\u20b9'+fmt(p.price_per_person||0)+'</div>'+
-      '<div style="font-size:11px;color:var(--t3)">per person</div></div>'+bdg(p.status||'Active')+'</div>'+
-      '<div style="display:flex;align-items:center;justify-content:space-between">'+
-      '<span style="font-size:12px;color:var(--t3)">\uD83C\uDFAB '+(p.bookings_count||0)+' bookings</span>'+
-      '<div style="display:flex;gap:6px"><button class="tbl-btn tbl-btn-edit" onclick="openPkgEdit(\''+p.name+'\')">Edit</button></div></div>'+
-      '</div></div>';
-  }).join('');
-}
-function openPkgEdit(id){
-  var p=(D.packages||[]).filter(function(x){return x.name===id;})[0]; if(!p)return;
-  var t=document.getElementById('mo-pkg-title'); if(t)t.textContent='Edit Package';
-  document.getElementById('pkg-edit-id').value=p.name;
-  document.getElementById('pkg-name').value=p.package_name||'';
-  document.getElementById('pkg-dest').value=p.destination||'';
-  document.getElementById('pkg-days').value=p.duration||'';
-  document.getElementById('pkg-nights').value=p.nights||'';
-  document.getElementById('pkg-type').value=p.tour_type||'Domestic';
-  document.getElementById('pkg-price').value=p.price_per_person||'';
-  document.getElementById('pkg-status').value=p.status||'Active';
-  openModal('mo-new-pkg');
-}
-function savePackage(){
-  _fc({method:'travel_tour.www.founder_dash.save_package',
-    args:{pkg_id:document.getElementById('pkg-edit-id').value||null,
-      package_name:document.getElementById('pkg-name').value,
-      destination:document.getElementById('pkg-dest').value,
-      duration:document.getElementById('pkg-days').value,
-      nights:document.getElementById('pkg-nights').value,
-      tour_type:document.getElementById('pkg-type').value,
-      price_per_person:document.getElementById('pkg-price').value,
-      status:document.getElementById('pkg-status').value,
-      description:document.getElementById('pkg-desc').value},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-pkg');loadData();showToast('\u2705','Package saved!');}
-      else showToast('\u274c',(r.message&&r.message.error)||'Error saving.');},
-    error:function(){closeModal('mo-new-pkg');}});
-}
-
-/* ── CUSTOMERS ── */
-function renderCustomers(){
-  var el=document.getElementById('cust-tbody'); if(!el)return;
-  el.innerHTML=(D.customers||[]).map(function(c){
-    return '<tr><td><span class="tbl-link">'+(c.customer_name||c.name||'\u2014')+'</span></td>'+
-      '<td>'+(c.mobile||'\u2014')+'</td><td>'+(c.email||'\u2014')+'</td>'+
-      '<td style="font-weight:700">'+(c.total_bookings||0)+'</td>'+
-      '<td style="font-weight:700">\u20b9'+fmt(c.total_spent||0)+'</td>'+
-      '<td>'+(c.last_trip||'\u2014')+'</td>'+
-      '<td><button class="tbl-btn tbl-btn-view">View</button></td></tr>';
-  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--t3)">No customers yet</td></tr>';
-}
-function filterCust(){
-  var q=((document.getElementById('cust-search')||{}).value||'').toLowerCase();
-  var el=document.getElementById('cust-tbody'); if(!el)return;
-  el.innerHTML=(D.customers||[]).filter(function(c){
-    return (c.customer_name||'').toLowerCase().indexOf(q)!==-1||(c.mobile||'').indexOf(q)!==-1;
-  }).map(function(c){
-    return '<tr><td><span class="tbl-link">'+(c.customer_name||c.name)+'</span></td>'+
-      '<td>'+(c.mobile||'\u2014')+'</td><td>'+(c.email||'\u2014')+'</td>'+
-      '<td>'+(c.total_bookings||0)+'</td><td>\u20b9'+fmt(c.total_spent||0)+'</td>'+
-      '<td>'+(c.last_trip||'\u2014')+'</td><td><button class="tbl-btn tbl-btn-view">View</button></td></tr>';
+function populatePkgDest() {
+  var sel = document.getElementById('pkg-destination');
+  sel.innerHTML = '<option value="">—</option>' + D.destinations.map(function(d){
+    return '<option value="'+d.name+'">'+(d.destination_name||d.name)+'</option>';
   }).join('');
 }
 
-/* ── DEPARTURES ── */
-function renderDepartures(){
-  var bks=(D.bookings||[]).filter(function(b){return b.booking_status==='Confirmed';}).sort(function(a,b){return new Date(a.departure_date||0)-new Date(b.departure_date||0);});
-  var strip=document.getElementById('dep-strip');
-  if(strip)strip.innerHTML=bks.slice(0,8).map(function(b){
-    var d=new Date(b.departure_date||Date.now());
-    return '<div class="dep-card" onclick="openBkDetail(\''+b.name+'\')">'+
-      '<div class="dep-date">'+d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+'</div>'+
-      '<div class="dep-pkg">'+(b.tour_package||'\u2014')+'</div>'+
-      '<div class="dep-pax">\uD83D\uDC65 '+(b.total_pax||0)+' pax</div></div>';
-  }).join('')||'<div style="color:var(--t3);font-size:13px;padding:10px">No upcoming departures</div>';
-  var tb=document.getElementById('dep-tbody');
-  if(tb)tb.innerHTML=bks.map(function(b){
-    return '<tr><td style="font-weight:700">'+fmtDate(b.departure_date)+'</td>'+
-      '<td>'+(b.tour_package||'\u2014')+'</td><td>'+(b.destination||'\u2014')+'</td>'+
-      '<td>'+(b.total_pax||0)+'</td><td>\u2014</td>'+
-      '<td>'+(b.sales_consultant||'\u2014')+'</td><td>'+bdg(b.booking_status)+'</td>'+
-      '<td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="openBkDetail(\''+b.name+'\')">View</button></div></td></tr>';
-  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No departures yet</td></tr>';
+function editPackage(p) {
+  clearPackageForm();
+  populatePkgDest();
+  document.getElementById('pkg-modal-title').textContent = 'Edit Package';
+  setVal('pkg-name', p.name);
+  setVal('pkg-package_name', p.package_name);
+  setVal('pkg-tour_type', p.tour_type);
+  setVal('pkg-destination', p.destination);
+  setVal('pkg-duration_days', p.duration_days);
+  setVal('pkg-duration_nights', p.duration_nights);
+  setVal('pkg-visa_required', p.visa_required ? '1' : '0');
+  openModal('mo-package');
 }
 
-/* ── VISA ── */
-function renderVisa(){
-  var allPax=[];
-  (D.bookings||[]).forEach(function(b){(b.pax_details||[]).forEach(function(p){
-    allPax.push(Object.assign({},p,{bk:b.name,pkg:b.tour_package,dep:b.departure_date,dest:b.destination}));
-  });});
-  renderVisaTable(allPax);
-}
-function renderVisaTable(list){
-  var tb=document.getElementById('visa-tbody'); if(!tb)return;
-  tb.innerHTML=list.map(function(p){
-    return '<tr><td style="font-weight:600">'+(p.pax_name||'\u2014')+'</td>'+
-      '<td><span class="tbl-link" onclick="openBkDetail(\''+p.bk+'\')">'+(p.bk||'\u2014')+'</span></td>'+
-      '<td>'+(p.dest||'\u2014')+'</td><td>'+fmtDate(p.dep)+'</td>'+
-      '<td>'+(p.id_number||'\u2014')+'</td><td>'+fmtDate(p.passport_expiry)+'</td>'+
-      '<td>'+bdg(p.visa_status||'Not Applied')+'</td>'+
-      '<td><button class="tbl-btn tbl-btn-edit" onclick="updateVisaStatus(\''+p.bk+'\',\''+(p.pax_name||'').replace(/'/g,'')+'\')">Update</button></td></tr>';
-  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--t3)">No visa records</td></tr>';
-}
-function filterVisa(status,btn){
-  document.querySelectorAll('#pg-visa .ftab').forEach(function(t){t.classList.remove('active');}); if(btn)btn.classList.add('active');
-  var allPax=[];
-  (D.bookings||[]).forEach(function(b){(b.pax_details||[]).forEach(function(p){
-    allPax.push(Object.assign({},p,{bk:b.name,pkg:b.tour_package,dep:b.departure_date,dest:b.destination}));
-  });});
-  renderVisaTable(status==='all'?allPax:allPax.filter(function(p){return (p.visa_status||'Not Applied')===status;}));
-}
-function updateVisaStatus(bk,pax){
-  var statuses=['Not Applied','Applied','Approved','Rejected'];
-  var val=prompt('Visa status for '+pax+':\n('+statuses.join(' / ')+')', 'Applied');
-  if(!val||statuses.indexOf(val)===-1)return;
-  _fc({method:'travel_tour.www.founder_dash.update_visa_status',args:{booking_name:bk,pax_name:pax,visa_status:val},
-    callback:function(r){if(r.message&&r.message.success){loadData();showToast('\u2705','Visa updated!');}},
-    error:function(){}});
+function savePackage() {
+  if (!gVal('pkg-package_name')) { showToast('err','Package name required'); return; }
+  if (!gVal('pkg-duration_nights')) { showToast('err','Duration nights required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_package',
+    args: {
+      name: gVal('pkg-name'), package_name: gVal('pkg-package_name'),
+      tour_type: gVal('pkg-tour_type'), destination: gVal('pkg-destination'),
+      duration_days: gVal('pkg-duration_days'), duration_nights: gVal('pkg-duration_nights'),
+      visa_required: gVal('pkg-visa_required'), description: gVal('pkg-description')
+    },
+    callback: function(r) {
+      if (r.message && r.message.success) { closeModal('mo-package'); loadData(); showToast('ok','Package saved!'); }
+      else { showToast('err', (r.message && r.message.error) || 'Error'); }
+    },
+    error: function() { showToast('err','Network error'); }
+  });
 }
 
-/* ── TEAM ── */
-function renderTeam(){
-  var el=document.getElementById('team-grid'); if(!el)return;
-  el.innerHTML=(D.team||[]).map(function(m){
-    var ini=(m.employee_name||m.name||'?')[0].toUpperCase();
-    return '<div class="tcard"><div class="tc-ava">'+ini+'</div>'+
-      '<div style="display:flex;align-items:flex-start;justify-content:space-between">'+
-      '<div><div class="tc-name">'+(m.employee_name||m.name)+'</div><div class="tc-role">'+(m.role||'\u2014')+'</div></div>'+
-      bdg(m.status||'Active')+'</div>'+
-      '<div style="font-size:12px;color:var(--t3);margin-top:6px">\uD83D\uDCF1 '+(m.mobile||'\u2014')+'</div>'+
-      '<div class="tc-stat"><div class="tc-stat-item"><div class="tc-stat-val">'+(m.leads_handled||0)+'</div><div class="tc-stat-lbl">Leads</div></div>'+
-      '<div class="tc-stat-item"><div class="tc-stat-val">'+(m.bookings_confirmed||0)+'</div><div class="tc-stat-lbl">Bookings</div></div></div>'+
-      '<div style="margin-top:12px"><button class="btn btn-danger btn-sm" onclick="confirmDelete(\'team\',\''+m.name+'\',\''+(m.employee_name||m.name).replace(/'/g,'')+'\')">Remove</button></div></div>';
-  }).join('')||'<div class="es" style="grid-column:1/-1"><div class="es-ico">\uD83E\uDDD1\u200D\uD83D\uDCBC</div><div class="es-title">No team members yet</div><div class="es-sub">Add your consultants.</div></div>';
-}
-function saveTeamMember(){
-  _fc({method:'travel_tour.www.founder_dash.save_team_member',
-    args:{employee_name:document.getElementById('tm-name').value,
-      mobile:document.getElementById('tm-mobile').value,
-      email:document.getElementById('tm-email').value,
-      role:document.getElementById('tm-role').value,
-      access_level:document.getElementById('tm-access').value},
-    callback:function(r){if(r.message&&r.message.success){closeModal('mo-new-member');loadData();showToast('\u2705','Team member added!');}
-      else showToast('\u274c','Error: '+(r.message&&r.message.error||'Unknown'));},
-    error:function(){closeModal('mo-new-member');}});
+// ════════════════════════════════════════════════
+//  BOOKING CRUD
+// ════════════════════════════════════════════════
+function clearBookingForm() {
+  document.getElementById('bk-modal-title').textContent = 'New Booking';
+  ['name','customer_mobile','departure_date','total_pax','sales_consultant'].forEach(function(f){ setVal('bk-'+f,''); });
 }
 
-/* ── REPORTS ── */
-function renderReports(){renderDestReport();renderConsultReport();renderTourTypeReport();}
-function saveSettings(section){showToast('\u2705',section+' settings saved.');}
+function populateBkPackages() {
+  var sel = document.getElementById('bk-tour_package');
+  sel.innerHTML = '<option value="">Select Package</option>' + D.packages.map(function(p){
+    return '<option value="'+p.name+'">'+(p.package_name||p.name)+'</option>';
+  }).join('');
+}
 
-/* ── DELETE ── */
-function confirmDelete(type,id,name){
-  var mc=document.getElementById('mo-confirm-msg'); if(mc)mc.textContent='Delete '+type+': '+name+' ('+id+')?';
-  var mb=document.getElementById('mo-confirm-btn'); if(mb)mb.onclick=function(){
-    _fc({method:'travel_tour.www.founder_dash.delete_record',args:{doctype:type,record_name:id},
-      callback:function(r){closeModal('mo-confirm');if(r.message&&r.message.success){loadData();showToast('\u2705','Deleted.');}},
-      error:function(){closeModal('mo-confirm');}});
+function editBooking(b) {
+  clearBookingForm();
+  populateBkPackages();
+  document.getElementById('bk-modal-title').textContent = 'Edit Booking';
+  setVal('bk-name', b.name);
+  setVal('bk-customer_mobile', b.customer_mobile);
+  setVal('bk-tour_package', b.tour_package);
+  setVal('bk-departure_date', b.departure_date);
+  setVal('bk-total_pax', b.total_pax);
+  setVal('bk-sales_consultant', b.sales_consultant);
+  openModal('mo-booking');
+}
+
+function saveBooking() {
+  if (!gVal('bk-tour_package')) { showToast('err','Tour package required'); return; }
+  if (!gVal('bk-departure_date')) { showToast('err','Departure date required'); return; }
+  if (!gVal('bk-total_pax')) { showToast('err','Total pax required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_booking',
+    args: {
+      name: gVal('bk-name'),
+      customer_mobile: gVal('bk-customer_mobile'),
+      tour_package: gVal('bk-tour_package'),
+      departure_date: gVal('bk-departure_date'),
+      total_pax: gVal('bk-total_pax'),
+      sales_consultant: gVal('bk-sales_consultant')
+    },
+    callback: function(r) {
+      if (r.message && r.message.success) { closeModal('mo-booking'); loadData(); showToast('ok','Booking saved!'); }
+      else { showToast('err', (r.message && r.message.error) || 'Error'); }
+    },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  DEPARTURE
+// ════════════════════════════════════════════════
+function populateDepPackages() {
+  var sel = document.getElementById('dep-tour_package');
+  sel.innerHTML = '<option value="">Select Package</option>' + D.packages.map(function(p){
+    return '<option value="'+p.name+'">'+(p.package_name||p.name)+'</option>';
+  }).join('');
+}
+
+function saveDeparture() {
+  if (!gVal('dep-tour_package') || !gVal('dep-departure_date') || !gVal('dep-total_pax')) {
+    showToast('err','Package, date and pax required'); return;
+  }
+  _fc({
+    method: 'travel_tour.api.founder.save_booking',
+    args: {
+      tour_package: gVal('dep-tour_package'),
+      departure_date: gVal('dep-departure_date'),
+      total_pax: gVal('dep-total_pax'),
+      customer_mobile: gVal('dep-customer_mobile')
+    },
+    callback: function(r) {
+      if (r.message && r.message.success) { closeModal('mo-dep'); loadData(); showToast('ok','Departure added!'); }
+      else { showToast('err', (r.message && r.message.error) || 'Error'); }
+    },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  PAYMENT
+// ════════════════════════════════════════════════
+function savePayment() {
+  var bk = gVal('pay-booking_id'), amt = gVal('pay-amount');
+  if (!bk || !amt) { showToast('err','Booking ID and amount required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.record_payment',
+    args: { booking_name: bk, amount: amt },
+    callback: function(r) {
+      if (r.message && r.message.success) { closeModal('mo-payment'); showToast('ok', r.message.message || 'Payment recorded!'); }
+      else { showToast('err', (r.message && r.message.error) || 'Error'); }
+    },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  DESTINATION CRUD
+// ════════════════════════════════════════════════
+function clearDestForm() {
+  document.getElementById('dest-modal-title').textContent = 'New Destination';
+  setVal('dest-name',''); setVal('dest-destination_name',''); setVal('dest-description','');
+}
+
+function editDest(d) {
+  clearDestForm();
+  document.getElementById('dest-modal-title').textContent = 'Edit Destination';
+  setVal('dest-name', d.name);
+  setVal('dest-destination_name', d.destination_name || d.name);
+  setVal('dest-description', (d.description||'').replace(/<[^>]*>/g,''));
+  openModal('mo-dest');
+}
+
+function saveDestination() {
+  if (!gVal('dest-destination_name')) { showToast('err','Destination name required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_destination',
+    args: { name: gVal('dest-name'), destination_name: gVal('dest-destination_name'), description: gVal('dest-description') },
+    callback: function(r) {
+      if (r.message && r.message.success) { closeModal('mo-dest'); loadData(); showToast('ok','Destination saved!'); }
+      else { showToast('err','Error saving'); }
+    }, error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  VISA APPLICATION CRUD
+// ════════════════════════════════════════════════
+function clearVisaForm() {
+  document.getElementById('visa-modal-title').textContent = 'New Visa Application';
+  ['name','applicant_name','passport_number','passport_expiry','departure_date','submission_deadline'].forEach(function(f){ setVal('visa-'+f,''); });
+  setVal('visa-status','Pending Documents'); setVal('visa-visa_type','Tourist');
+}
+
+function populateVisaBookings() {
+  var sel = document.getElementById('visa-booking');
+  sel.innerHTML = '<option value="">Select Booking</option>' + D.bookings.map(function(b){
+    return '<option value="'+b.name+'">'+b.name+' — '+(b.tour_package||'')+'</option>';
+  }).join('');
+}
+
+function editVisa(v) {
+  clearVisaForm();
+  populateVisaBookings();
+  document.getElementById('visa-modal-title').textContent = 'Edit Visa Application';
+  ['name','applicant_name','passport_number','passport_expiry','departure_date','submission_deadline'].forEach(function(f){ setVal('visa-'+f, v[f]); });
+  setVal('visa-booking', v.booking);
+  setVal('visa-visa_type', v.visa_type);
+  setVal('visa-status', v.status);
+  openModal('mo-visa');
+}
+
+function saveVisa() {
+  if (!gVal('visa-applicant_name') || !gVal('visa-booking')) { showToast('err','Applicant name and booking required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_visa',
+    args: {
+      name: gVal('visa-name'), booking: gVal('visa-booking'),
+      applicant_name: gVal('visa-applicant_name'),
+      passport_number: gVal('visa-passport_number'),
+      passport_expiry: gVal('visa-passport_expiry'),
+      visa_type: gVal('visa-visa_type'), status: gVal('visa-status'),
+      departure_date: gVal('visa-departure_date'),
+      submission_deadline: gVal('visa-submission_deadline')
+    },
+    callback: function(r) {
+      if (r.message && r.message.success) { closeModal('mo-visa'); loadData(); showToast('ok','Visa application saved!'); }
+      else { showToast('err', (r.message && r.message.error) || 'Error'); }
+    }, error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  VISA AGENT CRUD
+// ════════════════════════════════════════════════
+function clearVAgentForm() {
+  ['name','agent_name','contact_person','mobile_no','email_id'].forEach(function(f){ setVal('vagent-'+f,''); });
+}
+function editVAgent(a) {
+  clearVAgentForm();
+  document.getElementById('vagent-modal-title').textContent = 'Edit Visa Agent';
+  ['name','agent_name','contact_person','mobile_no','email_id'].forEach(function(f){ setVal('vagent-'+f, a[f]); });
+  openModal('mo-visa-agent');
+}
+function saveVisaAgent() {
+  if (!gVal('vagent-agent_name')) { showToast('err','Agent name required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_visa_agent',
+    args: { name: gVal('vagent-name'), agent_name: gVal('vagent-agent_name'), contact_person: gVal('vagent-contact_person'), mobile_no: gVal('vagent-mobile_no'), email_id: gVal('vagent-email_id') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-visa-agent'); loadData(); showToast('ok','Agent saved!'); } else { showToast('err','Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  VISA CONFIG CRUD
+// ════════════════════════════════════════════════
+function editVConfig(c) {
+  setVal('vconfig-name', c.name); setVal('vconfig-country', c.country);
+  setVal('vconfig-visa_type', c.visa_type); setVal('vconfig-processing_days', c.processing_days);
+  setVal('vconfig-embassy_fee', c.embassy_fee); setVal('vconfig-service_charge', c.service_charge);
+  document.getElementById('vconfig-modal-title').textContent = 'Edit Visa Config';
+  openModal('mo-visa-config');
+}
+function saveVisaConfig() {
+  if (!gVal('vconfig-country')) { showToast('err','Country required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_visa_config',
+    args: { name: gVal('vconfig-name'), country: gVal('vconfig-country'), visa_type: gVal('vconfig-visa_type'), processing_days: gVal('vconfig-processing_days'), embassy_fee: gVal('vconfig-embassy_fee'), service_charge: gVal('vconfig-service_charge') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-visa-config'); loadData(); showToast('ok','Config saved!'); } else { showToast('err','Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  VISA BILLING
+// ════════════════════════════════════════════════
+function populateVBillDrops() {
+  var bs = document.getElementById('vbill-booking');
+  bs.innerHTML = '<option value="">Select</option>' + D.bookings.map(function(b){ return '<option value="'+b.name+'">'+b.name+'</option>'; }).join('');
+  var va = document.getElementById('vbill-visa_application');
+  va.innerHTML = '<option value="">Select</option>' + D.visa_apps.map(function(v){ return '<option value="'+v.name+'">'+v.name+' — '+esc(v.applicant_name||'')+'</option>'; }).join('');
+}
+function saveVisaBilling() {
+  _fc({
+    method: 'travel_tour.api.founder.save_visa_fee_billing',
+    args: { name: gVal('vbill-name'), booking: gVal('vbill-booking'), visa_application: gVal('vbill-visa_application'), embassy_fee: gVal('vbill-embassy_fee'), service_charge: gVal('vbill-service_charge') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-visa-billing'); loadData(); showToast('ok','Bill saved!'); } else { showToast('err','Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  VISA DELIVERY
+// ════════════════════════════════════════════════
+function populateVDelDrops() {
+  var va = document.getElementById('vdel-visa_application');
+  va.innerHTML = '<option value="">Select</option>' + D.visa_apps.map(function(v){ return '<option value="'+v.name+'">'+v.name+' — '+esc(v.applicant_name||'')+'</option>'; }).join('');
+}
+function saveVisaDelivery() {
+  if (!gVal('vdel-applicant_name') || !gVal('vdel-visa_application')) { showToast('err','Required fields missing'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_visa_delivery',
+    args: { name: gVal('vdel-name'), visa_application: gVal('vdel-visa_application'), applicant_name: gVal('vdel-applicant_name'), delivery_date: gVal('vdel-delivery_date'), delivery_mode: gVal('vdel-delivery_mode'), tracking_number: gVal('vdel-tracking_number') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-visa-delivery'); loadData(); showToast('ok','Delivery logged!'); } else { showToast('err','Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  HOTEL / CONTRACT / CANCEL POLICY
+// ════════════════════════════════════════════════
+function saveHotel() {
+  if (!gVal('hotel-supplier') || !gVal('hotel-from_date') || !gVal('hotel-to_date')) { showToast('err','Required fields missing'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_hotel_allotment',
+    args: { name: gVal('hotel-name'), supplier: gVal('hotel-supplier'), from_date: gVal('hotel-from_date'), to_date: gVal('hotel-to_date'), total_rooms: gVal('hotel-total_rooms') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-hotel'); loadData(); showToast('ok','Hotel allotment saved!'); } else { showToast('err', (r.message && r.message.error)||'Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+function saveContract() {
+  if (!gVal('contract-supplier') || !gVal('contract-contract_start_date') || !gVal('contract-contract_end_date') || !gVal('contract-cost_per_pax')) { showToast('err','Required fields missing'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_supplier_contract',
+    args: { name: gVal('contract-name'), supplier: gVal('contract-supplier'), contract_start_date: gVal('contract-contract_start_date'), contract_end_date: gVal('contract-contract_end_date'), cost_per_pax: gVal('contract-cost_per_pax'), notes: gVal('contract-notes') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-contract'); loadData(); showToast('ok','Contract saved!'); } else { showToast('err', (r.message && r.message.error)||'Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+function saveCancelPolicy() {
+  if (!gVal('cp-policy_name')) { showToast('err','Policy name required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_cancel_policy',
+    args: { name: gVal('cp-name'), policy_name: gVal('cp-policy_name'), description: gVal('cp-description') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-cancel-policy'); loadData(); showToast('ok','Policy saved!'); } else { showToast('err','Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  RUN SHEET / GUIDE
+// ════════════════════════════════════════════════
+function populateRsBookings() {
+  var sel = document.getElementById('rs-booking');
+  sel.innerHTML = '<option value="">Select</option>' + D.bookings.map(function(b){ return '<option value="'+b.name+'">'+b.name+'</option>'; }).join('');
+}
+function saveRunSheet() {
+  if (!gVal('rs-booking')) { showToast('err','Booking required'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_run_sheet',
+    args: { booking: gVal('rs-booking'), departure_date: gVal('rs-departure_date'), total_pax: gVal('rs-total_pax') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-runsheet'); loadData(); showToast('ok','Run sheet created!'); } else { showToast('err', (r.message && r.message.error)||'Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+function populateGuideBookings() {
+  var sel = document.getElementById('guide-booking');
+  sel.innerHTML = '<option value="">Select</option>' + D.bookings.map(function(b){ return '<option value="'+b.name+'">'+b.name+'</option>'; }).join('');
+}
+function saveGuide() {
+  if (!gVal('guide-guide') || !gVal('guide-booking') || !gVal('guide-departure_date') || !gVal('guide-return_date')) { showToast('err','Required fields missing'); return; }
+  _fc({
+    method: 'travel_tour.api.founder.save_guide_allocation',
+    args: { name: gVal('guide-name'), guide: gVal('guide-guide'), booking: gVal('guide-booking'), departure_date: gVal('guide-departure_date'), return_date: gVal('guide-return_date'), status: gVal('guide-status') },
+    callback: function(r) { if (r.message && r.message.success) { closeModal('mo-guide'); loadData(); showToast('ok','Guide allocated!'); } else { showToast('err', (r.message && r.message.error)||'Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════════════════════
+function saveSettings() {
+  _fc({
+    method: 'travel_tour.api.founder.save_settings',
+    args: { ops_email: gVal('set-email'), site_url: gVal('set-url'), razorpay_key_id: gVal('set-rzp-key'), consultant_commission_pct: gVal('set-commission'), website_booking_bonus: gVal('set-bonus') },
+    callback: function(r) { if (r.message && r.message.success) { showToast('ok','Settings saved!'); } else { showToast('err', (r.message && r.message.error)||'Error'); } },
+    error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  DELETE
+// ════════════════════════════════════════════════
+function delRecord(doctype, name) {
+  if (!confirm('Delete ' + name + '?')) return;
+  _fc({
+    method: 'travel_tour.api.founder.delete_record',
+    args: { doctype: doctype, record_name: name },
+    callback: function(r) {
+      if (r.message && r.message.success) { loadData(); showToast('ok','Deleted!'); }
+      else { showToast('err', (r.message && r.message.error) || 'Error'); }
+    }, error: function() { showToast('err','Network error'); }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  FILTER HELPERS
+// ════════════════════════════════════════════════
+function filterLeads() { renderLeads(); }
+function filterBookings() { renderBookings(); }
+function filterPackages() { renderPackages(); }
+function filterDestinations() { renderDest(); }
+function filterVisas() { renderVisas(); }
+
+// ════════════════════════════════════════════════
+//  MODAL HELPERS
+// ════════════════════════════════════════════════
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (!el) { console.warn('Modal not found:', id); return; }
+  el.style.display = 'flex';
+}
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+// Close modal on backdrop click
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal')) {
+    e.target.style.display = 'none';
+  }
+});
+
+// ════════════════════════════════════════════════
+//  MISC HELPERS
+// ════════════════════════════════════════════════
+function gVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v || ''; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(n) { return parseFloat(n||0).toLocaleString('en-IN'); }
+
+function bdg(s) {
+  var map = {
+    'Open':'bdg-amber','Interested':'bdg-blue','converted':'bdg-green','Lost':'bdg-red',
+    'Domestic':'bdg-green','International':'bdg-blue',
+    'Pending':'bdg-amber','Confirmed':'bdg-green','Completed':'bdg-grey','Cancelled':'bdg-red',
+    'Pending Documents':'bdg-amber','Documents Collected':'bdg-blue',
+    'Submitted':'bdg-blue','Approved':'bdg-green','Rejected':'bdg-red','Delivered':'bdg-grey',
+    'Open':'bdg-amber'
   };
-  openModal('mo-confirm');
+  return '<span class="bdg '+(map[s]||'bdg-grey')+'">'+esc(s||'—')+'</span>';
 }
 
-/* ── NAVIGATION ── */
-var PAGE_TITLES={overview:'Overview',leads:'Leads & Enquiries',bookings:'Bookings',
-  payments:'Payments',packages:'Tour Packages',customers:'Customers',departures:'Departures',
-  visa:'Visa Tracker',team:'My Team',reports:'Reports & Analytics',settings:'Settings'};
-
-function goPage(id,navEl){
-  document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active');});
-  var pg=document.getElementById('pg-'+id); if(pg)pg.classList.add('active');
-  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('active');});
-  if(navEl)navEl.classList.add('active');
-  var tt=document.getElementById('tb-title'); if(tt)tt.textContent=PAGE_TITLES[id]||'';
-  var sb=document.getElementById('sb'); if(sb)sb.classList.remove('open');
-}
-function toggleSb(){var e=document.getElementById('sb');if(e)e.classList.toggle('open');}
-function toggleNotif(){var e=document.getElementById('notif-panel');if(e)e.classList.toggle('open');}
-function openModal(id){var el=document.getElementById(id);if(!el){console.warn('openModal: not found:',id);return;}el.classList.add('open');}
-function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('open');}
-function doLogout(){
-  fetch('/api/method/logout',{method:'POST',credentials:'same-origin',headers:{'X-Frappe-CSRF-Token':_csrf()}})
-  .then(function(){window.location.href='/login';}).catch(function(){window.location.href='/login';});
+function showToast(type, msg) {
+  var w = document.getElementById('toast-wrap');
+  var t = document.createElement('div');
+  t.className = 'toast' + (type==='ok'?' toast-ok':type==='err'?' toast-err':'');
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 3500);
 }
 
-/* ── UTILS ── */
-function fmt(n){return (Number(n)||0).toLocaleString('en-IN',{maximumFractionDigits:0});}
-function fmtL(n){n=Number(n)||0;if(n>=10000000)return(n/10000000).toFixed(1)+'Cr';if(n>=100000)return(n/100000).toFixed(1)+'L';if(n>=1000)return(n/1000).toFixed(1)+'K';return n.toString();}
-function fmtDate(d){if(!d)return'\u2014';return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
-function bdg(status){
-  var map={Confirmed:'bdg-confirmed',Completed:'bdg-completed',Cancelled:'bdg-cancelled',Draft:'bdg-draft',Pending:'bdg-pending',
-    Paid:'bdg-paid',Partial:'bdg-partial',New:'bdg-new',Contacted:'bdg-warm','Proposal Sent':'bdg-warm',
-    Negotiation:'bdg-hot',Converted:'bdg-confirmed',Lost:'bdg-draft','Not Applied':'bdg-draft',
-    Applied:'bdg-completed',Approved:'bdg-approved',Rejected:'bdg-rejected',
-    Active:'bdg-active',Inactive:'bdg-inactive',Seasonal:'bdg-warm',Overdue:'bdg-overdue'};
-  return '<span class="bdg '+(map[status]||'bdg-draft')+'">'+(status||'\u2014')+'</span>';
-}
-function destEmoji(d){if(!d)return'\u2708\uFE0F';var s=d.toLowerCase();
-  if(s.indexOf('bali')!==-1||s.indexOf('thai')!==-1||s.indexOf('maldiv')!==-1)return'\uD83C\uDFDD\uFE0F';
-  if(s.indexOf('manali')!==-1||s.indexOf('kashmir')!==-1)return'\uD83C\uDFD4\uFE0F';
-  if(s.indexOf('goa')!==-1)return'\uD83C\uDFD6\uFE0F';
-  if(s.indexOf('europe')!==-1||s.indexOf('paris')!==-1)return'\uD83C\uDFF0';
-  if(s.indexOf('dubai')!==-1)return'\uD83C\uDFD9\uFE0F';
-  if(s.indexOf('kerala')!==-1)return'\uD83C\uDF34';
-  return'\u2708\uFE0F';}
-var _toastT;
-function showToast(ico,msg){
-  var t=document.getElementById('toast'); if(!t)return;
-  var ti=document.getElementById('toast-ico'); if(ti)ti.textContent=ico;
-  var tm=document.getElementById('toast-msg'); if(tm)tm.textContent=msg;
-  t.classList.add('show'); clearTimeout(_toastT);
-  _toastT=setTimeout(function(){t.classList.remove('show');},3500);
+function doLogout() {
+  fetch('/api/method/logout', { method:'POST', credentials:'same-origin', headers:{'X-Frappe-CSRF-Token':_csrf()} })
+  .then(function(){ window.location.href='/login'; })
+  .catch(function(){ window.location.href='/login'; });
 }
 </script>
-</body>
-</html>
+{% endblock %}
