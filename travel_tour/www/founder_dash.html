@@ -526,7 +526,8 @@ tr:hover td{background:var(--jade3)}
         <div class="form-group"><label>Total Pax *</label><input type="number" id="bk-total_pax" min="1"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Sales Consultant</label><input id="bk-sales_consultant" placeholder="User email"></div>
+        <div class="form-group"><label>Sales Consultant</label>
+          <select id="bk-sales_consultant"><option value="">— None —</option></select></div>
       </div>
     </div>
     <div class="modal-foot">
@@ -718,9 +719,13 @@ tr:hover td{background:var(--jade3)}
     <div class="modal-hdr"><h3>New Visa Bill</h3><button class="modal-close" onclick="closeModal('mo-visa-billing')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="vbill-name">
+      <div class="form-row full">
+        <div class="form-group"><label>Customer (auto-filled from booking)</label>
+          <select id="vbill-customer"><option value="">— Select or leave for auto —</option></select></div>
+      </div>
       <div class="form-row">
         <div class="form-group"><label>Booking</label>
-          <select id="vbill-booking"><option value="">Select</option></select></div>
+          <select id="vbill-booking" onchange="autoFillVBillCustomer()"><option value="">Select</option></select></div>
         <div class="form-group"><label>Visa Application</label>
           <select id="vbill-visa_application"><option value="">Select</option></select></div>
       </div>
@@ -777,6 +782,13 @@ tr:hover td{background:var(--jade3)}
         <div class="form-group"><label>From Date *</label><input type="date" id="hotel-from_date"></div>
         <div class="form-group"><label>To Date *</label><input type="date" id="hotel-to_date"></div>
       </div>
+      <div style="background:var(--bg);border-radius:8px;padding:14px;margin-top:4px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--t3);margin-bottom:10px">Room Inventory (Required)</div>
+        <div class="form-row">
+          <div class="form-group"><label>Room Type (Item name)</label><input id="hotel-room_type" placeholder="e.g. Deluxe Room"></div>
+          <div class="form-group"><label>Quantity</label><input type="number" id="hotel-room_qty" value="5" min="1"></div>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('mo-hotel')">Cancel</button>
@@ -821,6 +833,13 @@ tr:hover td{background:var(--jade3)}
       </div>
       <div class="form-row full">
         <div class="form-group"><label>Description</label><textarea id="cp-description" rows="3"></textarea></div>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:14px;margin-top:4px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--t3);margin-bottom:10px">Default Cancellation Slab</div>
+        <div class="form-row">
+          <div class="form-group"><label>Days Before Departure *</label><input type="number" id="cp-slab_days" placeholder="e.g. 30" value="30"></div>
+          <div class="form-group"><label>Cancellation Fee (%) *</label><input type="number" id="cp-slab_pct" placeholder="e.g. 25" value="25" step="0.1"></div>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -892,7 +911,8 @@ var D = {
   visa_apps:[], visa_agents:[], visa_configs:[],
   visa_fee_bills:[], visa_delivery:[], guide_allocs:[],
   run_sheets:[], hotel_allots:[], supplier_contracts:[],
-  cancel_policies:[], settings:{}, stats:{}, founder:{}
+  cancel_policies:[], settings:{}, stats:{}, founder:{},
+  users:[], customers:[]
 };
 var curPage = 'overview';
 
@@ -900,9 +920,16 @@ var curPage = 'overview';
 //  CSRF — cookie-based (always works on web pages)
 // ════════════════════════════════════════════════
 function _csrf() {
+  // Method 1: frappe.boot (works on desk pages)
+  try { if (window.frappe && frappe.boot && frappe.boot.csrf_token) return frappe.boot.csrf_token; } catch(e) {}
+  // Method 2: frappe.csrf_token
+  try { if (window.frappe && frappe.csrf_token && frappe.csrf_token.length > 8 && frappe.csrf_token !== 'None') return frappe.csrf_token; } catch(e) {}
+  // Method 3: cookie (most reliable for web pages)
   var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  if (m && m[1] && m[1] !== 'None') return decodeURIComponent(m[1]);
-  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 8) return frappe.csrf_token; } catch(e) {}
+  if (m && m[1] && m[1] !== 'None' && m[1].length > 8) return decodeURIComponent(m[1]);
+  // Method 4: meta tag
+  var mt = document.querySelector('meta[name="csrf-token"]');
+  if (mt && mt.content && mt.content.length > 8) return mt.content;
   return '';
 }
 
@@ -968,6 +995,8 @@ function loadData() {
       D.supplier_contracts = m.supplier_contracts || [];
       D.cancel_policies = m.cancel_policies || [];
       D.settings = m.settings || {};
+      D.users = m.users || [];
+      D.customers = m.customers || [];
       D.stats = m.stats || {};
       D.founder = m.founder || {};
       renderAll();
@@ -1377,6 +1406,15 @@ function populateBkPackages() {
   sel.innerHTML = '<option value="">Select Package</option>' + D.packages.map(function(p){
     return '<option value="'+p.name+'">'+(p.package_name||p.name)+'</option>';
   }).join('');
+  // Populate consultant dropdown
+  var sc = document.getElementById('bk-sales_consultant');
+  if (sc) {
+    var cur = sc.value;
+    sc.innerHTML = '<option value="">— None —</option>' + D.users.map(function(u){
+      return '<option value="'+u.name+'">'+(u.full_name||u.name)+' ('+u.name+')</option>';
+    }).join('');
+    if (cur) sc.value = cur;
+  }
 }
 
 function editBooking(b) {
@@ -1584,14 +1622,21 @@ function saveVisaConfig() {
 // ════════════════════════════════════════════════
 function populateVBillDrops() {
   var bs = document.getElementById('vbill-booking');
-  bs.innerHTML = '<option value="">Select</option>' + D.bookings.map(function(b){ return '<option value="'+b.name+'">'+b.name+'</option>'; }).join('');
+  bs.innerHTML = '<option value="">Select</option>' + D.bookings.map(function(b){ return '<option value="'+b.name+'">'+b.name+' ('+esc(b.tour_package||'')+')</option>'; }).join('');
   var va = document.getElementById('vbill-visa_application');
   va.innerHTML = '<option value="">Select</option>' + D.visa_apps.map(function(v){ return '<option value="'+v.name+'">'+v.name+' — '+esc(v.applicant_name||'')+'</option>'; }).join('');
+  var vc = document.getElementById('vbill-customer');
+  vc.innerHTML = '<option value="">— Auto from booking —</option>' + D.customers.map(function(c){ return '<option value="'+c.name+'">'+(c.customer_name||c.name)+'</option>'; }).join('');
+}
+function autoFillVBillCustomer() {
+  var bname = gVal('vbill-booking');
+  var bk = D.bookings.find(function(b){ return b.name === bname; });
+  if (bk && bk.customer) setVal('vbill-customer', bk.customer);
 }
 function saveVisaBilling() {
   _fc({
     method: 'travel_tour.api.founder.save_visa_fee_billing',
-    args: { name: gVal('vbill-name'), booking: gVal('vbill-booking'), visa_application: gVal('vbill-visa_application'), embassy_fee: gVal('vbill-embassy_fee'), service_charge: gVal('vbill-service_charge') },
+    args: { name: gVal('vbill-name'), customer: gVal('vbill-customer'), booking: gVal('vbill-booking'), visa_application: gVal('vbill-visa_application'), embassy_fee: gVal('vbill-embassy_fee'), service_charge: gVal('vbill-service_charge') },
     callback: function(r) { if (r.message && r.message.success) { closeModal('mo-visa-billing'); loadData(); showToast('ok','Bill saved!'); } else { showToast('err','Error'); } },
     error: function() { showToast('err','Network error'); }
   });
@@ -1621,7 +1666,7 @@ function saveHotel() {
   if (!gVal('hotel-supplier') || !gVal('hotel-from_date') || !gVal('hotel-to_date')) { showToast('err','Required fields missing'); return; }
   _fc({
     method: 'travel_tour.api.founder.save_hotel_allotment',
-    args: { name: gVal('hotel-name'), supplier: gVal('hotel-supplier'), from_date: gVal('hotel-from_date'), to_date: gVal('hotel-to_date'), total_rooms: gVal('hotel-total_rooms') },
+    args: { name: gVal('hotel-name'), supplier: gVal('hotel-supplier'), from_date: gVal('hotel-from_date'), to_date: gVal('hotel-to_date'), total_rooms: gVal('hotel-total_rooms'), room_type: gVal('hotel-room_type'), room_qty: gVal('hotel-room_qty') },
     callback: function(r) { if (r.message && r.message.success) { closeModal('mo-hotel'); loadData(); showToast('ok','Hotel allotment saved!'); } else { showToast('err', (r.message && r.message.error)||'Error'); } },
     error: function() { showToast('err','Network error'); }
   });
@@ -1641,7 +1686,7 @@ function saveCancelPolicy() {
   if (!gVal('cp-policy_name')) { showToast('err','Policy name required'); return; }
   _fc({
     method: 'travel_tour.api.founder.save_cancel_policy',
-    args: { name: gVal('cp-name'), policy_name: gVal('cp-policy_name'), description: gVal('cp-description') },
+    args: { name: gVal('cp-name'), policy_name: gVal('cp-policy_name'), description: gVal('cp-description'), slab_days: gVal('cp-slab_days'), slab_pct: gVal('cp-slab_pct') },
     callback: function(r) { if (r.message && r.message.success) { closeModal('mo-cancel-policy'); loadData(); showToast('ok','Policy saved!'); } else { showToast('err','Error'); } },
     error: function() { showToast('err','Network error'); }
   });

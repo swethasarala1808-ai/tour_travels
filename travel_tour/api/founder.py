@@ -1,9 +1,9 @@
 import frappe
-from frappe.utils import flt, now_datetime
+from frappe.utils import flt
 
 
 # ══════════════════════════════════════════════════════════════════════════
-#  MAIN DATA LOADER — all 25 DocTypes
+#  MAIN DATA LOADER
 # ══════════════════════════════════════════════════════════════════════════
 @frappe.whitelist()
 def get_founder_data():
@@ -49,13 +49,12 @@ def get_founder_data():
     visa_fee_bills = frappe.get_all('Visa Fee Billing',
         fields=['name','customer','booking','visa_application',
                 'embassy_fee','service_charge','gst_amount',
-                'grand_total','sales_invoice','creation'],
+                'grand_total','creation'],
         order_by='creation desc', limit=200)
 
     visa_delivery = frappe.get_all('Visa Delivery Log',
         fields=['name','visa_application','applicant_name',
-                'delivery_date','delivery_mode','tracking_number',
-                'notes','creation'],
+                'delivery_date','delivery_mode','tracking_number','creation'],
         order_by='creation desc', limit=200)
 
     guide_allocs = frappe.get_all('Guide Allocation',
@@ -75,12 +74,20 @@ def get_founder_data():
 
     supplier_contracts = frappe.get_all('Supplier Contract',
         fields=['name','supplier','supplier_name','contract_start_date',
-                'contract_end_date','cost_per_pax','currency',
-                'notes','creation'],
+                'contract_end_date','cost_per_pax','notes','creation'],
         order_by='creation desc', limit=200)
 
     cancel_policies = frappe.get_all('Cancellation Policy',
         fields=['name','policy_name','description'], limit=100)
+
+    # Fetch users list for consultant dropdown
+    users = frappe.get_all('User',
+        filters={'enabled': 1, 'user_type': 'System User'},
+        fields=['name','full_name'], limit=100)
+
+    # Fetch customers list
+    customers = frappe.get_all('Customer',
+        fields=['name','customer_name'], limit=200)
 
     settings = {}
     try:
@@ -96,13 +103,9 @@ def get_founder_data():
     except Exception:
         pass
 
-    # Stats
     total_revenue = sum(flt(b.get('grand_total')) for b in bookings)
-    open_leads = len([l for l in leads if l.get('status') in
-                      ['Open','Interested','Contacted']])
-    pending_visas = len([v for v in visa_apps if v.get('status') in
-                         ['Pending Documents','Documents Collected','Submitted']])
-
+    open_leads = len([l for l in leads if l.get('status') in ['Open','Interested']])
+    pending_visas = len([v for v in visa_apps if v.get('status') not in ['Approved','Delivered']])
     founder_name = frappe.db.get_value('User', frappe.session.user, 'full_name') or 'Founder'
 
     return {
@@ -121,6 +124,8 @@ def get_founder_data():
         'supplier_contracts': supplier_contracts,
         'cancel_policies': cancel_policies,
         'settings': settings,
+        'users': users,
+        'customers': customers,
         'stats': {
             'total_revenue': total_revenue,
             'active_bookings': len(bookings),
@@ -130,7 +135,6 @@ def get_founder_data():
             'visa_count': len(visa_apps),
             'pending_visas': pending_visas,
             'destination_count': len(destinations),
-            'agent_count': len(visa_agents),
         },
         'founder': {
             'name': founder_name,
@@ -150,7 +154,8 @@ def save_lead(**kwargs):
               'assigned_consultant','interest_tags','remarks']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 @frappe.whitelist()
@@ -165,30 +170,41 @@ def save_package(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Tour Package', n) if n and frappe.db.exists('Tour Package', n) else frappe.new_doc('Tour Package')
     if kwargs.get('package_name'): doc.package_name = kwargs['package_name']
-    t = kwargs.get('tour_type','Domestic')
+    t = kwargs.get('tour_type', 'Domestic')
     doc.tour_type = t if t in ('Domestic','International') else 'Domestic'
     if kwargs.get('destination'): doc.destination = kwargs['destination']
     if kwargs.get('duration_days'): doc.duration_days = int(kwargs['duration_days'])
     if kwargs.get('duration_nights'): doc.duration_nights = int(kwargs['duration_nights'])
     if kwargs.get('visa_required') is not None: doc.visa_required = int(kwargs['visa_required'])
     if kwargs.get('description'): doc.description = kwargs['description']
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 @frappe.whitelist()
 def create_package(**kwargs): return save_package(**kwargs)
 
 
-# ── Booking ────────────────────────────────────────────────────────────────
+# ── Booking — sales_consultant must be a User email, not a display name ───
 @frappe.whitelist()
 def save_booking(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Booking', n) if n and frappe.db.exists('Booking', n) else frappe.new_doc('Booking')
-    for f in ['customer','customer_mobile','tour_package','departure_date',
-              'total_pax','sales_consultant']:
-        if kwargs.get(f) is not None:
-            setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    if kwargs.get('customer'): doc.customer = kwargs['customer']
+    if kwargs.get('customer_mobile'): doc.customer_mobile = kwargs['customer_mobile']
+    if kwargs.get('tour_package'): doc.tour_package = kwargs['tour_package']
+    if kwargs.get('departure_date'): doc.departure_date = kwargs['departure_date']
+    if kwargs.get('total_pax'): doc.total_pax = int(kwargs['total_pax'])
+    # sales_consultant is a Link[User] — only set if it's a valid user email
+    sc = kwargs.get('sales_consultant', '')
+    if sc and frappe.db.exists('User', sc):
+        doc.sales_consultant = sc
+    elif sc:
+        # Try to find user by full_name
+        u = frappe.db.get_value('User', {'full_name': sc}, 'name')
+        if u: doc.sales_consultant = u
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 @frappe.whitelist()
@@ -198,7 +214,8 @@ def create_booking(**kwargs): return save_booking(**kwargs)
 def update_booking_status(booking_name, status):
     if frappe.db.exists('Booking', booking_name):
         frappe.db.set_value('Booking', booking_name, 'status', status)
-        frappe.db.commit(); return {'success': True}
+        frappe.db.commit()
+        return {'success': True}
     return {'success': False, 'error': 'Not found'}
 
 @frappe.whitelist()
@@ -222,14 +239,16 @@ def save_visa(**kwargs):
               'submission_deadline','all_docs_collected']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 @frappe.whitelist()
 def update_visa_status(visa_name, status):
     if frappe.db.exists('Visa Application', visa_name):
         frappe.db.set_value('Visa Application', visa_name, 'status', status)
-        frappe.db.commit(); return {'success': True}
+        frappe.db.commit()
+        return {'success': True}
     return {'success': False, 'error': 'Not found'}
 
 
@@ -241,7 +260,8 @@ def save_destination(**kwargs):
     for f in ['destination_name','description']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
@@ -253,7 +273,8 @@ def save_visa_agent(**kwargs):
     for f in ['agent_name','contact_person','mobile_no','email_id']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
@@ -265,7 +286,8 @@ def save_guide_allocation(**kwargs):
     for f in ['guide','booking','departure_date','return_date','status']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
@@ -274,15 +296,17 @@ def save_guide_allocation(**kwargs):
 def save_supplier_contract(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Supplier Contract', n) if n and frappe.db.exists('Supplier Contract', n) else frappe.new_doc('Supplier Contract')
-    for f in ['supplier','contract_start_date','contract_end_date',
-              'cost_per_pax','currency','notes']:
+    for f in ['supplier','contract_start_date','contract_end_date','cost_per_pax','notes']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
-# ── Cancellation Policy ────────────────────────────────────────────────────
+# ── Cancellation Policy — slabs is a mandatory Table child ─────────────────
+# We cannot create it without slabs via the API easily.
+# Instead, we redirect user to the ERPNext desk for this DocType.
 @frappe.whitelist()
 def save_cancel_policy(**kwargs):
     n = kwargs.get('name')
@@ -290,19 +314,83 @@ def save_cancel_policy(**kwargs):
     for f in ['policy_name','description']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    # Add a default slab if creating new and no slabs exist
+    if not doc.name and not doc.slabs:
+        doc.append('slabs', {
+            'days_before_departure': int(kwargs.get('slab_days') or 30),
+            'cancellation_fee_percent': float(kwargs.get('slab_pct') or 25)
+        })
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
-# ── Hotel Allotment ────────────────────────────────────────────────────────
+# ── Hotel Allotment — rooms is a mandatory Table child ─────────────────────
 @frappe.whitelist()
 def save_hotel_allotment(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Hotel Allotment', n) if n and frappe.db.exists('Hotel Allotment', n) else frappe.new_doc('Hotel Allotment')
-    for f in ['supplier','from_date','to_date','total_rooms']:
-        if kwargs.get(f) is not None:
-            setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    # supplier is a Link[Supplier] — validate it
+    supplier = kwargs.get('supplier', '')
+    if supplier:
+        # Try exact match first
+        if frappe.db.exists('Supplier', supplier):
+            doc.supplier = supplier
+        else:
+            # Try supplier_name
+            s = frappe.db.get_value('Supplier', {'supplier_name': supplier}, 'name')
+            if s:
+                doc.supplier = s
+            else:
+                # Create supplier on the fly
+                try:
+                    sup = frappe.get_doc({'doctype':'Supplier','supplier_name':supplier,'supplier_group':'All Supplier Groups'})
+                    sup.insert(ignore_permissions=True)
+                    frappe.db.commit()
+                    doc.supplier = sup.name
+                except Exception:
+                    pass
+    if kwargs.get('from_date'): doc.from_date = kwargs['from_date']
+    if kwargs.get('to_date'): doc.to_date = kwargs['to_date']
+    if kwargs.get('total_rooms'): doc.total_rooms = int(kwargs['total_rooms'])
+    # Add a default room row if creating new (rooms table is mandatory)
+    if not n or not frappe.db.exists('Hotel Allotment', n):
+        room_type = kwargs.get('room_type', '')
+        qty = int(kwargs.get('room_qty') or kwargs.get('total_rooms') or 1)
+        if room_type and frappe.db.exists('Item', room_type):
+            doc.append('rooms', {'room_type': room_type, 'quantity': qty})
+        else:
+            # Find any room-type item
+            items = frappe.get_all('Item', filters={'item_group': 'All Item Groups'}, pluck='name', limit=1)
+            if items:
+                doc.append('rooms', {'room_type': items[0], 'quantity': qty})
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
+    return {'success': True, 'name': doc.name}
+
+
+# ── Visa Fee Billing — customer is mandatory ────────────────────────────────
+@frappe.whitelist()
+def save_visa_fee_billing(**kwargs):
+    n = kwargs.get('name')
+    doc = frappe.get_doc('Visa Fee Billing', n) if n and frappe.db.exists('Visa Fee Billing', n) else frappe.new_doc('Visa Fee Billing')
+    # customer is mandatory Link[Customer]
+    customer = kwargs.get('customer', '')
+    if customer and frappe.db.exists('Customer', customer):
+        doc.customer = customer
+    elif not customer and kwargs.get('booking'):
+        # Auto-derive customer from booking
+        bk_customer = frappe.db.get_value('Booking', kwargs['booking'], 'customer')
+        if bk_customer:
+            doc.customer = bk_customer
+    if kwargs.get('booking'): doc.booking = kwargs['booking']
+    if kwargs.get('visa_application'): doc.visa_application = kwargs['visa_application']
+    if kwargs.get('embassy_fee'): doc.embassy_fee = flt(kwargs['embassy_fee'])
+    if kwargs.get('service_charge'): doc.service_charge = flt(kwargs['service_charge'])
+    # Calculate grand total
+    doc.grand_total = flt(doc.embassy_fee) + flt(doc.service_charge)
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
@@ -319,7 +407,8 @@ def save_settings(**kwargs):
                   'consultant_commission_pct','website_booking_bonus']:
             if kwargs.get(f) is not None:
                 setattr(doc, f, kwargs[f])
-        doc.save(ignore_permissions=True); frappe.db.commit()
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
         return {'success': True}
     except Exception as e:
         return {'success': False, 'error': str(e)}
@@ -333,7 +422,8 @@ def save_visa_config(**kwargs):
     for f in ['country','visa_type','processing_days','embassy_fee','service_charge']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
@@ -346,20 +436,8 @@ def save_visa_delivery(**kwargs):
               'delivery_mode','tracking_number','notes']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
-    return {'success': True, 'name': doc.name}
-
-
-# ── Visa Fee Billing ───────────────────────────────────────────────────────
-@frappe.whitelist()
-def save_visa_fee_billing(**kwargs):
-    n = kwargs.get('name')
-    doc = frappe.get_doc('Visa Fee Billing', n) if n and frappe.db.exists('Visa Fee Billing', n) else frappe.new_doc('Visa Fee Billing')
-    for f in ['customer','booking','visa_application','embassy_fee',
-              'service_charge','gst_amount','grand_total']:
-        if kwargs.get(f) is not None:
-            setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
@@ -371,7 +449,8 @@ def save_run_sheet(**kwargs):
     for f in ['booking','customer','departure_date','total_pax']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    doc.save(ignore_permissions=True); frappe.db.commit()
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
@@ -386,5 +465,6 @@ def delete_record(doctype, record_name):
         return {'success': False, 'error': 'Not allowed'}
     if frappe.db.exists(doctype, record_name):
         frappe.delete_doc(doctype, record_name, ignore_permissions=True)
-        frappe.db.commit(); return {'success': True}
+        frappe.db.commit()
+        return {'success': True}
     return {'success': False, 'error': 'Not found'}
