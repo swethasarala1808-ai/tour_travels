@@ -4,100 +4,79 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--jade:#1a7a5e;--jade2:#22967a;--jade3:#e8f5f1;--ink:#0f1923;--ink2:#2d3a47;--ink3:#5a6978;--bg:#f4f6f8;--bg2:#fff;--br:#dde2e8;--red:#dc3545;--amber:#e8820c;--blue:#1a5fa8;--shadow:0 2px 12px rgba(0,0,0,.08);--radius:10px;--sbw:220px;}
+:root{--jade:#1a7a5e;--jade2:#22967a;--jade3:#e8f5f1;--ink:#0f1923;--ink2:#2d3a47;--ink3:#5a6978;--bg:#f4f6f8;--bg2:#fff;--br:#dde2e8;--red:#dc3545;--shadow:0 2px 12px rgba(0,0,0,.08);--radius:10px;--sbw:220px;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
 input,select,textarea{font-family:inherit;font-size:13px;color:var(--ink);background:var(--bg2);border:1.5px solid var(--br);border-radius:7px;padding:8px 11px;width:100%;outline:none;transition:border .15s}
 input:focus,select:focus,textarea:focus{border-color:var(--jade)}
 textarea{resize:vertical;min-height:65px}
 button{font-family:inherit;cursor:pointer;border:none;outline:none}
-
-/* Layout */
 .app{display:flex;min-height:100vh}
-.sb{width:var(--sbw);background:var(--ink);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200;transition:transform .25s;overflow-y:auto;overflow-x:hidden}
+.sb{width:var(--sbw);background:var(--ink);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200;transition:transform .25s;overflow-y:auto}
 .main{margin-left:var(--sbw);display:flex;flex-direction:column;min-height:100vh}
 @media(max-width:900px){.sb{transform:translateX(-100%)}.sb.open{transform:translateX(0)}.main{margin-left:0}.hbg{display:flex!important}.ov{display:block!important}}
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199}
 .ov.open{display:block}
-
-/* Sidebar */
-.sb-brand{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.sb-brand{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
 .sb-logo{display:flex;align-items:center;gap:9px}
-.sb-icon{width:34px;height:34px;background:var(--jade);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.sb-icon{width:34px;height:34px;background:var(--jade);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
 .sb-txt{font-family:'DM Serif Display',serif;font-size:15px;color:#fff;line-height:1.15}
 .sb-sub{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase}
-.sb-user{padding:10px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-.sb-av{width:30px;height:30px;border-radius:50%;background:var(--jade);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0}
+.sb-user{padding:10px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-av{width:30px;height:30px;border-radius:50%;background:var(--jade);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
 .sb-un{color:#fff;font-size:12px;font-weight:600}
 .sb-ur{color:rgba(255,255,255,.38);font-size:10px}
 .sb-nav{flex:1;padding:6px 0}
 .sb-sec{padding:11px 14px 2px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28)}
-.ni{display:flex;align-items:center;gap:8px;padding:8px 14px;color:rgba(255,255,255,.62);font-size:12px;cursor:pointer;transition:all .15s;border-left:3px solid transparent;white-space:nowrap}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 14px;color:rgba(255,255,255,.62);font-size:12px;cursor:pointer;transition:all .15s;border-left:3px solid transparent}
 .ni:hover{background:rgba(255,255,255,.06);color:#fff}
 .ni.on{background:rgba(26,122,94,.3);color:#fff;border-left-color:var(--jade2)}
-.ni .ic{font-size:13px;width:15px;text-align:center;flex-shrink:0}
-.nb{margin-left:auto;background:var(--jade);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;flex-shrink:0}
-.sb-ft{padding:10px 14px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.ni .ic{font-size:13px;width:15px;text-align:center}
+.nb{margin-left:auto;background:var(--jade);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px}
+.sb-ft{padding:10px 14px;border-top:1px solid rgba(255,255,255,.08)}
 .sb-so{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.45);font-size:12px;cursor:pointer}
 .sb-so:hover{color:#fff}
-
-/* Topbar */
-.topbar{background:var(--bg2);border-bottom:1px solid var(--br);padding:0 18px;height:52px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;flex-shrink:0}
-.hbg{display:none;align-items:center;justify-content:center;width:34px;height:34px;cursor:pointer;color:var(--ink2);font-size:20px;border-radius:7px;flex-shrink:0}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--br);padding:0 18px;height:52px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50}
+.hbg{display:none;align-items:center;justify-content:center;width:34px;height:34px;cursor:pointer;color:var(--ink2);font-size:20px;border-radius:7px}
 .hbg:hover{background:var(--bg)}
 .tb-title{font-family:'DM Serif Display',serif;font-size:17px;color:var(--ink);flex:1}
-
-/* Buttons */
 .btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
 .btn-jade{background:var(--jade);color:#fff;border:none}.btn-jade:hover{background:var(--jade2)}
 .btn-ghost{background:transparent;color:var(--ink2);border:1.5px solid var(--br)}.btn-ghost:hover{border-color:var(--jade);color:var(--jade)}
 .btn-sm{padding:5px 11px;font-size:11px}
-
-/* Content */
 .content{flex:1;padding:18px}
 @media(max-width:600px){.content{padding:10px}}
 .pg{display:none}.pg.on{display:block}
-
-/* Stats */
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:11px;margin-bottom:18px}
 .sc{background:var(--bg2);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);border-left:4px solid var(--jade)}
 .sv{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);line-height:1}
 .sl{font-size:10px;color:var(--ink3);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
 .si{font-size:17px;margin-bottom:5px}
-
-/* Card */
 .card{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
 .ch{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--br)}
 .ch h3{font-family:'DM Serif Display',serif;font-size:15px;flex:1}
 .cb{padding:16px}
-
-/* Table */
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;min-width:480px}
+table{width:100%;border-collapse:collapse;min-width:400px}
 th{text-align:left;padding:8px 10px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);border-bottom:2px solid var(--br);white-space:nowrap}
 td{padding:9px 10px;border-bottom:1px solid var(--br);font-size:12px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#f9fbfa}
-.tb{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:none;margin:1px}
+.tb{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:none;margin:1px;display:inline-block}
 .tb-e{background:var(--jade3);color:var(--jade)}.tb-e:hover{background:var(--jade);color:#fff}
 .tb-d{background:#fdecea;color:var(--red)}.tb-d:hover{background:var(--red);color:#fff}
-
-/* Badge */
 .bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.bg{background:#e6f4f0;color:#1a7a5e}.ba{background:#fff3e0;color:#c66}.br{background:#fdecea;color:#dc3545}.bb{background:#e8f0fe;color:#1a5fa8}.bx{background:#f0f2f5;color:#5a6978}
-
-/* Empty */
-.empty{text-align:center;padding:36px 20px;color:var(--ink3)}
-
-/* Modal */
+.bg{background:#e6f4f0;color:#1a7a5e}.ba{background:#fff3e0;color:#c66}.br2{background:#fdecea;color:#dc3545}.bb{background:#e8f0fe;color:#1a5fa8}.bx{background:#f0f2f5;color:#5a6978}
+.sr{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap}
+.sr input,.sr select{max-width:200px;flex:1}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:14px;overflow-y:auto}
 .modal.on{display:flex}
-.mbox{background:var(--bg2);border-radius:13px;width:100%;max-width:540px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);margin:auto}
-.mhdr{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--br);flex-shrink:0}
+.mbox{background:var(--bg2);border-radius:13px;width:100%;max-width:560px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);margin:auto}
+.mhdr{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--br)}
 .mhdr h3{font-family:'DM Serif Display',serif;font-size:16px;flex:1}
 .mcl{width:26px;height:26px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:14px;color:var(--ink3)}.mcl:hover{background:var(--br)}
-.mbody{padding:18px;overflow-y:auto;max-height:68vh}
-.mfoot{padding:13px 18px;border-top:1px solid var(--br);display:flex;justify-content:flex-end;gap:9px;flex-shrink:0}
+.mbody{padding:18px;overflow-y:auto;max-height:70vh}
+.mfoot{padding:13px 18px;border-top:1px solid var(--br);display:flex;justify-content:flex-end;gap:9px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
 @media(max-width:480px){.fr{grid-template-columns:1fr}}
 .fr.full{grid-template-columns:1fr}
@@ -105,26 +84,15 @@ tr:hover td{background:#f9fbfa}
 .fg label{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
 .sbox{background:var(--bg);border-radius:7px;padding:11px;margin-top:4px}
 .sbox-t{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--ink3);margin-bottom:7px}
-
-/* Search */
-.sr{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap}
-.sr input,.sr select{max-width:200px;flex:1}
-
-/* Toast */
-.tw2{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
-.toast{background:var(--ink);color:#fff;padding:10px 15px;border-radius:9px;font-size:12px;box-shadow:var(--shadow);animation:su .3s ease;max-width:280px;pointer-events:auto}
+.tw2{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--ink);color:#fff;padding:10px 15px;border-radius:9px;font-size:12px;box-shadow:var(--shadow);animation:su .3s ease;max-width:280px}
 .tok{background:#1a7a5e}.terr{background:var(--red)}
 @keyframes su{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-
-/* Loading */
-.loader{display:flex;align-items:center;justify-content:center;height:200px;color:var(--ink3);font-size:13px}
 </style>
 {% endblock %}
-
 {% block page_content %}
 <div class="ov" id="ov" onclick="closeSb()"></div>
 <div class="app">
-
 <div class="sb" id="sb">
   <div class="sb-brand"><div class="sb-logo"><div class="sb-icon">✈️</div><div><div class="sb-txt">Tour Travels</div><div class="sb-sub">Founder Access</div></div></div></div>
   <div class="sb-user"><div class="sb-av" id="sav">F</div><div><div class="sb-un" id="sun">Founder</div><div class="sb-ur">Founder &amp; CEO</div></div></div>
@@ -155,7 +123,6 @@ tr:hover td{background:#f9fbfa}
   </nav>
   <div class="sb-ft"><div class="sb-so" onclick="doLogout()">🚪 Sign Out</div></div>
 </div>
-
 <div class="main">
   <div class="topbar">
     <div class="hbg" id="hbg" onclick="toggleSb()">☰</div>
@@ -174,26 +141,26 @@ tr:hover td{background:#f9fbfa}
         <div class="sc"><div class="si">📍</div><div class="sv" id="st5">0</div><div class="sl">Destinations</div></div>
       </div>
       <div class="card"><div class="ch"><h3>Recent Leads</h3></div><div class="cb tw"><table><thead><tr><th>Name</th><th>Mobile</th><th>Status</th><th>Package</th><th></th></tr></thead><tbody id="ovl"></tbody></table></div></div>
-      <div class="card"><div class="ch"><h3>Recent Bookings</h3></div><div class="cb tw"><table><thead><tr><th>ID</th><th>Package</th><th>Date</th><th>Pax</th><th>Total</th></tr></thead><tbody id="ovb"></tbody></table></div></div>
+      <div class="card"><div class="ch"><h3>Recent Bookings</h3></div><div class="cb tw"><table><thead><tr><th>ID</th><th>Package</th><th>Departure</th><th>Pax</th><th>Total</th></tr></thead><tbody id="ovb"></tbody></table></div></div>
     </div>
 
     <div class="pg" id="pg-leads">
       <div class="sr"><input id="lq" placeholder="🔍 Search..." oninput="rLeads()"><select id="lsf" onchange="rLeads()"><option value="">All Status</option><option>Open</option><option>Interested</option><option>converted</option><option>Lost</option></select><button class="btn btn-jade btn-sm" onclick="oLead()">+ New Lead</button></div>
-      <div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Status</th><th>Package</th><th>Pax</th><th>Source</th><th>Actions</th></tr></thead><tbody id="ltb"></tbody></table></div></div>
+      <div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Status</th><th>Package</th><th>Pax</th><th>Source</th><th>Consultant</th><th>Actions</th></tr></thead><tbody id="ltb"></tbody></table></div></div>
     </div>
 
     <div class="pg" id="pg-bookings">
       <div class="sr"><input id="bq" placeholder="🔍 Search..." oninput="rBk()"><button class="btn btn-jade btn-sm" onclick="oBk()">+ New Booking</button></div>
-      <div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Customer/Mobile</th><th>Package</th><th>Departure</th><th>Pax</th><th>Grand Total</th><th>Actions</th></tr></thead><tbody id="btb"></tbody></table></div></div>
+      <div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Customer/Mobile</th><th>Package</th><th>Departure</th><th>Pax</th><th>Base</th><th>GST</th><th>Grand Total</th><th>Actions</th></tr></thead><tbody id="btb"></tbody></table></div></div>
     </div>
 
     <div class="pg" id="pg-payments">
-      <div class="card"><div class="ch"><h3>Payment Records</h3><button class="btn btn-jade btn-sm" onclick="oPay()">+ Record Payment</button></div><div class="cb tw"><table><thead><tr><th>Booking</th><th>Package</th><th>Base</th><th>GST</th><th>Grand Total</th><th>Action</th></tr></thead><tbody id="ptb"></tbody></table></div></div>
+      <div class="card"><div class="ch"><h3>Payment Records</h3><button class="btn btn-jade btn-sm" onclick="oPay()">+ Record Payment</button></div><div class="cb tw"><table><thead><tr><th>Booking ID</th><th>Package</th><th>Departure</th><th>Pax</th><th>Base Amt</th><th>GST</th><th>Grand Total</th><th>Action</th></tr></thead><tbody id="ptb"></tbody></table></div></div>
     </div>
 
     <div class="pg" id="pg-packages">
       <div class="sr"><input id="pq" placeholder="🔍 Search..." oninput="rPkg()"><button class="btn btn-jade btn-sm" onclick="oPkg()">+ New Package</button></div>
-      <div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Type</th><th>Destination</th><th>Nights</th><th>Days</th><th>Visa</th><th>Actions</th></tr></thead><tbody id="pktb"></tbody></table></div></div>
+      <div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Type</th><th>Destination</th><th>Nights</th><th>Days</th><th>Visa Req</th><th>Actions</th></tr></thead><tbody id="pktb"></tbody></table></div></div>
     </div>
 
     <div class="pg" id="pg-destinations">
@@ -203,7 +170,7 @@ tr:hover td{background:#f9fbfa}
 
     <div class="pg" id="pg-departures">
       <div class="sr"><button class="btn btn-jade btn-sm" onclick="oDep()">+ Add Departure</button></div>
-      <div class="card"><div class="cb tw"><table><thead><tr><th>Booking</th><th>Package</th><th>Date</th><th>Pax</th><th>Consultant</th><th>Total</th></tr></thead><tbody id="deptb"></tbody></table></div></div>
+      <div class="card"><div class="cb tw"><table><thead><tr><th>Booking</th><th>Package</th><th>Departure Date</th><th>Pax</th><th>Consultant</th><th>Base</th><th>Grand Total</th></tr></thead><tbody id="deptb"></tbody></table></div></div>
     </div>
 
     <div class="pg" id="pg-runsheets">
@@ -218,22 +185,26 @@ tr:hover td{background:#f9fbfa}
 
     <div class="pg" id="pg-visas">
       <div class="sr"><input id="vq" placeholder="🔍 Search..." oninput="rVisa()"><select id="vsf" onchange="rVisa()"><option value="">All Status</option><option>Pending Documents</option><option>Documents Collected</option><option>Submitted</option><option>Approved</option><option>Rejected</option><option>Delivered</option></select><button class="btn btn-jade btn-sm" onclick="oVisa()">+ New Application</button></div>
-      <div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Applicant</th><th>Booking</th><th>Country</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead><tbody id="vtb"></tbody></table></div></div>
+      <div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Applicant</th><th>Booking</th><th>Country</th><th>Type</th><th>Departure</th><th>Status</th><th>Actions</th></tr></thead><tbody id="vtb"></tbody></table></div></div>
     </div>
 
-    <div class="pg" id="pg-vagents"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oVAgent()">+ New Agent</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Contact</th><th>Mobile</th><th>Email</th><th>Actions</th></tr></thead><tbody id="vatb"></tbody></table></div></div></div>
-    <div class="pg" id="pg-vconfig"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oVCfg()">+ New Config</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>Country</th><th>Type</th><th>Days</th><th>Embassy Fee</th><th>Service</th><th>Actions</th></tr></thead><tbody id="vctb"></tbody></table></div></div></div>
-    <div class="pg" id="pg-vbilling"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oVBill()">+ New Bill</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Customer</th><th>Booking</th><th>Embassy</th><th>Service</th><th>Total</th><th>Actions</th></tr></thead><tbody id="vbtb"></tbody></table></div></div></div>
+    <div class="pg" id="pg-vagents"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oVAgent()">+ New Agent</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Contact Person</th><th>Mobile</th><th>Email</th><th>Actions</th></tr></thead><tbody id="vatb"></tbody></table></div></div></div>
+    <div class="pg" id="pg-vconfig"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oVCfg()">+ New Config</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>Country</th><th>Visa Type</th><th>Process Days</th><th>Embassy Fee</th><th>Service Charge</th><th>Actions</th></tr></thead><tbody id="vctb"></tbody></table></div></div></div>
+    <div class="pg" id="pg-vbilling"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oVBill()">+ New Bill</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Customer</th><th>Booking</th><th>Visa App</th><th>Embassy Fee</th><th>Service</th><th>Grand Total</th><th>Actions</th></tr></thead><tbody id="vbtb"></tbody></table></div></div></div>
     <div class="pg" id="pg-vdelivery"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oVDel()">+ Log Delivery</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Applicant</th><th>Application</th><th>Date</th><th>Mode</th><th>Tracking</th><th>Actions</th></tr></thead><tbody id="vdtb"></tbody></table></div></div></div>
-    <div class="pg" id="pg-hotels"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oHotel()">+ New Allotment</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Supplier</th><th>From</th><th>To</th><th>Rooms</th><th>Actions</th></tr></thead><tbody id="htb"></tbody></table></div></div></div>
-    <div class="pg" id="pg-contracts"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oCont()">+ New Contract</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Supplier</th><th>Start</th><th>End</th><th>Cost/Pax</th><th>Actions</th></tr></thead><tbody id="cotb"></tbody></table></div></div></div>
+    <div class="pg" id="pg-hotels"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oHotel()">+ New Allotment</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Supplier</th><th>From Date</th><th>To Date</th><th>Total Rooms</th><th>Actions</th></tr></thead><tbody id="htb"></tbody></table></div></div></div>
+    <div class="pg" id="pg-contracts"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oCont()">+ New Contract</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>ID</th><th>Supplier</th><th>Start Date</th><th>End Date</th><th>Cost/Pax</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="cotb"></tbody></table></div></div></div>
     <div class="pg" id="pg-cancelpol"><div class="sr"><button class="btn btn-jade btn-sm" onclick="oCp()">+ New Policy</button></div><div class="card"><div class="cb tw"><table><thead><tr><th>Policy Name</th><th>Description</th><th>Actions</th></tr></thead><tbody id="cptb"></tbody></table></div></div></div>
-    <div class="pg" id="pg-customers"><div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Package</th><th>Pax</th></tr></thead><tbody id="custb"></tbody></table></div></div></div>
+
+    <div class="pg" id="pg-customers">
+      <div class="sr"><button class="btn btn-jade btn-sm" onclick="oLead()">+ Add Customer (via Lead)</button></div>
+      <div class="card"><div class="cb tw"><table><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Status</th><th>Package</th><th>Pax</th><th>Remarks</th><th>Actions</th></tr></thead><tbody id="custb"></tbody></table></div></div>
+    </div>
 
     <div class="pg" id="pg-settings">
       <div class="card"><div class="ch"><h3>Travel Tour Settings</h3></div><div class="cb">
-        <div class="fr"><div class="fg"><label>Operations Email</label><input id="se1"></div><div class="fg"><label>Site URL</label><input id="se2"></div></div>
-        <div class="fr"><div class="fg"><label>Razorpay Key ID</label><input id="se3"></div><div class="fg"><label>Consultant Commission (%)</label><input type="number" id="se4" step="0.1"></div></div>
+        <div class="fr"><div class="fg"><label>Operations Email</label><input id="se1" placeholder="ops@example.com"></div><div class="fg"><label>Site URL</label><input id="se2" placeholder="https://..."></div></div>
+        <div class="fr"><div class="fg"><label>Razorpay Key ID</label><input id="se3" placeholder="rzp_live_..."></div><div class="fg"><label>Consultant Commission (%)</label><input type="number" id="se4" step="0.1"></div></div>
         <div class="fr"><div class="fg"><label>Website Booking Bonus (₹)</label><input type="number" id="se5"></div></div>
         <button class="btn btn-jade" onclick="saveSett()">Save Settings</button>
       </div></div>
@@ -243,7 +214,7 @@ tr:hover td{background:#f9fbfa}
 </div>
 </div>
 
-<!-- MODALS -->
+<!-- ══════════ MODALS ══════════ -->
 <div class="modal" id="mo-lead"><div class="mbox"><div class="mhdr"><h3 id="lmt">New Lead</h3><button class="mcl" onclick="cm('mo-lead')">✕</button></div><div class="mbody">
   <input type="hidden" id="lid">
   <div class="fr"><div class="fg"><label>Full Name *</label><input id="lfn"></div><div class="fg"><label>Mobile</label><input id="lmob"></div></div>
@@ -276,6 +247,8 @@ tr:hover td{background:#f9fbfa}
 
 <div class="modal" id="mo-pay"><div class="mbox"><div class="mhdr"><h3>Record Payment</h3><button class="mcl" onclick="cm('mo-pay')">✕</button></div><div class="mbody">
   <div class="fr"><div class="fg"><label>Booking ID *</label><input id="paybk" placeholder="BOOK-..."></div><div class="fg"><label>Amount (₹) *</label><input type="number" id="payamt" min="1"></div></div>
+  <div class="fr"><div class="fg"><label>Payment Mode</label><select id="paymode"><option>Bank Transfer</option><option>Cash</option><option>UPI</option><option>Cheque</option><option>Card</option></select></div><div class="fg"><label>Reference No.</label><input id="payref" placeholder="UTR / Cheque no."></div></div>
+  <div class="fr full"><div class="fg"><label>Notes</label><textarea id="paynotes" rows="2"></textarea></div></div>
 </div><div class="mfoot"><button class="btn btn-ghost" onclick="cm('mo-pay')">Cancel</button><button class="btn btn-jade" onclick="savePay()">Record Payment</button></div></div></div>
 
 <div class="modal" id="mo-dest"><div class="mbox"><div class="mhdr"><h3 id="dmt">New Destination</h3><button class="mcl" onclick="cm('mo-dest')">✕</button></div><div class="mbody">
@@ -305,30 +278,30 @@ tr:hover td{background:#f9fbfa}
   <div class="fr full"><div class="fg"><label>Service Charge (₹)</label><input type="number" id="vcsvc"></div></div>
 </div><div class="mfoot"><button class="btn btn-ghost" onclick="cm('mo-vcfg')">Cancel</button><button class="btn btn-jade" onclick="saveVCfg()">Save</button></div></div></div>
 
-<div class="modal" id="mo-vbill"><div class="mbox"><div class="mhdr"><h3>New Visa Bill</h3><button class="mcl" onclick="cm('mo-vbill')">✕</button></div><div class="mbody">
+<div class="modal" id="mo-vbill"><div class="mbox"><div class="mhdr"><h3 id="vbmt">New Visa Bill</h3><button class="mcl" onclick="cm('mo-vbill')">✕</button></div><div class="mbody">
   <input type="hidden" id="vbid">
   <div class="fr full"><div class="fg"><label>Customer</label><select id="vbcust"><option value="">— Auto from booking —</option></select></div></div>
   <div class="fr"><div class="fg"><label>Booking</label><select id="vbbk" onchange="autoVBillCust()"><option value="">Select</option></select></div><div class="fg"><label>Visa Application</label><select id="vbva"><option value="">Select</option></select></div></div>
   <div class="fr"><div class="fg"><label>Embassy Fee (₹)</label><input type="number" id="vbemb"></div><div class="fg"><label>Service Charge (₹)</label><input type="number" id="vbsvc"></div></div>
 </div><div class="mfoot"><button class="btn btn-ghost" onclick="cm('mo-vbill')">Cancel</button><button class="btn btn-jade" onclick="saveVBill()">Save</button></div></div></div>
 
-<div class="modal" id="mo-vdel"><div class="mbox"><div class="mhdr"><h3>Log Visa Delivery</h3><button class="mcl" onclick="cm('mo-vdel')">✕</button></div><div class="mbody">
+<div class="modal" id="mo-vdel"><div class="mbox"><div class="mhdr"><h3 id="vdmt">Log Visa Delivery</h3><button class="mcl" onclick="cm('mo-vdel')">✕</button></div><div class="mbody">
   <input type="hidden" id="vdid">
   <div class="fr"><div class="fg"><label>Visa Application *</label><select id="vdva"><option value="">Select</option></select></div><div class="fg"><label>Applicant Name *</label><input id="vdan"></div></div>
   <div class="fr"><div class="fg"><label>Delivery Date</label><input type="date" id="vddate"></div><div class="fg"><label>Mode</label><select id="vdmode"><option>Courier</option><option>In-person</option><option>Digital</option><option>WhatsApp PDF</option></select></div></div>
   <div class="fr full"><div class="fg"><label>Tracking Number</label><input id="vdtrack"></div></div>
 </div><div class="mfoot"><button class="btn btn-ghost" onclick="cm('mo-vdel')">Cancel</button><button class="btn btn-jade" onclick="saveVDel()">Save</button></div></div></div>
 
-<div class="modal" id="mo-hotel"><div class="mbox"><div class="mhdr"><h3>Hotel Allotment</h3><button class="mcl" onclick="cm('mo-hotel')">✕</button></div><div class="mbody">
+<div class="modal" id="mo-hotel"><div class="mbox"><div class="mhdr"><h3 id="homt">Hotel Allotment</h3><button class="mcl" onclick="cm('mo-hotel')">✕</button></div><div class="mbody">
   <input type="hidden" id="hoid">
   <div class="fr"><div class="fg"><label>Supplier/Hotel Name *</label><input id="hosup" placeholder="e.g. Taj Mumbai"></div><div class="fg"><label>Total Rooms</label><input type="number" id="horooms"></div></div>
   <div class="fr"><div class="fg"><label>From Date *</label><input type="date" id="hofrom"></div><div class="fg"><label>To Date *</label><input type="date" id="hoto"></div></div>
   <div class="sbox"><div class="sbox-t">Room Inventory (Required)</div>
-    <div class="fr"><div class="fg"><label>Room Type Name</label><input id="hort" placeholder="Deluxe Room"></div><div class="fg"><label>Quantity</label><input type="number" id="horq" value="5" min="1"></div></div>
+    <div class="fr"><div class="fg"><label>Room Type Name</label><input id="hort" placeholder="Standard Room"></div><div class="fg"><label>Quantity</label><input type="number" id="horq" value="5" min="1"></div></div>
   </div>
 </div><div class="mfoot"><button class="btn btn-ghost" onclick="cm('mo-hotel')">Cancel</button><button class="btn btn-jade" onclick="saveHotel()">Save</button></div></div></div>
 
-<div class="modal" id="mo-cont"><div class="mbox"><div class="mhdr"><h3>Supplier Contract</h3><button class="mcl" onclick="cm('mo-cont')">✕</button></div><div class="mbody">
+<div class="modal" id="mo-cont"><div class="mbox"><div class="mhdr"><h3 id="comt">Supplier Contract</h3><button class="mcl" onclick="cm('mo-cont')">✕</button></div><div class="mbody">
   <input type="hidden" id="coid">
   <div class="fr"><div class="fg"><label>Supplier Name *</label><input id="cosup"></div><div class="fg"><label>Cost Per Pax (₹) *</label><input type="number" id="cocost"></div></div>
   <div class="fr"><div class="fg"><label>Start Date *</label><input type="date" id="costart"></div><div class="fg"><label>End Date *</label><input type="date" id="coend"></div></div>
@@ -344,12 +317,13 @@ tr:hover td{background:#f9fbfa}
   </div>
 </div><div class="mfoot"><button class="btn btn-ghost" onclick="cm('mo-cp')">Cancel</button><button class="btn btn-jade" onclick="saveCp()">Save</button></div></div></div>
 
-<div class="modal" id="mo-rs"><div class="mbox"><div class="mhdr"><h3>New Run Sheet</h3><button class="mcl" onclick="cm('mo-rs')">✕</button></div><div class="mbody">
+<div class="modal" id="mo-rs"><div class="mbox"><div class="mhdr"><h3 id="rsmt">New Run Sheet</h3><button class="mcl" onclick="cm('mo-rs')">✕</button></div><div class="mbody">
+  <input type="hidden" id="rsid">
   <div class="fr"><div class="fg"><label>Booking *</label><select id="rsbk"><option value="">Select Booking</option></select></div><div class="fg"><label>Departure Date</label><input type="date" id="rsdate"></div></div>
   <div class="fr full"><div class="fg"><label>Total Pax</label><input type="number" id="rspax" min="1"></div></div>
 </div><div class="mfoot"><button class="btn btn-ghost" onclick="cm('mo-rs')">Cancel</button><button class="btn btn-jade" onclick="saveRs()">Save</button></div></div></div>
 
-<div class="modal" id="mo-guide"><div class="mbox"><div class="mhdr"><h3>Guide Allocation</h3><button class="mcl" onclick="cm('mo-guide')">✕</button></div><div class="mbody">
+<div class="modal" id="mo-guide"><div class="mbox"><div class="mhdr"><h3 id="gmt">Guide Allocation</h3><button class="mcl" onclick="cm('mo-guide')">✕</button></div><div class="mbody">
   <input type="hidden" id="gid">
   <div class="fr"><div class="fg"><label>Guide (User) *</label><select id="guser"><option value="">Select Guide</option></select></div><div class="fg"><label>Booking *</label><select id="gbk"><option value="">Select Booking</option></select></div></div>
   <div class="fr"><div class="fg"><label>Departure Date *</label><input type="date" id="gdep"></div><div class="fg"><label>Return Date *</label><input type="date" id="gret"></div></div>
@@ -359,49 +333,39 @@ tr:hover td{background:#f9fbfa}
 <div class="tw2" id="tw2"></div>
 
 <script>
-// ════ STATE ════
 var D={leads:[],bookings:[],packages:[],destinations:[],visa_apps:[],visa_agents:[],visa_configs:[],visa_fee_bills:[],visa_delivery:[],guide_allocs:[],run_sheets:[],hotel_allots:[],supplier_contracts:[],cancel_policies:[],settings:{},stats:{},founder:{},users:[],customers:[]};
 var CUR='overview', CSRF='';
 
-// ════ CSRF — fetched via API after load ════
+// CSRF — fetch via dedicated endpoint then fallback to cookie
 function getCsrf(cb){
-  fetch('/api/method/travel_tour.api.founder.get_csrf_token',{
-    method:'POST',credentials:'same-origin',
-    headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
-    body:'{}'
-  }).then(function(r){return r.json();}).then(function(d){
-    CSRF=d.message||'';
-    if(!CSRF){
-      // fallback: cookie
-      var m=document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-      if(m&&m[1]&&m[1]!=='None')CSRF=decodeURIComponent(m[1]);
-    }
+  fetch('/api/method/frappe.auth.get_logged_user',{method:'GET',credentials:'same-origin'})
+  .then(function(){
+    var m=document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+    if(m&&m[1]&&m[1]!=='None'&&m[1].length>8){CSRF=decodeURIComponent(m[1]);}
+    if(!CSRF){try{if(window.frappe&&frappe.csrf_token&&frappe.csrf_token.length>8&&frappe.csrf_token!=='None')CSRF=frappe.csrf_token;}catch(e){}}
     if(cb)cb();
   }).catch(function(){if(cb)cb();});
 }
 
-// ════ API ════
 function api(method,args,cb,errcb){
+  if(!CSRF){var m=document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);if(m&&m[1]&&m[1]!=='None')CSRF=decodeURIComponent(m[1]);}
   fetch('/api/method/'+method,{
     method:'POST',credentials:'same-origin',
     headers:{'Content-Type':'application/json','Accept':'application/json','X-Frappe-CSRF-Token':CSRF,'X-Requested-With':'XMLHttpRequest'},
     body:JSON.stringify(args||{})
   }).then(function(r){return r.json();}).then(function(d){
     if(d.exc_type){
-      var msg='Error';
-      try{msg=JSON.parse(JSON.parse(d._server_messages)[0]).message||d.exception;}catch(e){msg=d.exception||'Error';}
-      console.error('[API]',method,msg);
-      if(errcb)errcb(d);else toast('err',msg.replace(/<[^>]*>/g,'').substr(0,120));
+      var msg='Error';try{msg=JSON.parse(JSON.parse(d._server_messages)[0]).message||d.exception;}catch(e){msg=d.exception||'Error';}
+      msg=msg.replace(/<[^>]*>/g,'').substr(0,150);
+      console.error('[API]',method,msg);if(errcb)errcb(d);else toast('err',msg);
     }else if(cb)cb(d);
   }).catch(function(e){console.error('[Net]',e);if(errcb)errcb(e);else toast('err','Network error');});
 }
 
-// ════ INIT ════
 document.addEventListener('DOMContentLoaded',function(){
   getCsrf(function(){loadData();});
   document.getElementById('snav').addEventListener('click',function(e){
-    var ni=e.target.closest('.ni');
-    if(ni&&ni.dataset.p)goPage(ni.dataset.p,ni);
+    var ni=e.target.closest('.ni');if(ni&&ni.dataset.p)goPage(ni.dataset.p,ni);
   });
   document.addEventListener('click',function(e){if(e.target.classList.contains('modal'))e.target.classList.remove('on');});
 });
@@ -419,31 +383,19 @@ function loadData(){
     D.cancel_policies=m.cancel_policies||[];D.settings=m.settings||{};
     D.stats=m.stats||{};D.founder=m.founder||{};
     D.users=m.users||[];D.customers=m.customers||[];
-    // Update CSRF from data response if available
     if(m.csrf_token&&m.csrf_token.length>8)CSRF=m.csrf_token;
     renderAll();
   });
 }
 
-// ════ NAV ════
 var PT={overview:'Overview',leads:'Leads & Enquiries',bookings:'Bookings',payments:'Payments',packages:'Tour Packages',destinations:'Destinations',departures:'Departures',runsheets:'Run Sheets',guides:'Guide Allocation',visas:'Visa Applications',vagents:'Visa Agents',vconfig:'Visa Config',vbilling:'Visa Billing',vdelivery:'Visa Delivery',hotels:'Hotel Allotments',contracts:'Supplier Contracts',cancelpol:'Cancel Policies',customers:'Customers',settings:'Settings'};
 var AF={leads:oLead,bookings:oBk,payments:oPay,packages:oPkg,destinations:oDest,departures:oDep,runsheets:oRs,guides:oGuide,visas:oVisa,vagents:oVAgent,vconfig:oVCfg,vbilling:oVBill,vdelivery:oVDel,hotels:oHotel,contracts:oCont,cancelpol:oCp};
 
-function goPage(p,el){
-  CUR=p;
-  document.querySelectorAll('.pg').forEach(function(x){x.classList.remove('on');});
-  var pg=document.getElementById('pg-'+p);if(pg)pg.classList.add('on');
-  document.querySelectorAll('.ni').forEach(function(x){x.classList.remove('on');});
-  if(el)el.classList.add('on');
-  g('ptitle').textContent=PT[p]||p;
-  g('addbtn').style.display=AF[p]?'inline-flex':'none';
-  renderPage(p);closeSb();
-}
+function goPage(p,el){CUR=p;document.querySelectorAll('.pg').forEach(function(x){x.classList.remove('on');});var pg=g('pg-'+p);if(pg)pg.classList.add('on');document.querySelectorAll('.ni').forEach(function(x){x.classList.remove('on');});if(el)el.classList.add('on');g('ptitle').textContent=PT[p]||p;g('addbtn').style.display=AF[p]?'inline-flex':'none';renderPage(p);closeSb();}
 function doAdd(){if(AF[CUR])AF[CUR]();}
 function toggleSb(){g('sb').classList.toggle('open');g('ov').classList.toggle('open');}
 function closeSb(){g('sb').classList.remove('open');g('ov').classList.remove('open');}
 
-// ════ RENDER ALL ════
 function renderAll(){
   var ol=D.leads.filter(function(l){return l.status==='Open'||l.status==='Interested';}).length;
   g('nbl').textContent=ol||'';g('nbb').textContent=D.bookings.length||'';
@@ -451,43 +403,59 @@ function renderAll(){
   g('nbv').textContent=pv||'';
   if(D.founder.name){g('sun').textContent=D.founder.name;g('sav').textContent=D.founder.name.charAt(0);}
   var s=D.stats;
-  g('st0').textContent='₹'+fmt(s.total_revenue||0);g('st1').textContent=s.active_bookings||0;
-  g('st2').textContent=s.open_leads||0;g('st3').textContent=s.package_count||0;
-  g('st4').textContent=s.pending_visas||0;g('st5').textContent=s.destination_count||0;
+  g('st0').textContent='₹'+fmt(s.total_revenue||0);g('st1').textContent=s.active_bookings||0;g('st2').textContent=s.open_leads||0;g('st3').textContent=s.package_count||0;g('st4').textContent=s.pending_visas||0;g('st5').textContent=s.destination_count||0;
   if(D.settings){sv('se1',D.settings.ops_email);sv('se2',D.settings.site_url);sv('se3',D.settings.razorpay_key_id);sv('se4',D.settings.consultant_commission_pct);sv('se5',D.settings.website_booking_bonus);}
   renderPage(CUR);
 }
-function renderPage(p){
-  var fn={overview:rOv,leads:rLeads,bookings:rBk,payments:rPay,packages:rPkg,destinations:rDest,departures:rDep,runsheets:rRs,guides:rGuide,visas:rVisa,vagents:rVAgent,vconfig:rVCfg,vbilling:rVBill,vdelivery:rVDel,hotels:rHotel,contracts:rCont,cancelpol:rCp,customers:rCust}[p];
-  if(fn)fn();
-}
+function renderPage(p){({overview:rOv,leads:rLeads,bookings:rBk,payments:rPay,packages:rPkg,destinations:rDest,departures:rDep,runsheets:rRs,guides:rGuide,visas:rVisa,vagents:rVAgent,vconfig:rVCfg,vbilling:rVBill,vdelivery:rVDel,hotels:rHotel,contracts:rCont,cancelpol:rCp,customers:rCust}[p]||function(){})();}
 
-// ════ RENDERS ════
 function em(msg){return '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--ink3)">'+msg+'</td></tr>';}
-function rOv(){
-  g('ovl').innerHTML=D.leads.slice(0,5).map(function(l){return '<tr><td>'+x(l.full_name)+'</td><td>'+x(l.mobile_no)+'</td><td>'+bdg(l.status)+'</td><td>'+x(l.suggested_package)+'</td><td><button class="tb tb-e" onclick=\'eL('+J(l)+')\'>Edit</button></td></tr>';}).join('')||em('No leads');
-  g('ovb').innerHTML=D.bookings.slice(0,5).map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.grand_total)+'</td></tr>';}).join('')||em('No bookings');
-}
-function rLeads(){var q=(gv('lq')||'').toLowerCase(),sf=gv('lsf')||'';var r=D.leads.filter(function(l){return(l.full_name+l.email_id+l.mobile_no).toLowerCase().includes(q)&&(!sf||l.status===sf);});g('ltb').innerHTML=r.length?r.map(function(l){return '<tr><td><b>'+x(l.full_name)+'</b></td><td>'+x(l.email_id)+'</td><td>'+x(l.mobile_no)+'</td><td>'+bdg(l.status)+'</td><td>'+x(l.suggested_package)+'</td><td>'+x(l.pax_count)+'</td><td>'+x(l.source)+'</td><td><button class="tb tb-e" onclick=\'eL('+J(l)+')\' style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\'Travel Lead\',\''+l.name+'\')">Del</button></td></tr>';}).join(''):em('No leads');}
-function rBk(){var q=(gv('bq')||'').toLowerCase();var r=D.bookings.filter(function(b){return(b.name+b.tour_package+(b.customer||'')).toLowerCase().includes(q);});g('btb').innerHTML=r.length?r.map(function(b){return '<tr><td><b>'+x(b.name)+'</b></td><td>'+x(b.customer||b.customer_mobile)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.grand_total)+'</td><td><button class="tb tb-e" onclick=\'eB('+J(b)+')\' style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\'Booking\',\''+b.name+'\')">Del</button></td></tr>';}).join(''):em('No bookings');}
-function rPay(){g('ptb').innerHTML=D.bookings.length?D.bookings.map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.tour_package)+'</td><td>₹'+fmt(b.base_amount)+'</td><td>₹'+fmt(b.gst_amount)+'</td><td><b>₹'+fmt(b.grand_total)+'</b></td><td><button class="tb tb-e" onclick="sv(\'paybk\',\''+b.name+'\');oPay()">Record</button></td></tr>';}).join(''):em('No bookings');}
-function rPkg(){var q=(gv('pq')||'').toLowerCase();var r=D.packages.filter(function(p){return(p.package_name+p.destination).toLowerCase().includes(q);});g('pktb').innerHTML=r.length?r.map(function(p){return '<tr><td><b>'+x(p.package_name||p.name)+'</b></td><td>'+bdg(p.tour_type)+'</td><td>'+x(p.destination)+'</td><td>'+x(p.duration_nights)+'</td><td>'+x(p.duration_days)+'</td><td>'+(p.visa_required?'✅':'❌')+'</td><td><button class="tb tb-e" onclick=\'eP('+J(p)+')\' style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\'Tour Package\',\''+p.name+'\')">Del</button></td></tr>';}).join(''):em('No packages');}
-function rDest(){var q=(gv('dq')||'').toLowerCase();var r=D.destinations.filter(function(d){return(d.destination_name||d.name).toLowerCase().includes(q);});g('dtb').innerHTML=r.length?r.map(function(d){return '<tr><td><b>'+x(d.destination_name||d.name)+'</b></td><td>'+x((d.description||'').replace(/<[^>]*>/g,'').substr(0,60))+'</td><td><button class="tb tb-e" onclick=\'eD('+J(d)+')\' style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\'Destination\',\''+d.name+'\')">Del</button></td></tr>';}).join(''):em('No destinations');}
-function rDep(){g('deptb').innerHTML=D.bookings.length?D.bookings.map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>'+x(b.sales_consultant)+'</td><td>₹'+fmt(b.grand_total)+'</td></tr>';}).join(''):em('No departures');}
-function rRs(){g('rstb').innerHTML=D.run_sheets.length?D.run_sheets.map(function(r){return '<tr><td>'+x(r.name)+'</td><td>'+x(r.booking)+'</td><td>'+x(r.customer)+'</td><td>'+x(r.departure_date)+'</td><td>'+x(r.total_pax)+'</td><td><button class="tb tb-d" onclick="del(\'Trip Run Sheet\',\''+r.name+'\')">Del</button></td></tr>';}).join(''):em('No run sheets');}
-function rGuide(){g('gtb').innerHTML=D.guide_allocs.length?D.guide_allocs.map(function(g2){return '<tr><td>'+x(g2.name)+'</td><td>'+x(g2.guide)+'</td><td>'+x(g2.booking)+'</td><td>'+x(g2.departure_date)+'</td><td>'+x(g2.return_date)+'</td><td>'+bdg(g2.status)+'</td><td><button class="tb tb-d" onclick="del(\'Guide Allocation\',\''+g2.name+'\')">Del</button></td></tr>';}).join(''):em('No allocations');}
-function rVisa(){var q=(gv('vq')||'').toLowerCase(),sf=gv('vsf')||'';var r=D.visa_apps.filter(function(v){return(v.applicant_name+v.booking).toLowerCase().includes(q)&&(!sf||v.status===sf);});g('vtb').innerHTML=r.length?r.map(function(v){return '<tr><td>'+x(v.name)+'</td><td><b>'+x(v.applicant_name)+'</b></td><td>'+x(v.booking)+'</td><td>'+x(v.destination_country)+'</td><td>'+x(v.visa_type)+'</td><td>'+bdg(v.status)+'</td><td><button class="tb tb-e" onclick=\'eV('+J(v)+')\' style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\'Visa Application\',\''+v.name+'\')">Del</button></td></tr>';}).join(''):em('No applications');}
-function rVAgent(){g('vatb').innerHTML=D.visa_agents.length?D.visa_agents.map(function(a){return '<tr><td><b>'+x(a.agent_name||a.name)+'</b></td><td>'+x(a.contact_person)+'</td><td>'+x(a.mobile_no)+'</td><td>'+x(a.email_id)+'</td><td><button class="tb tb-e" onclick=\'eVA('+J(a)+')\' style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\'Visa Agent\',\''+a.name+'\')">Del</button></td></tr>';}).join(''):em('No agents');}
-function rVCfg(){g('vctb').innerHTML=D.visa_configs.length?D.visa_configs.map(function(c){return '<tr><td>'+x(c.country)+'</td><td>'+x(c.visa_type)+'</td><td>'+x(c.processing_days)+'</td><td>₹'+fmt(c.embassy_fee)+'</td><td>₹'+fmt(c.service_charge)+'</td><td><button class="tb tb-e" onclick=\'eVC('+J(c)+')\' style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\'Visa Country Config\',\''+c.name+'\')">Del</button></td></tr>';}).join(''):em('No configs');}
-function rVBill(){g('vbtb').innerHTML=D.visa_fee_bills.length?D.visa_fee_bills.map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.customer)+'</td><td>'+x(b.booking)+'</td><td>₹'+fmt(b.embassy_fee)+'</td><td>₹'+fmt(b.service_charge)+'</td><td><b>₹'+fmt(b.grand_total)+'</b></td><td><button class="tb tb-d" onclick="del(\'Visa Fee Billing\',\''+b.name+'\')">Del</button></td></tr>';}).join(''):em('No bills');}
-function rVDel(){g('vdtb').innerHTML=D.visa_delivery.length?D.visa_delivery.map(function(d){return '<tr><td>'+x(d.name)+'</td><td>'+x(d.applicant_name)+'</td><td>'+x(d.visa_application)+'</td><td>'+x(d.delivery_date)+'</td><td>'+x(d.delivery_mode)+'</td><td>'+x(d.tracking_number)+'</td><td><button class="tb tb-d" onclick="del(\'Visa Delivery Log\',\''+d.name+'\')">Del</button></td></tr>';}).join(''):em('No logs');}
-function rHotel(){g('htb').innerHTML=D.hotel_allots.length?D.hotel_allots.map(function(h){return '<tr><td>'+x(h.name)+'</td><td>'+x(h.supplier_name||h.supplier)+'</td><td>'+x(h.from_date)+'</td><td>'+x(h.to_date)+'</td><td>'+x(h.total_rooms)+'</td><td><button class="tb tb-d" onclick="del(\'Hotel Allotment\',\''+h.name+'\')">Del</button></td></tr>';}).join(''):em('No allotments');}
-function rCont(){g('cotb').innerHTML=D.supplier_contracts.length?D.supplier_contracts.map(function(c){return '<tr><td>'+x(c.name)+'</td><td>'+x(c.supplier_name||c.supplier)+'</td><td>'+x(c.contract_start_date)+'</td><td>'+x(c.contract_end_date)+'</td><td>₹'+fmt(c.cost_per_pax)+'</td><td><button class="tb tb-d" onclick="del(\'Supplier Contract\',\''+c.name+'\')">Del</button></td></tr>';}).join(''):em('No contracts');}
-function rCp(){g('cptb').innerHTML=D.cancel_policies.length?D.cancel_policies.map(function(p){return '<tr><td><b>'+x(p.policy_name||p.name)+'</b></td><td>'+x((p.description||'').substr(0,80))+'</td><td><button class="tb tb-d" onclick="del(\'Cancellation Policy\',\''+p.name+'\')">Del</button></td></tr>';}).join(''):em('No policies');}
-function rCust(){var c=D.leads.filter(function(l){return l.status==='converted';});g('custb').innerHTML=c.length?c.map(function(l){return '<tr><td>'+x(l.full_name)+'</td><td>'+x(l.email_id)+'</td><td>'+x(l.mobile_no)+'</td><td>'+x(l.suggested_package)+'</td><td>'+x(l.pax_count)+'</td></tr>';}).join(''):em('No converted customers');}
+function acts(editFn,dt,name){return '<td><button class="tb tb-e" onclick="'+editFn+'" style="margin-right:2px">Edit</button><button class="tb tb-d" onclick="del(\''+dt+'\',\''+name+'\')">Del</button></td>';}
 
-// ════ MODAL OPENERS ════
-function ps(id,arr,vf,lf,pfx){var s=g(id);if(!s)return;var cur=s.value;s.innerHTML='<option value="">'+(pfx||'— Select —')+'</option>'+arr.map(function(a){var v=a[vf]||a.name,l=a[lf]||a.name;return '<option value="'+v+'">'+x(l)+'</option>';}).join('');if(cur)s.value=cur;}
+function rOv(){
+  g('ovl').innerHTML=D.leads.slice(0,5).map(function(l){return '<tr><td>'+x(l.full_name)+'</td><td>'+x(l.mobile_no)+'</td><td>'+bdg(l.status)+'</td><td>'+x(l.suggested_package)+'</td><td><button class="tb tb-e" onclick=\'eL('+J(l)+')\'>Edit</button></td></tr>';}).join('')||em('No leads yet');
+  g('ovb').innerHTML=D.bookings.slice(0,5).map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.grand_total)+'</td></tr>';}).join('')||em('No bookings yet');
+}
+
+function rLeads(){var q=(gv('lq')||'').toLowerCase(),sf=gv('lsf')||'';var r=D.leads.filter(function(l){return(l.full_name+l.email_id+l.mobile_no).toLowerCase().includes(q)&&(!sf||l.status===sf);});g('ltb').innerHTML=r.length?r.map(function(l){return '<tr><td><b>'+x(l.full_name)+'</b></td><td>'+x(l.email_id)+'</td><td>'+x(l.mobile_no)+'</td><td>'+bdg(l.status)+'</td><td>'+x(l.suggested_package)+'</td><td>'+x(l.pax_count)+'</td><td>'+x(l.source)+'</td><td>'+x(l.assigned_consultant)+'</td>'+acts('eL('+J(l)+')','Travel Lead',l.name)+'</tr>';}).join(''):em('No leads found');}
+
+function rBk(){var q=(gv('bq')||'').toLowerCase();var r=D.bookings.filter(function(b){return(b.name+b.tour_package+(b.customer||'')).toLowerCase().includes(q);});g('btb').innerHTML=r.length?r.map(function(b){return '<tr><td><b>'+x(b.name)+'</b></td><td>'+x(b.customer||b.customer_mobile)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.base_amount)+'</td><td>₹'+fmt(b.gst_amount)+'</td><td>₹'+fmt(b.grand_total)+'</td>'+acts('eB('+J(b)+')','Booking',b.name)+'</tr>';}).join(''):em('No bookings found');}
+
+function rPay(){g('ptb').innerHTML=D.bookings.length?D.bookings.map(function(b){return '<tr><td><b>'+x(b.name)+'</b></td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.base_amount)+'</td><td>₹'+fmt(b.gst_amount)+'</td><td><b>₹'+fmt(b.grand_total)+'</b></td><td><button class="tb tb-e" onclick="sv(\'paybk\',\''+b.name+'\');oPay()">Record</button></td></tr>';}).join(''):em('No bookings');}
+
+function rPkg(){var q=(gv('pq')||'').toLowerCase();var r=D.packages.filter(function(p){return(p.package_name+p.destination).toLowerCase().includes(q);});g('pktb').innerHTML=r.length?r.map(function(p){return '<tr><td><b>'+x(p.package_name||p.name)+'</b></td><td>'+bdg(p.tour_type)+'</td><td>'+x(p.destination)+'</td><td>'+x(p.duration_nights)+'</td><td>'+x(p.duration_days)+'</td><td>'+(p.visa_required?'✅':'❌')+'</td>'+acts('eP('+J(p)+')','Tour Package',p.name)+'</tr>';}).join(''):em('No packages found');}
+
+function rDest(){var q=(gv('dq')||'').toLowerCase();var r=D.destinations.filter(function(d){return(d.destination_name||d.name).toLowerCase().includes(q);});g('dtb').innerHTML=r.length?r.map(function(d){return '<tr><td><b>'+x(d.destination_name||d.name)+'</b></td><td>'+x((d.description||'').replace(/<[^>]*>/g,'').substr(0,60))+'</td>'+acts('eD('+J(d)+')','Destination',d.name)+'</tr>';}).join(''):em('No destinations');}
+
+function rDep(){g('deptb').innerHTML=D.bookings.length?D.bookings.map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>'+x(b.sales_consultant)+'</td><td>₹'+fmt(b.base_amount)+'</td><td>₹'+fmt(b.grand_total)+'</td></tr>';}).join(''):em('No departures');}
+
+function rRs(){g('rstb').innerHTML=D.run_sheets.length?D.run_sheets.map(function(r){return '<tr><td>'+x(r.name)+'</td><td>'+x(r.booking)+'</td><td>'+x(r.customer)+'</td><td>'+x(r.departure_date)+'</td><td>'+x(r.total_pax)+'</td>'+acts('eRs('+J(r)+')','Trip Run Sheet',r.name)+'</tr>';}).join(''):em('No run sheets');}
+
+function rGuide(){g('gtb').innerHTML=D.guide_allocs.length?D.guide_allocs.map(function(g2){return '<tr><td>'+x(g2.name)+'</td><td>'+x(g2.guide)+'</td><td>'+x(g2.booking)+'</td><td>'+x(g2.departure_date)+'</td><td>'+x(g2.return_date)+'</td><td>'+bdg(g2.status)+'</td>'+acts('eGuide('+J(g2)+')','Guide Allocation',g2.name)+'</tr>';}).join(''):em('No allocations');}
+
+function rVisa(){var q=(gv('vq')||'').toLowerCase(),sf=gv('vsf')||'';var r=D.visa_apps.filter(function(v){return(v.applicant_name+v.booking).toLowerCase().includes(q)&&(!sf||v.status===sf);});g('vtb').innerHTML=r.length?r.map(function(v){return '<tr><td>'+x(v.name)+'</td><td><b>'+x(v.applicant_name)+'</b></td><td>'+x(v.booking)+'</td><td>'+x(v.destination_country)+'</td><td>'+x(v.visa_type)+'</td><td>'+x(v.departure_date)+'</td><td>'+bdg(v.status)+'</td>'+acts('eV('+J(v)+')','Visa Application',v.name)+'</tr>';}).join(''):em('No applications');}
+
+function rVAgent(){g('vatb').innerHTML=D.visa_agents.length?D.visa_agents.map(function(a){return '<tr><td><b>'+x(a.agent_name||a.name)+'</b></td><td>'+x(a.contact_person)+'</td><td>'+x(a.mobile_no)+'</td><td>'+x(a.email_id)+'</td>'+acts('eVA('+J(a)+')','Visa Agent',a.name)+'</tr>';}).join(''):em('No agents');}
+
+function rVCfg(){g('vctb').innerHTML=D.visa_configs.length?D.visa_configs.map(function(c){return '<tr><td>'+x(c.country)+'</td><td>'+x(c.visa_type)+'</td><td>'+x(c.processing_days)+'</td><td>₹'+fmt(c.embassy_fee)+'</td><td>₹'+fmt(c.service_charge)+'</td>'+acts('eVC('+J(c)+')','Visa Country Config',c.name)+'</tr>';}).join(''):em('No configs');}
+
+function rVBill(){g('vbtb').innerHTML=D.visa_fee_bills.length?D.visa_fee_bills.map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.customer)+'</td><td>'+x(b.booking)+'</td><td>'+x(b.visa_application)+'</td><td>₹'+fmt(b.embassy_fee)+'</td><td>₹'+fmt(b.service_charge)+'</td><td><b>₹'+fmt(b.grand_total)+'</b></td>'+acts('eVBill('+J(b)+')','Visa Fee Billing',b.name)+'</tr>';}).join(''):em('No bills');}
+
+function rVDel(){g('vdtb').innerHTML=D.visa_delivery.length?D.visa_delivery.map(function(d){return '<tr><td>'+x(d.name)+'</td><td>'+x(d.applicant_name)+'</td><td>'+x(d.visa_application)+'</td><td>'+x(d.delivery_date)+'</td><td>'+x(d.delivery_mode)+'</td><td>'+x(d.tracking_number)+'</td>'+acts('eVDel('+J(d)+')','Visa Delivery Log',d.name)+'</tr>';}).join(''):em('No logs');}
+
+function rHotel(){g('htb').innerHTML=D.hotel_allots.length?D.hotel_allots.map(function(h){return '<tr><td>'+x(h.name)+'</td><td>'+x(h.supplier_name||h.supplier)+'</td><td>'+x(h.from_date)+'</td><td>'+x(h.to_date)+'</td><td>'+x(h.total_rooms)+'</td>'+acts('eHotel('+J(h)+')','Hotel Allotment',h.name)+'</tr>';}).join(''):em('No allotments');}
+
+function rCont(){g('cotb').innerHTML=D.supplier_contracts.length?D.supplier_contracts.map(function(c){return '<tr><td>'+x(c.name)+'</td><td>'+x(c.supplier_name||c.supplier)+'</td><td>'+x(c.contract_start_date)+'</td><td>'+x(c.contract_end_date)+'</td><td>₹'+fmt(c.cost_per_pax)+'</td><td>'+x((c.notes||'').substr(0,40))+'</td>'+acts('eCont('+J(c)+')','Supplier Contract',c.name)+'</tr>';}).join(''):em('No contracts');}
+
+function rCp(){g('cptb').innerHTML=D.cancel_policies.length?D.cancel_policies.map(function(p){return '<tr><td><b>'+x(p.policy_name||p.name)+'</b></td><td>'+x((p.description||'').substr(0,80))+'</td>'+acts('eCp('+J(p)+')','Cancellation Policy',p.name)+'</tr>';}).join(''):em('No policies');}
+
+function rCust(){
+  // Show ALL leads as customers (they are the customer records)
+  var custs=D.leads;
+  g('custb').innerHTML=custs.length?custs.map(function(l){return '<tr><td><b>'+x(l.full_name)+'</b></td><td>'+x(l.email_id)+'</td><td>'+x(l.mobile_no)+'</td><td>'+bdg(l.status)+'</td><td>'+x(l.suggested_package)+'</td><td>'+x(l.pax_count)+'</td><td>'+x((l.remarks||'').substr(0,40))+'</td><td><button class="tb tb-e" onclick=\'eL('+J(l)+')\'>Edit</button></td></tr>';}).join(''):em('No customers yet');}
+
+// ════ MODAL OPEN/EDIT ════
+function ps(id,arr,vf,lf,pfx){var s=g(id);if(!s)return;var cur=s.value;s.innerHTML='<option value="">'+(pfx||'— Select —')+'</option>'+arr.map(function(a){var v=a[vf]||a.name,l=a[lf]||a.name;return '<option value="'+x(v)+'">'+x(l)+'</option>';}).join('');if(cur)s.value=cur;}
 function cf(ids){ids.forEach(function(id){sv(id,'');});}
 
 function oLead(){cf(['lid','lfn','lmob','lem','lpax','lmon','ltag','lrem']);sv('lst','Open');sv('lsrc','');sv('lpkg','');sv('lcon','');g('lmt').textContent='New Lead';ps('lpkg',D.packages,'name','package_name');ps('lcon',D.users,'name','full_name');om('mo-lead');}
@@ -513,22 +481,34 @@ function eVA(a){oVAgent();sv('vaid',a.name);sv('vaan',a.agent_name);sv('vacp',a.
 function oVCfg(){cf(['vcid','vccountry','vcdays','vcfee','vcsvc']);sv('vctype','Tourist');g('vcgt').textContent='New Visa Config';om('mo-vcfg');}
 function eVC(c){oVCfg();sv('vcid',c.name);sv('vccountry',c.country);sv('vctype',c.visa_type);sv('vcdays',c.processing_days);sv('vcfee',c.embassy_fee);sv('vcsvc',c.service_charge);g('vcgt').textContent='Edit Visa Config';}
 
-function oVBill(){cf(['vbid','vbemb','vbsvc']);sv('vbcust','');sv('vbbk','');sv('vbva','');ps('vbbk',D.bookings,'name','name','Select');ps('vbva',D.visa_apps,'name','applicant_name','Select');var vc=g('vbcust');if(vc){vc.innerHTML='<option value="">— Auto from booking —</option>'+D.customers.map(function(c){return '<option value="'+c.name+'">'+(c.customer_name||c.name)+'</option>';}).join('');}om('mo-vbill');}
+function oVBill(){cf(['vbid','vbemb','vbsvc']);sv('vbcust','');sv('vbbk','');sv('vbva','');ps('vbbk',D.bookings,'name','name','Select');ps('vbva',D.visa_apps,'name','applicant_name','Select');var vc=g('vbcust');if(vc){vc.innerHTML='<option value="">— Auto from booking —</option>'+D.customers.map(function(c){return '<option value="'+c.name+'">'+(c.customer_name||c.name)+'</option>';}).join('');}g('vbmt').textContent='New Visa Bill';om('mo-vbill');}
+function eVBill(b){oVBill();sv('vbid',b.name);sv('vbcust',b.customer);sv('vbbk',b.booking);sv('vbva',b.visa_application);sv('vbemb',b.embassy_fee);sv('vbsvc',b.service_charge);g('vbmt').textContent='Edit Visa Bill';}
 function autoVBillCust(){var bk=D.bookings.find(function(b){return b.name===gv('vbbk');});if(bk&&bk.customer)sv('vbcust',bk.customer);}
 
-function oVDel(){cf(['vdid','vdan','vddate','vdtrack']);sv('vdmode','Courier');ps('vdva',D.visa_apps,'name','applicant_name','Select');om('mo-vdel');}
-function oHotel(){cf(['hoid','hosup','horooms','hofrom','hoto','hort']);sv('horq','5');om('mo-hotel');}
-function oCont(){cf(['coid','cosup','cocost','costart','coend','conotes']);om('mo-cont');}
+function oVDel(){cf(['vdid','vdan','vddate','vdtrack']);sv('vdmode','Courier');ps('vdva',D.visa_apps,'name','applicant_name','Select');g('vdmt').textContent='Log Visa Delivery';om('mo-vdel');}
+function eVDel(d){oVDel();sv('vdid',d.name);sv('vdva',d.visa_application);sv('vdan',d.applicant_name);sv('vddate',d.delivery_date);sv('vdmode',d.delivery_mode);sv('vdtrack',d.tracking_number);g('vdmt').textContent='Edit Visa Delivery';}
+
+function oHotel(){cf(['hoid','hosup','horooms','hofrom','hoto','hort']);sv('horq','5');g('homt').textContent='New Hotel Allotment';om('mo-hotel');}
+function eHotel(h){oHotel();sv('hoid',h.name);sv('hosup',h.supplier_name||h.supplier);sv('horooms',h.total_rooms);sv('hofrom',h.from_date);sv('hoto',h.to_date);g('homt').textContent='Edit Hotel Allotment';}
+
+function oCont(){cf(['coid','cosup','cocost','costart','coend','conotes']);g('comt').textContent='New Supplier Contract';om('mo-cont');}
+function eCont(c){oCont();sv('coid',c.name);sv('cosup',c.supplier_name||c.supplier);sv('cocost',c.cost_per_pax);sv('costart',c.contract_start_date);sv('coend',c.contract_end_date);sv('conotes',c.notes);g('comt').textContent='Edit Contract';}
+
 function oCp(){cf(['cpid','cpn','cpd']);sv('cpdays','30');sv('cppct','25');om('mo-cp');}
-function oRs(){cf(['rsdate','rspax']);ps('rsbk',D.bookings,'name','name','Select Booking');om('mo-rs');}
-function oGuide(){cf(['gid','gdep','gret']);sv('gst','Pending');ps('guser',D.users,'name','full_name','Select Guide');ps('gbk',D.bookings,'name','name','Select Booking');om('mo-guide');}
+function eCp(p){oCp();sv('cpid',p.name);sv('cpn',p.policy_name||p.name);sv('cpd',p.description);}
+
+function oRs(){cf(['rsid','rsdate','rspax']);ps('rsbk',D.bookings,'name','name','Select Booking');g('rsmt').textContent='New Run Sheet';om('mo-rs');}
+function eRs(r){oRs();sv('rsid',r.name);sv('rsbk',r.booking);sv('rsdate',r.departure_date);sv('rspax',r.total_pax);g('rsmt').textContent='Edit Run Sheet';}
+
+function oGuide(){cf(['gid','gdep','gret']);sv('gst','Pending');ps('guser',D.users,'name','full_name','Select Guide');ps('gbk',D.bookings,'name','name','Select Booking');g('gmt').textContent='New Guide Allocation';om('mo-guide');}
+function eGuide(g2){oGuide();sv('gid',g2.name);sv('guser',g2.guide);sv('gbk',g2.booking);sv('gdep',g2.departure_date);sv('gret',g2.return_date);sv('gst',g2.status);g('gmt').textContent='Edit Guide Allocation';}
 
 // ════ SAVE FUNCTIONS ════
 function saveLead(){if(!gv('lfn')){toast('err','Full name required');return;}api('travel_tour.api.founder.save_lead',{name:gv('lid'),full_name:gv('lfn'),mobile_no:gv('lmob'),email_id:gv('lem'),status:gv('lst'),source:gv('lsrc'),pax_count:gv('lpax'),suggested_package:gv('lpkg'),preferred_month:gv('lmon'),interest_tags:gv('ltag'),assigned_consultant:gv('lcon'),remarks:gv('lrem')},function(r){if(r.message&&r.message.success){cm('mo-lead');loadData();toast('ok','Lead saved!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveBk(){if(!gv('bpkg')||!gv('bdate')||!gv('bpax')){toast('err','Package, date and pax required');return;}api('travel_tour.api.founder.save_booking',{name:gv('bid'),customer_mobile:gv('bmob'),tour_package:gv('bpkg'),departure_date:gv('bdate'),total_pax:gv('bpax'),sales_consultant:gv('bcon')},function(r){if(r.message&&r.message.success){cm('mo-bk');loadData();toast('ok','Booking saved!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function savePkg(){if(!gv('pkn')||!gv('pkni')){toast('err','Name and nights required');return;}api('travel_tour.api.founder.save_package',{name:gv('pkid'),package_name:gv('pkn'),tour_type:gv('pktype'),destination:gv('pkdest'),duration_nights:gv('pkni'),duration_days:gv('pkda'),visa_required:gv('pkvis'),description:gv('pkdesc')},function(r){if(r.message&&r.message.success){cm('mo-pkg');loadData();toast('ok','Package saved!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveDep(){if(!gv('dppkg')||!gv('dpdate')||!gv('dppax')){toast('err','Package, date and pax required');return;}api('travel_tour.api.founder.save_booking',{tour_package:gv('dppkg'),departure_date:gv('dpdate'),total_pax:gv('dppax'),customer_mobile:gv('dpmob')},function(r){if(r.message&&r.message.success){cm('mo-dep');loadData();toast('ok','Departure added!');}else toast('err',(r.message&&r.message.error)||'Error');});}
-function savePay(){if(!gv('paybk')||!gv('payamt')){toast('err','Booking ID and amount required');return;}api('travel_tour.api.founder.record_payment',{booking_name:gv('paybk'),amount:gv('payamt')},function(r){if(r.message&&r.message.success){cm('mo-pay');toast('ok',r.message.message||'Payment recorded!');}else toast('err',(r.message&&r.message.error)||'Error');});}
+function savePay(){if(!gv('paybk')||!gv('payamt')){toast('err','Booking ID and amount required');return;}api('travel_tour.api.founder.record_payment',{booking_name:gv('paybk'),amount:gv('payamt'),mode:gv('paymode'),reference:gv('payref'),notes:gv('paynotes')},function(r){if(r.message&&r.message.success){cm('mo-pay');toast('ok',r.message.message||'Payment recorded!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveDest(){if(!gv('dn')){toast('err','Name required');return;}api('travel_tour.api.founder.save_destination',{name:gv('did'),destination_name:gv('dn'),description:gv('dd')},function(r){if(r.message&&r.message.success){cm('mo-dest');loadData();toast('ok','Destination saved!');}else toast('err','Error');});}
 function saveVisa(){if(!gv('vian')||!gv('vibk')){toast('err','Applicant and booking required');return;}api('travel_tour.api.founder.save_visa',{name:gv('viid'),booking:gv('vibk'),applicant_name:gv('vian'),passport_number:gv('vipp'),passport_expiry:gv('vipe'),visa_type:gv('vitype'),status:gv('vist'),departure_date:gv('vidd'),submission_deadline:gv('visd')},function(r){if(r.message&&r.message.success){cm('mo-visa');loadData();toast('ok','Saved!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveVAgent(){if(!gv('vaan')){toast('err','Agent name required');return;}api('travel_tour.api.founder.save_visa_agent',{name:gv('vaid'),agent_name:gv('vaan'),contact_person:gv('vacp'),mobile_no:gv('vamob'),email_id:gv('vaem')},function(r){if(r.message&&r.message.success){cm('mo-vagent');loadData();toast('ok','Agent saved!');}else toast('err','Error');});}
@@ -538,7 +518,7 @@ function saveVDel(){if(!gv('vdan')||!gv('vdva')){toast('err','Required fields mi
 function saveHotel(){if(!gv('hosup')||!gv('hofrom')||!gv('hoto')){toast('err','Supplier, from and to date required');return;}api('travel_tour.api.founder.save_hotel_allotment',{name:gv('hoid'),supplier:gv('hosup'),from_date:gv('hofrom'),to_date:gv('hoto'),total_rooms:gv('horooms'),room_type:gv('hort')||'Standard Room',room_qty:gv('horq')},function(r){if(r.message&&r.message.success){cm('mo-hotel');loadData();toast('ok','Saved!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveCont(){if(!gv('cosup')||!gv('costart')||!gv('coend')||!gv('cocost')){toast('err','Required fields missing');return;}api('travel_tour.api.founder.save_supplier_contract',{name:gv('coid'),supplier:gv('cosup'),contract_start_date:gv('costart'),contract_end_date:gv('coend'),cost_per_pax:gv('cocost'),notes:gv('conotes')},function(r){if(r.message&&r.message.success){cm('mo-cont');loadData();toast('ok','Contract saved!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveCp(){if(!gv('cpn')){toast('err','Policy name required');return;}api('travel_tour.api.founder.save_cancel_policy',{name:gv('cpid'),policy_name:gv('cpn'),description:gv('cpd'),slab_days:gv('cpdays'),slab_pct:gv('cppct')},function(r){if(r.message&&r.message.success){cm('mo-cp');loadData();toast('ok','Policy saved!');}else toast('err',(r.message&&r.message.error)||'Error');});}
-function saveRs(){if(!gv('rsbk')){toast('err','Booking required');return;}api('travel_tour.api.founder.save_run_sheet',{booking:gv('rsbk'),departure_date:gv('rsdate'),total_pax:gv('rspax')},function(r){if(r.message&&r.message.success){cm('mo-rs');loadData();toast('ok','Run sheet created!');}else toast('err',(r.message&&r.message.error)||'Error');});}
+function saveRs(){if(!gv('rsbk')){toast('err','Booking required');return;}api('travel_tour.api.founder.save_run_sheet',{name:gv('rsid'),booking:gv('rsbk'),departure_date:gv('rsdate'),total_pax:gv('rspax')},function(r){if(r.message&&r.message.success){cm('mo-rs');loadData();toast('ok','Run sheet created!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveGuide(){if(!gv('guser')||!gv('gbk')||!gv('gdep')||!gv('gret')){toast('err','All fields required');return;}api('travel_tour.api.founder.save_guide_allocation',{name:gv('gid'),guide:gv('guser'),booking:gv('gbk'),departure_date:gv('gdep'),return_date:gv('gret'),status:gv('gst')},function(r){if(r.message&&r.message.success){cm('mo-guide');loadData();toast('ok','Guide allocated!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveSett(){api('travel_tour.api.founder.save_settings',{ops_email:gv('se1'),site_url:gv('se2'),razorpay_key_id:gv('se3'),consultant_commission_pct:gv('se4'),website_booking_bonus:gv('se5')},function(r){if(r.message&&r.message.success)toast('ok','Settings saved!');else toast('err',(r.message&&r.message.error)||'Error');});}
 function del(dt,n){if(!confirm('Delete '+n+'?'))return;api('travel_tour.api.founder.delete_record',{doctype:dt,record_name:n},function(r){if(r.message&&r.message.success){loadData();toast('ok','Deleted!');}else toast('err','Error');});}
@@ -548,12 +528,12 @@ function g(id){return document.getElementById(id);}
 function gv(id){var e=g(id);return e?e.value:'';}
 function sv(id,v){var e=g(id);if(e)e.value=v===null||v===undefined?'':String(v);}
 function x(s){return String(s||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function J(o){return JSON.stringify(o).replace(/"/g,'&quot;');}
+function J(o){return JSON.stringify(o).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function fmt(n){return parseFloat(n||0).toLocaleString('en-IN');}
 function om(id){var e=g(id);if(e)e.classList.add('on');}
 function cm(id){var e=g(id);if(e)e.classList.remove('on');}
-function bdg(s){var map={Open:'ba',Interested:'bb',converted:'bg',Lost:'br',Domestic:'bg',International:'bb',Pending:'ba',Confirmed:'bg',Completed:'bx',Cancelled:'br','Pending Documents':'ba','Documents Collected':'bb',Submitted:'bb',Approved:'bg',Rejected:'br',Delivered:'bx'};return '<span class="bdg '+(map[s]||'bx')+'">'+x(s||'—')+'</span>';}
+function bdg(s){var map={Open:'ba',Interested:'bb',converted:'bg',Lost:'br2',Domestic:'bg',International:'bb',Pending:'ba',Confirmed:'bg',Completed:'bx',Cancelled:'br2','Pending Documents':'ba','Documents Collected':'bb',Submitted:'bb',Approved:'bg',Rejected:'br2',Delivered:'bx'};return '<span class="bdg '+(map[s]||'bx')+'">'+x(s||'—')+'</span>';}
 function toast(type,msg){var w=g('tw2');var t=document.createElement('div');t.className='toast '+(type==='ok'?'tok':type==='err'?'terr':'');t.textContent=msg;w.appendChild(t);setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},3500);}
-function doLogout(){api('logout',{},function(){window.location.href='/login';},function(){window.location.href='/login';});}
+function doLogout(){fetch('/api/method/logout',{method:'POST',credentials:'same-origin',headers:{'X-Frappe-CSRF-Token':CSRF}}).then(function(){window.location.href='/login';}).catch(function(){window.location.href='/login';});}
 </script>
 {% endblock %}
