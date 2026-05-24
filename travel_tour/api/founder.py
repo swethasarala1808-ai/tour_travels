@@ -1,5 +1,14 @@
 import frappe
-from frappe.utils import flt
+from frappe.utils import flt, now_datetime
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  CSRF TOKEN — fetch for frontend use
+# ══════════════════════════════════════════════════════════════════════════
+@frappe.whitelist()
+def get_csrf_token():
+    """Return the current session CSRF token for use in frontend API calls."""
+    return frappe.session.data.csrf_token if frappe.session.data else ''
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -35,7 +44,7 @@ def get_founder_data():
     visa_apps = frappe.get_all('Visa Application',
         fields=['name','booking','applicant_name','passport_number',
                 'destination_country','visa_type','departure_date',
-                'status','submission_deadline','all_docs_collected','creation'],
+                'status','submission_deadline','creation'],
         order_by='creation desc', limit=200)
 
     visa_agents = frappe.get_all('Visa Agent',
@@ -80,12 +89,10 @@ def get_founder_data():
     cancel_policies = frappe.get_all('Cancellation Policy',
         fields=['name','policy_name','description'], limit=100)
 
-    # Fetch users list for consultant dropdown
     users = frappe.get_all('User',
         filters={'enabled': 1, 'user_type': 'System User'},
         fields=['name','full_name'], limit=100)
 
-    # Fetch customers list
     customers = frappe.get_all('Customer',
         fields=['name','customer_name'], limit=200)
 
@@ -103,29 +110,24 @@ def get_founder_data():
     except Exception:
         pass
 
+    # Include session CSRF token so JS can use it
+    csrf = frappe.session.data.csrf_token if frappe.session.data else ''
+
     total_revenue = sum(flt(b.get('grand_total')) for b in bookings)
     open_leads = len([l for l in leads if l.get('status') in ['Open','Interested']])
     pending_visas = len([v for v in visa_apps if v.get('status') not in ['Approved','Delivered']])
     founder_name = frappe.db.get_value('User', frappe.session.user, 'full_name') or 'Founder'
 
     return {
-        'leads': leads,
-        'bookings': bookings,
-        'packages': packages,
-        'destinations': destinations,
-        'visa_apps': visa_apps,
-        'visa_agents': visa_agents,
-        'visa_configs': visa_configs,
-        'visa_fee_bills': visa_fee_bills,
-        'visa_delivery': visa_delivery,
-        'guide_allocs': guide_allocs,
-        'run_sheets': run_sheets,
-        'hotel_allots': hotel_allots,
-        'supplier_contracts': supplier_contracts,
-        'cancel_policies': cancel_policies,
-        'settings': settings,
-        'users': users,
-        'customers': customers,
+        'leads': leads, 'bookings': bookings, 'packages': packages,
+        'destinations': destinations, 'visa_apps': visa_apps,
+        'visa_agents': visa_agents, 'visa_configs': visa_configs,
+        'visa_fee_bills': visa_fee_bills, 'visa_delivery': visa_delivery,
+        'guide_allocs': guide_allocs, 'run_sheets': run_sheets,
+        'hotel_allots': hotel_allots, 'supplier_contracts': supplier_contracts,
+        'cancel_policies': cancel_policies, 'settings': settings,
+        'users': users, 'customers': customers,
+        'csrf_token': csrf,
         'stats': {
             'total_revenue': total_revenue,
             'active_bookings': len(bookings),
@@ -170,7 +172,7 @@ def save_package(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Tour Package', n) if n and frappe.db.exists('Tour Package', n) else frappe.new_doc('Tour Package')
     if kwargs.get('package_name'): doc.package_name = kwargs['package_name']
-    t = kwargs.get('tour_type', 'Domestic')
+    t = kwargs.get('tour_type','Domestic')
     doc.tour_type = t if t in ('Domestic','International') else 'Domestic'
     if kwargs.get('destination'): doc.destination = kwargs['destination']
     if kwargs.get('duration_days'): doc.duration_days = int(kwargs['duration_days'])
@@ -185,24 +187,55 @@ def save_package(**kwargs):
 def create_package(**kwargs): return save_package(**kwargs)
 
 
-# ── Booking — sales_consultant must be a User email, not a display name ───
+# ── Booking — auto-create customer from mobile ─────────────────────────────
 @frappe.whitelist()
 def save_booking(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Booking', n) if n and frappe.db.exists('Booking', n) else frappe.new_doc('Booking')
-    if kwargs.get('customer'): doc.customer = kwargs['customer']
-    if kwargs.get('customer_mobile'): doc.customer_mobile = kwargs['customer_mobile']
+
+    # customer is mandatory Link[Customer] — resolve or create
+    customer = kwargs.get('customer', '')
+    mobile = kwargs.get('customer_mobile', '')
+
+    if not customer and mobile:
+        # Try to find existing customer by mobile
+        cust = frappe.db.get_value('Customer', {'mobile_no': mobile}, 'name')
+        if not cust:
+            # Try via lead
+            lead = frappe.db.get_value('Travel Lead', {'mobile_no': mobile}, 'customer')
+            if lead:
+                cust = lead
+        if not cust:
+            # Create a new customer
+            try:
+                cust_doc = frappe.get_doc({
+                    'doctype': 'Customer',
+                    'customer_name': f'Customer {mobile}',
+                    'customer_type': 'Individual',
+                    'customer_group': frappe.db.get_value('Customer Group',
+                        {'is_group': 0}, 'name') or 'Individual',
+                    'territory': frappe.db.get_value('Territory',
+                        {'is_group': 0}, 'name') or 'All Territories',
+                    'mobile_no': mobile,
+                })
+                cust_doc.insert(ignore_permissions=True)
+                frappe.db.commit()
+                cust = cust_doc.name
+            except Exception as e:
+                frappe.log_error(f"Customer create failed: {e}")
+        customer = cust or ''
+
+    if customer: doc.customer = customer
+    if mobile: doc.customer_mobile = mobile
     if kwargs.get('tour_package'): doc.tour_package = kwargs['tour_package']
     if kwargs.get('departure_date'): doc.departure_date = kwargs['departure_date']
     if kwargs.get('total_pax'): doc.total_pax = int(kwargs['total_pax'])
-    # sales_consultant is a Link[User] — only set if it's a valid user email
+
+    # sales_consultant is Link[User]
     sc = kwargs.get('sales_consultant', '')
     if sc and frappe.db.exists('User', sc):
         doc.sales_consultant = sc
-    elif sc:
-        # Try to find user by full_name
-        u = frappe.db.get_value('User', {'full_name': sc}, 'name')
-        if u: doc.sales_consultant = u
+
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     return {'success': True, 'name': doc.name}
@@ -296,7 +329,27 @@ def save_guide_allocation(**kwargs):
 def save_supplier_contract(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Supplier Contract', n) if n and frappe.db.exists('Supplier Contract', n) else frappe.new_doc('Supplier Contract')
-    for f in ['supplier','contract_start_date','contract_end_date','cost_per_pax','notes']:
+    # supplier is Link[Supplier] — resolve or create
+    supplier_input = kwargs.get('supplier', '')
+    if supplier_input:
+        if frappe.db.exists('Supplier', supplier_input):
+            doc.supplier = supplier_input
+        else:
+            # Try by name
+            s = frappe.db.get_value('Supplier', {'supplier_name': supplier_input}, 'name')
+            if s:
+                doc.supplier = s
+            else:
+                try:
+                    sg = frappe.db.get_value('Supplier Group', {'is_group': 0}, 'name') or 'All Supplier Groups'
+                    sup = frappe.get_doc({'doctype':'Supplier','supplier_name':supplier_input,'supplier_group':sg})
+                    sup.insert(ignore_permissions=True)
+                    frappe.db.commit()
+                    doc.supplier = sup.name
+                except Exception:
+                    pass
+
+    for f in ['contract_start_date','contract_end_date','cost_per_pax','notes']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
     doc.save(ignore_permissions=True)
@@ -304,9 +357,7 @@ def save_supplier_contract(**kwargs):
     return {'success': True, 'name': doc.name}
 
 
-# ── Cancellation Policy — slabs is a mandatory Table child ─────────────────
-# We cannot create it without slabs via the API easily.
-# Instead, we redirect user to the ERPNext desk for this DocType.
+# ── Cancellation Policy ────────────────────────────────────────────────────
 @frappe.whitelist()
 def save_cancel_policy(**kwargs):
     n = kwargs.get('name')
@@ -314,81 +365,99 @@ def save_cancel_policy(**kwargs):
     for f in ['policy_name','description']:
         if kwargs.get(f) is not None:
             setattr(doc, f, kwargs[f])
-    # Add a default slab if creating new and no slabs exist
-    if not doc.name and not doc.slabs:
-        doc.append('slabs', {
-            'days_before_departure': int(kwargs.get('slab_days') or 30),
-            'cancellation_fee_percent': float(kwargs.get('slab_pct') or 25)
-        })
+    # Always add/update a slab
+    days = int(kwargs.get('slab_days') or 30)
+    pct = float(kwargs.get('slab_pct') or 25)
+    if not doc.slabs:
+        doc.append('slabs', {'days_before_departure': days, 'cancellation_fee_percent': pct})
+    else:
+        doc.slabs[0].days_before_departure = days
+        doc.slabs[0].cancellation_fee_percent = pct
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
-# ── Hotel Allotment — rooms is a mandatory Table child ─────────────────────
+# ── Hotel Allotment — auto-create item for room type ──────────────────────
 @frappe.whitelist()
 def save_hotel_allotment(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Hotel Allotment', n) if n and frappe.db.exists('Hotel Allotment', n) else frappe.new_doc('Hotel Allotment')
-    # supplier is a Link[Supplier] — validate it
-    supplier = kwargs.get('supplier', '')
-    if supplier:
-        # Try exact match first
-        if frappe.db.exists('Supplier', supplier):
-            doc.supplier = supplier
+
+    # Supplier
+    supplier_input = kwargs.get('supplier', '')
+    if supplier_input:
+        if frappe.db.exists('Supplier', supplier_input):
+            doc.supplier = supplier_input
         else:
-            # Try supplier_name
-            s = frappe.db.get_value('Supplier', {'supplier_name': supplier}, 'name')
+            s = frappe.db.get_value('Supplier', {'supplier_name': supplier_input}, 'name')
             if s:
                 doc.supplier = s
             else:
-                # Create supplier on the fly
                 try:
-                    sup = frappe.get_doc({'doctype':'Supplier','supplier_name':supplier,'supplier_group':'All Supplier Groups'})
+                    sg = frappe.db.get_value('Supplier Group', {'is_group': 0}, 'name') or 'All Supplier Groups'
+                    sup = frappe.get_doc({'doctype':'Supplier','supplier_name':supplier_input,'supplier_group':sg})
                     sup.insert(ignore_permissions=True)
                     frappe.db.commit()
                     doc.supplier = sup.name
                 except Exception:
                     pass
+
     if kwargs.get('from_date'): doc.from_date = kwargs['from_date']
     if kwargs.get('to_date'): doc.to_date = kwargs['to_date']
     if kwargs.get('total_rooms'): doc.total_rooms = int(kwargs['total_rooms'])
-    # Add a default room row if creating new (rooms table is mandatory)
-    if not n or not frappe.db.exists('Hotel Allotment', n):
-        room_type = kwargs.get('room_type', '')
-        qty = int(kwargs.get('room_qty') or kwargs.get('total_rooms') or 1)
-        if room_type and frappe.db.exists('Item', room_type):
-            doc.append('rooms', {'room_type': room_type, 'quantity': qty})
-        else:
-            # Find any room-type item
-            items = frappe.get_all('Item', filters={'item_group': 'All Item Groups'}, pluck='name', limit=1)
-            if items:
-                doc.append('rooms', {'room_type': items[0], 'quantity': qty})
+
+    # rooms table is mandatory — auto-create Item for room type
+    room_type_name = kwargs.get('room_type', '').strip() or 'Standard Room'
+    qty = int(kwargs.get('room_qty') or kwargs.get('total_rooms') or 1)
+
+    # Find or create the Item
+    if not frappe.db.exists('Item', room_type_name):
+        try:
+            ig = frappe.db.get_value('Item Group', {'is_group': 0}, 'name') or 'All Item Groups'
+            item = frappe.get_doc({
+                'doctype': 'Item', 'item_code': room_type_name,
+                'item_name': room_type_name, 'item_group': ig,
+                'is_stock_item': 0,
+            })
+            item.insert(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception:
+            # Use any existing item
+            existing = frappe.get_all('Item', filters={'is_stock_item': 0}, pluck='name', limit=1)
+            if existing:
+                room_type_name = existing[0]
+
+    # Set rooms table
+    if not doc.rooms:
+        doc.append('rooms', {'room_type': room_type_name, 'quantity': qty})
+    else:
+        doc.rooms[0].room_type = room_type_name
+        doc.rooms[0].quantity = qty
+
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     return {'success': True, 'name': doc.name}
 
 
-# ── Visa Fee Billing — customer is mandatory ────────────────────────────────
+# ── Visa Fee Billing ───────────────────────────────────────────────────────
 @frappe.whitelist()
 def save_visa_fee_billing(**kwargs):
     n = kwargs.get('name')
     doc = frappe.get_doc('Visa Fee Billing', n) if n and frappe.db.exists('Visa Fee Billing', n) else frappe.new_doc('Visa Fee Billing')
-    # customer is mandatory Link[Customer]
+
+    # customer is mandatory
     customer = kwargs.get('customer', '')
+    if not customer and kwargs.get('booking'):
+        customer = frappe.db.get_value('Booking', kwargs['booking'], 'customer') or ''
     if customer and frappe.db.exists('Customer', customer):
         doc.customer = customer
-    elif not customer and kwargs.get('booking'):
-        # Auto-derive customer from booking
-        bk_customer = frappe.db.get_value('Booking', kwargs['booking'], 'customer')
-        if bk_customer:
-            doc.customer = bk_customer
+
     if kwargs.get('booking'): doc.booking = kwargs['booking']
     if kwargs.get('visa_application'): doc.visa_application = kwargs['visa_application']
-    if kwargs.get('embassy_fee'): doc.embassy_fee = flt(kwargs['embassy_fee'])
-    if kwargs.get('service_charge'): doc.service_charge = flt(kwargs['service_charge'])
-    # Calculate grand total
-    doc.grand_total = flt(doc.embassy_fee) + flt(doc.service_charge)
+    doc.embassy_fee = flt(kwargs.get('embassy_fee') or 0)
+    doc.service_charge = flt(kwargs.get('service_charge') or 0)
+    doc.grand_total = doc.embassy_fee + doc.service_charge
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     return {'success': True, 'name': doc.name}
