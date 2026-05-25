@@ -9,13 +9,12 @@ def get_context(context):
 
 @frappe.whitelist()
 def get_portal_data():
-    """Get all data for the logged-in customer's portal."""
     if frappe.session.user == 'Guest':
         frappe.throw("Please login", frappe.AuthenticationError)
 
     user = frappe.session.user
 
-    # Find Travel Lead by email
+    # Find Travel Lead — try email first
     lead = frappe.db.get_value('Travel Lead',
         {'email_id': user},
         ['name','full_name','mobile_no','status','email_id',
@@ -26,11 +25,13 @@ def get_portal_data():
 
     # Fallback: match by mobile from User record
     if not lead:
-        mobile = frappe.db.get_value('User', user, 'mobile_no') or ''
-        if mobile:
-            mobile_clean = mobile.replace('+91','').replace(' ','').strip()
+        user_mobile = frappe.db.get_value('User', user, 'mobile_no') or ''
+        if user_mobile:
+            mobiles = [user_mobile,
+                       user_mobile.replace('+91','').strip(),
+                       '+91' + user_mobile.replace('+91','').strip()]
             lead = frappe.db.get_value('Travel Lead',
-                {'mobile_no': ['in', [mobile, mobile_clean, '+91'+mobile_clean]]},
+                {'mobile_no': ['in', mobiles]},
                 ['name','full_name','mobile_no','status','email_id',
                  'suggested_package','preferred_month','pax_count',
                  'assigned_consultant','interest_tags','remarks',
@@ -38,52 +39,95 @@ def get_portal_data():
                 as_dict=True)
 
     if not lead:
-        return {'lead': None, 'bookings': [], 'visas': [], 'package_details': None}
+        return {'lead': None, 'bookings': [], 'visas': [],
+                'package_details': None, 'all_packages': [], 'all_destinations': []}
 
-    # Enrich lead with consultant name
+    # Enrich lead
     if lead.get('assigned_consultant'):
-        cn = frappe.db.get_value('User', lead['assigned_consultant'], 'full_name')
-        lead['consultant_name'] = cn or lead['assigned_consultant']
+        lead['consultant_name'] = frappe.db.get_value(
+            'User', lead['assigned_consultant'], 'full_name') or lead['assigned_consultant']
     else:
         lead['consultant_name'] = 'Not assigned'
 
-    # Enrich with package name
     if lead.get('suggested_package'):
-        pn = frappe.db.get_value('Tour Package', lead['suggested_package'], 'package_name')
-        lead['package_name'] = pn or lead['suggested_package']
+        lead['package_name'] = frappe.db.get_value(
+            'Tour Package', lead['suggested_package'], 'package_name') or lead['suggested_package']
     else:
         lead['package_name'] = ''
 
-    # Bookings linked to customer
-    bookings = []
-    customer = lead.get('customer')
-    if not customer and lead.get('mobile_no'):
-        customer = frappe.db.get_value('Customer',
-            {'mobile_no': lead['mobile_no']}, 'name')
-    if customer:
-        bookings = frappe.get_all('Booking',
-            filters={'customer': customer},
-            fields=['name','tour_package','departure_date','total_pax',
-                    'base_amount','gst_amount','tcs_amount','grand_total','creation'],
-            order_by='creation desc')
-        # Enrich with package name
-        for b in bookings:
-            if b.get('tour_package'):
-                pn = frappe.db.get_value('Tour Package', b['tour_package'], 'package_name')
-                b['package_name'] = pn or b['tour_package']
+    # ── Find bookings ──────────────────────────────────────────────────────
+    # Strategy: search by customer link AND by mobile number
+    booking_names = set()
+    bookings_map = {}
 
-    # Visa applications
+    # 1. By customer link on lead
+    customer = lead.get('customer')
+    if customer:
+        bks = frappe.get_all('Booking',
+            filters={'customer': customer},
+            fields=['name','customer','customer_mobile','tour_package',
+                    'departure_date','total_pax','base_amount',
+                    'gst_amount','tcs_amount','grand_total','creation'],
+            order_by='creation desc')
+        for b in bks:
+            booking_names.add(b.name)
+            bookings_map[b.name] = b
+
+    # 2. By customer_mobile (covers bookings made without customer link)
+    mobile = lead.get('mobile_no', '').strip()
+    if mobile:
+        mobiles = [mobile,
+                   mobile.replace('+91','').strip(),
+                   '+91' + mobile.replace('+91','').strip()]
+        bks2 = frappe.get_all('Booking',
+            filters={'customer_mobile': ['in', mobiles]},
+            fields=['name','customer','customer_mobile','tour_package',
+                    'departure_date','total_pax','base_amount',
+                    'gst_amount','tcs_amount','grand_total','creation'],
+            order_by='creation desc')
+        for b in bks2:
+            if b.name not in booking_names:
+                booking_names.add(b.name)
+                bookings_map[b.name] = b
+
+    # 3. Also check customer linked via mobile (customer.mobile_no)
+    if mobile and not customer:
+        mobiles = [mobile, mobile.replace('+91','').strip()]
+        cust_by_mobile = frappe.db.get_value('Customer',
+            {'mobile_no': ['in', mobiles]}, 'name')
+        if cust_by_mobile:
+            bks3 = frappe.get_all('Booking',
+                filters={'customer': cust_by_mobile},
+                fields=['name','customer','customer_mobile','tour_package',
+                        'departure_date','total_pax','base_amount',
+                        'gst_amount','tcs_amount','grand_total','creation'],
+                order_by='creation desc')
+            for b in bks3:
+                if b.name not in booking_names:
+                    booking_names.add(b.name)
+                    bookings_map[b.name] = b
+
+    # Build final bookings list — enrich with package name
+    bookings = sorted(bookings_map.values(),
+                      key=lambda b: b.get('creation', ''), reverse=True)
+    for b in bookings:
+        if b.get('tour_package'):
+            b['package_name'] = frappe.db.get_value(
+                'Tour Package', b['tour_package'], 'package_name') or b['tour_package']
+        else:
+            b['package_name'] = '—'
+
+    # ── Visa applications ──────────────────────────────────────────────────
     visas = []
-    if bookings:
-        bk_names = [b.name for b in bookings]
+    if booking_names:
         visas = frappe.get_all('Visa Application',
-            filters={'booking': ['in', bk_names]},
+            filters={'booking': ['in', list(booking_names)]},
             fields=['name','booking','applicant_name','visa_type',
                     'destination_country','status','departure_date',
                     'submission_deadline','passport_number'],
             order_by='creation desc')
 
-    # Package details for suggested package
+    # ── Package details ────────────────────────────────────────────────────
     package_details = None
     if lead.get('suggested_package'):
         try:
@@ -96,17 +140,15 @@ def get_portal_data():
                 'duration_days': pkg.duration_days,
                 'duration_nights': pkg.duration_nights,
                 'visa_required': pkg.visa_required,
-                'description': (pkg.description or '').replace('<[^>]*>', ''),
             }
         except Exception:
             pass
 
-    # All available packages for new enquiry
+    # ── All packages & destinations for dropdowns ──────────────────────────
     all_packages = frappe.get_all('Tour Package',
         fields=['name','package_name','tour_type','duration_days','duration_nights'],
-        order_by='package_name asc', limit=50)
+        order_by='package_name asc', limit=100)
 
-    # All destinations
     all_destinations = frappe.get_all('Destination',
         fields=['name','destination_name'], limit=100)
 
@@ -118,12 +160,12 @@ def get_portal_data():
         'all_packages': all_packages,
         'all_destinations': all_destinations,
         'customer': customer,
+        'booking_count': len(bookings),
     }
 
 
 @frappe.whitelist()
 def update_lead_enquiry(**kwargs):
-    """Customer updates their own enquiry/profile."""
     if frappe.session.user == 'Guest':
         frappe.throw("Login required", frappe.AuthenticationError)
 
@@ -131,7 +173,6 @@ def update_lead_enquiry(**kwargs):
     if not lead_name or not frappe.db.exists('Travel Lead', lead_name):
         return {'success': False, 'error': 'Lead not found'}
 
-    # Security: verify this lead belongs to current user
     owner_email = frappe.db.get_value('Travel Lead', lead_name, 'email_id')
     user_mobile = frappe.db.get_value('User', frappe.session.user, 'mobile_no') or ''
     lead_mobile = frappe.db.get_value('Travel Lead', lead_name, 'mobile_no') or ''
@@ -139,7 +180,6 @@ def update_lead_enquiry(**kwargs):
     is_owner = (owner_email == frappe.session.user or
                 (user_mobile and lead_mobile and
                  user_mobile.replace('+91','') == lead_mobile.replace('+91','')))
-
     if not is_owner:
         return {'success': False, 'error': 'Unauthorized'}
 
@@ -155,35 +195,24 @@ def update_lead_enquiry(**kwargs):
 
 @frappe.whitelist()
 def submit_new_enquiry(**kwargs):
-    """Customer submits a new travel enquiry — creates/updates Travel Lead."""
     if frappe.session.user == 'Guest':
         frappe.throw("Login required", frappe.AuthenticationError)
 
     user = frappe.session.user
-
-    # Check if lead already exists
     existing = frappe.db.get_value('Travel Lead', {'email_id': user}, 'name')
 
     if existing:
         doc = frappe.get_doc('Travel Lead', existing)
-        # Update with new enquiry details
-        if kwargs.get('suggested_package'):
-            doc.suggested_package = kwargs['suggested_package']
-        if kwargs.get('preferred_month'):
-            doc.preferred_month = kwargs['preferred_month']
-        if kwargs.get('pax_count'):
-            doc.pax_count = int(kwargs['pax_count'])
+        if kwargs.get('suggested_package'): doc.suggested_package = kwargs['suggested_package']
+        if kwargs.get('preferred_month'): doc.preferred_month = kwargs['preferred_month']
+        if kwargs.get('pax_count'): doc.pax_count = int(kwargs['pax_count'])
         if kwargs.get('remarks'):
-            existing_remarks = doc.remarks or ''
-            new_remark = kwargs.get('remarks', '')
-            doc.remarks = (existing_remarks + '\n\nNew Enquiry: ' + new_remark).strip()
-        if kwargs.get('interest_tags'):
-            doc.interest_tags = kwargs['interest_tags']
+            doc.remarks = ((doc.remarks or '') + '\n\nNew Enquiry: ' + kwargs['remarks']).strip()
+        if kwargs.get('interest_tags'): doc.interest_tags = kwargs['interest_tags']
         doc.save(ignore_permissions=True)
         frappe.db.commit()
         return {'success': True, 'name': doc.name, 'action': 'updated'}
     else:
-        # Create new lead
         user_name = frappe.db.get_value('User', user, 'full_name') or user
         user_mobile = frappe.db.get_value('User', user, 'mobile_no') or ''
         doc = frappe.get_doc({

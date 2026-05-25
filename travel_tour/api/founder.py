@@ -191,7 +191,14 @@ def create_package(**kwargs): return save_package(**kwargs)
 @frappe.whitelist()
 def save_booking(**kwargs):
     n = kwargs.get('name')
-    doc = frappe.get_doc('Booking', n) if n and frappe.db.exists('Booking', n) else frappe.new_doc('Booking')
+    if n and frappe.db.exists('Booking', n):
+        # Check if cancelled
+        status = frappe.db.get_value('Booking', n, 'docstatus')
+        if status == 2:
+            return {'success': False, 'error': 'Cannot edit a cancelled booking'}
+        doc = frappe.get_doc('Booking', n)
+    else:
+        doc = frappe.new_doc('Booking')
 
     # customer is mandatory Link[Customer] — resolve or create
     customer = kwargs.get('customer', '')
