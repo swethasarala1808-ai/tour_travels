@@ -254,7 +254,7 @@ tr:hover td{background:var(--jade3)}
       <div class="card">
         <div class="ch"><h3>Payment Summary</h3></div>
         <div class="cb tw">
-          <table><thead><tr><th>Booking ID</th><th>Package</th><th>Departure</th><th>Pax</th><th>Base Amount</th><th>GST</th><th>Grand Total</th></tr></thead>
+          <table><thead><tr><th>Booking ID</th><th>Package</th><th>Departure</th><th>Pax</th><th>Base Amount</th><th>GST</th><th>Grand Total</th><th>Pay</th><th>Invoice</th></tr></thead>
           <tbody id="pay-tb"></tbody></table>
         </div>
       </div>
@@ -359,9 +359,46 @@ tr:hover td{background:var(--jade3)}
 </div><!-- /main -->
 </div><!-- /wrap -->
 
+
+<!-- Payment Modal -->
+<div class="modal" id="mo-pay" style="z-index:600">
+  <div class="mbox">
+    <div class="mhdr"><h3>💳 Pay for Booking</h3><button class="mcl" onclick="document.getElementById('mo-pay').classList.remove('on')">✕</button></div>
+    <div class="mbody">
+      <div id="pay-info" style="background:var(--jade3);border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px"></div>
+      <div style="text-align:center;padding:10px 0">
+        <p style="color:var(--ink3);font-size:13px;margin-bottom:16px">Choose your payment method:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <button class="btn btn-jade" style="justify-content:center;padding:14px" onclick="payRazorpay()">
+            💳 Pay Online<br><small style="font-weight:400;opacity:.8">Card / UPI / Net Banking</small>
+          </button>
+          <button class="btn btn-ghost" style="justify-content:center;padding:14px" onclick="payOffline()">
+            🏦 Bank Transfer<br><small style="font-weight:400;color:var(--ink3)">Manual payment</small>
+          </button>
+        </div>
+        <p style="font-size:11px;color:var(--ink3)">🔒 Secured by Razorpay · 256-bit SSL encrypted</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="tw2" id="tw2"></div>
 
 <script>
+
+// Check for payment success redirect
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('payment') === 'success') {
+    document.addEventListener('DOMContentLoaded', function() {
+      toast('ok', '✅ Payment successful! Your booking is confirmed.');
+      goPage('payments');
+      // Remove param from URL
+      history.replaceState({}, '', '/travel_enquiry');
+    });
+  }
+})();
+
 // ════ STATE ════
 var D = {lead: null, bookings: [], visas: [], all_packages: [], all_destinations: []};
 var CUR = 'dashboard';
@@ -554,11 +591,22 @@ function renderVisas() {
 function renderPayments() {
   var tb = document.getElementById('pay-tb');
   if (!D.bookings.length) {
-    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink3)">No payment records yet</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--ink3)"><div style="font-size:36px;margin-bottom:10px">💳</div>No payment records yet</td></tr>';
     return;
   }
   tb.innerHTML = D.bookings.map(function(b) {
-    return '<tr><td><b>' + x(b.name) + '</b></td><td>' + x(b.package_name || b.tour_package) + '</td><td>' + x(b.departure_date) + '</td><td>' + x(b.total_pax) + '</td><td>₹' + fmt(b.base_amount) + '</td><td>₹' + fmt(b.gst_amount) + '</td><td><b>₹' + fmt(b.grand_total) + '</b></td></tr>';
+    var invoiceUrl = '/api/method/travel_tour.api.whatsapp.download_invoice?booking=' + b.name;
+    return '<tr>'
+      + '<td><b>' + x(b.name) + '</b></td>'
+      + '<td>' + x(b.package_name || b.tour_package) + '</td>'
+      + '<td>' + x(b.departure_date) + '</td>'
+      + '<td>' + x(b.total_pax) + '</td>'
+      + '<td>₹' + fmt(b.base_amount) + '</td>'
+      + '<td>₹' + fmt(b.gst_amount) + '</td>'
+      + '<td><b>₹' + fmt(b.grand_total) + '</b></td>'
+      + '<td><button class="btn btn-jade btn-sm" onclick="payNow('' + b.name + '',' + b.grand_total + ')">💳 Pay</button></td>'
+      + '<td><a href="' + invoiceUrl + '" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🧾 Invoice</a></td>'
+      + '</tr>';
   }).join('');
 }
 
@@ -713,6 +761,50 @@ function toast(type, msg) {
   w.appendChild(t);
   setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 3500);
 }
+
+// ════ PAYMENT ════
+var curPayBooking = null;
+var curPayAmount = 0;
+
+function payNow(bookingName, amount) {
+  curPayBooking = bookingName;
+  curPayAmount = amount;
+  var info = document.getElementById('pay-info');
+  if (info) {
+    var bk = D.bookings.find(function(b){ return b.name === bookingName; });
+    info.innerHTML = '<b>Booking:</b> ' + bookingName
+      + (bk ? ' · <b>Package:</b> ' + x(bk.package_name || bk.tour_package) : '')
+      + '<br><b>Amount:</b> ₹' + parseFloat(amount||0).toLocaleString('en-IN');
+  }
+  document.getElementById('mo-pay').classList.add('on');
+}
+
+function payRazorpay() {
+  if (!curPayBooking) return;
+  // Show loading
+  document.getElementById('pay-info').innerHTML += '<br><br>⏳ Creating payment link...';
+  api('travel_tour.api.whatsapp.send_booking_confirmation', {booking_name: curPayBooking}, function(r) {
+    document.getElementById('mo-pay').classList.remove('on');
+    if (r.message && r.message.success && r.message.payment_link && r.message.payment_link.startsWith('http')) {
+      // Open Razorpay payment link
+      window.open(r.message.payment_link, '_blank');
+      toast('ok', '💳 Payment page opened!');
+    } else {
+      // Razorpay not configured — show bank details
+      toast('err', 'Online payment not configured. Please use bank transfer or contact us.');
+      payOffline();
+    }
+  }, function() {
+    document.getElementById('mo-pay').classList.remove('on');
+    toast('err', 'Could not create payment link. Please contact us.');
+  });
+}
+
+function payOffline() {
+  document.getElementById('mo-pay').classList.remove('on');
+  toast('ok', 'Please transfer ₹' + parseFloat(curPayAmount||0).toLocaleString('en-IN') + ' to our bank account. Share UTR to confirm booking.');
+}
+
 function doLogout() {
   fetch('/api/method/logout', {method:'POST',credentials:'same-origin',headers:{'X-Frappe-CSRF-Token':CSRF}})
   .then(function() { window.location.href = '/my_portal'; })
