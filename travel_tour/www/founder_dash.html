@@ -445,25 +445,27 @@ function rOv(){
   g('ovb').innerHTML=D.bookings.slice(0,5).map(function(b){return '<tr><td>'+x(b.name)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.grand_total)+'</td></tr>';}).join('')||em('No bookings yet');
 }
 
-function rLeads(){var q=(gv('lq')||'').toLowerCase(),sf=gv('lsf')||'';var r=D.leads.filter(function(l){return(l.full_name+l.email_id+l.mobile_no).toLowerCase().includes(q)&&(!sf||l.status===sf);});g('ltb').innerHTML=r.length?r.map(function(l){
-  var actBtns='<button class="tb tb-e" onclick='eL('+J(l)+')' style="margin-right:2px">Edit</button>'
-    +'<button class="tb tb-d" onclick="del('Travel Lead',''+l.name+'')" style="margin-right:2px">Del</button>'
-    +'<button class="tb" style="background:#e8f0fe;color:#1a5fa8;margin-right:2px" onclick='sendWaLead("'+l.name+'")'>📱 WA</button>';
-  if(l.status!=='converted'){
-    actBtns+='<button class="tb" style="background:#fff3e0;color:#c66" onclick='oConvertLead('+J(l)+')'>🎯 Book</button>';
-  }else{
-    actBtns+='<span style="font-size:11px;color:#1a7a5e">✅ Booked</span>';
-  }
-  return '<tr><td><b>'+x(l.full_name)+'</b></td><td>'+x(l.email_id)+'</td><td>'+x(l.mobile_no)+'</td><td>'+bdg(l.status)+'</td><td>'+x(l.suggested_package)+'</td><td>'+x(l.pax_count)+'</td><td>'+x(l.source)+'</td><td>'+x(l.assigned_consultant)+'</td><td>'+actBtns+'</td></tr>';
-}).join(''):em('No leads found');}
-
-function rBk(){var q=(gv('bq')||'').toLowerCase();var r=D.bookings.filter(function(b){return(b.name+b.tour_package+(b.customer||'')).toLowerCase().includes(q);});g('btb').innerHTML=r.length?r.map(function(b){
-  var ab='<button class="tb tb-e" onclick='eB('+J(b)+')' style="margin-right:2px">Edit</button>'
-    +'<button class="tb tb-d" onclick="del('Booking',''+b.name+'')" style="margin-right:2px">Del</button>'
-    +'<button class="tb" style="background:#e8f5f1;color:#1a7a5e;margin-right:2px" onclick='sendWaBk("'+b.name+'")'>📱 WA</button>'
-    +'<a class="tb" style="background:#e8f0fe;color:#1a5fa8;text-decoration:none" href="/api/method/travel_tour.api.whatsapp.download_invoice?booking='+b.name+'" target="_blank">🧾</a>';
-  return '<tr><td><b>'+x(b.name)+'</b></td><td>'+x(b.customer||b.customer_mobile)+'</td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.base_amount)+'</td><td>₹'+fmt(b.gst_amount)+'</td><td>₹'+fmt(b.grand_total)+'</td><td>'+ab+'</td></tr>';
-}).join(''):em('No bookings found');}
+function rLeads(){
+  var q=(gv('lq')||'').toLowerCase(),sf=gv('lsf')||'';
+  var rows=D.leads.filter(function(l){return(l.full_name+l.email_id+l.mobile_no).toLowerCase().includes(q)&&(!sf||l.status===sf);});
+  if(!rows.length){g('ltb').innerHTML=em('No leads found');return;}
+  var html='';
+  rows.forEach(function(l,i){
+    var bk=(l.status==='converted')?'<span style="font-size:11px;color:var(--jade);padding:0 4px">✅ Booked</span>':'<button class="tb" style="background:#fff3e0;color:#c66" data-idx="'+i+'" onclick="oConvertLead(this.dataset.idx)">🎯 Book</button>';
+    html+='<tr>'
+      +'<td><b>'+x(l.full_name)+'</b></td><td>'+x(l.email_id)+'</td><td>'+x(l.mobile_no)+'</td>'
+      +'<td>'+bdg(l.status)+'</td><td>'+x(l.suggested_package)+'</td><td>'+x(l.pax_count)+'</td>'
+      +'<td>'+x(l.source)+'</td><td>'+x(l.assigned_consultant)+'</td>'
+      +'<td>'
+        +'<button class="tb tb-e" data-idx="'+i+'" onclick="eL(D.leads[this.dataset.idx])" style="margin-right:2px">Edit</button>'
+        +'<button class="tb tb-d" data-name="'+x(l.name)+'" onclick="del(\'Travel Lead\',this.dataset.name)" style="margin-right:2px">Del</button>'
+        +'<button class="tb" style="background:#e8f0fe;color:#1a5fa8;margin-right:2px" data-name="'+x(l.name)+'" onclick="sendWaLead(this.dataset.name)">📱</button>'
+        +bk
+      +'</td>'
+    +'</tr>';
+  });
+  g('ltb').innerHTML=html;
+}
 
 function rPay(){g('ptb').innerHTML=D.bookings.length?D.bookings.map(function(b){return '<tr><td><b>'+x(b.name)+'</b></td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.base_amount)+'</td><td>₹'+fmt(b.gst_amount)+'</td><td><b>₹'+fmt(b.grand_total)+'</b></td><td><button class="tb tb-e" onclick="sv(\'paybk\',\''+b.name+'\');oPay()">Record</button></td></tr>';}).join(''):em('No bookings');}
 
@@ -630,7 +632,7 @@ function getPricingSlabs() {
 
 
 // ════ WHATSAPP + CONVERT LEAD ════
-function oConvertLead(l) {
+function oConvertLead(idx) { var l=D.leads[parseInt(idx)]; if(!l)return;
   sv('conv-lead-name', l.name);
   g('conv-lead-info').innerHTML = '<b>'+x(l.full_name)+'</b> · '+x(l.mobile_no)+' · Pax: '+(l.pax_count||'—')+' · Package: '+x(l.suggested_package||'—');
   sv('conv-pax', l.pax_count || 1);

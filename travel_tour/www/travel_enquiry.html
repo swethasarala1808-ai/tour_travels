@@ -594,9 +594,10 @@ function renderPayments() {
     tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--ink3)"><div style="font-size:36px;margin-bottom:10px">💳</div>No payment records yet</td></tr>';
     return;
   }
-  tb.innerHTML = D.bookings.map(function(b) {
-    var invoiceUrl = '/api/method/travel_tour.api.whatsapp.download_invoice?booking=' + b.name;
-    return '<tr>'
+  var html = '';
+  D.bookings.forEach(function(b, i) {
+    var invUrl = '/api/method/travel_tour.api.whatsapp.download_invoice?booking=' + encodeURIComponent(b.name);
+    html += '<tr>'
       + '<td><b>' + x(b.name) + '</b></td>'
       + '<td>' + x(b.package_name || b.tour_package) + '</td>'
       + '<td>' + x(b.departure_date) + '</td>'
@@ -604,10 +605,11 @@ function renderPayments() {
       + '<td>₹' + fmt(b.base_amount) + '</td>'
       + '<td>₹' + fmt(b.gst_amount) + '</td>'
       + '<td><b>₹' + fmt(b.grand_total) + '</b></td>'
-      + '<td><button class="btn btn-jade btn-sm" onclick="payNow('' + b.name + '',' + b.grand_total + ')">💳 Pay</button></td>'
-      + '<td><a href="' + invoiceUrl + '" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🧾 Invoice</a></td>'
+      + '<td><button class="btn btn-jade btn-sm" data-idx="' + i + '" data-amt="' + (b.grand_total||0) + '" onclick="payNow(D.bookings[this.dataset.idx].name,parseFloat(this.dataset.amt))">💳 Pay</button></td>'
+      + '<td><a href="' + invUrl + '" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🧾 Invoice</a></td>'
       + '</tr>';
-  }).join('');
+  });
+  tb.innerHTML = html;
 }
 
 // ════ ENQUIRY ════
