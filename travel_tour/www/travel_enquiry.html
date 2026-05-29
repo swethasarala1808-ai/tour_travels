@@ -363,7 +363,7 @@ tr:hover td{background:var(--jade3)}
 <!-- Payment Modal -->
 <div class="modal" id="mo-pay" style="z-index:600">
   <div class="mbox">
-    <div class="mhdr"><h3>💳 Pay for Booking</h3><button class="mcl" onclick="document.getElementById('mo-pay').classList.remove('on')">✕</button></div>
+    <div class="mhdr"><h3>💳 Pay for Booking</h3><button class="mcl" onclick="event.stopPropagation();document.getElementById('mo-pay').classList.remove('on')">✕</button></div>
     <div class="mbody">
       <div id="pay-info" style="background:var(--jade3);border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px"></div>
       <div style="text-align:center;padding:10px 0">
@@ -596,7 +596,7 @@ function renderPayments() {
   }
   var html = '';
   D.bookings.forEach(function(b, i) {
-    var invUrl = '/api/method/travel_tour.api.whatsapp.download_invoice?booking=' + encodeURIComponent(b.name);
+    var invUrl = '/api/method/travel_tour.api.whatsapp.get_invoice?booking=' + encodeURIComponent(b.name);
     html += '<tr>'
       + '<td><b>' + x(b.name) + '</b></td>'
       + '<td>' + x(b.package_name || b.tour_package) + '</td>'
@@ -605,7 +605,7 @@ function renderPayments() {
       + '<td>₹' + fmt(b.base_amount) + '</td>'
       + '<td>₹' + fmt(b.gst_amount) + '</td>'
       + '<td><b>₹' + fmt(b.grand_total) + '</b></td>'
-      + '<td><button class="btn btn-jade btn-sm" data-idx="' + i + '" data-amt="' + (b.grand_total||0) + '" onclick="payNow(D.bookings[this.dataset.idx].name,parseFloat(this.dataset.amt))">💳 Pay</button></td>'
+      + '<td><button class="btn btn-jade btn-sm" data-idx="' + i + '" data-amt="' + (b.grand_total||0) + '" onclick="event.preventDefault();event.stopPropagation();payNow(D.bookings[parseInt(this.dataset.idx)].name,parseFloat(this.dataset.amt));return false;">💳 Pay</button></td>'
       + '<td><a href="' + invUrl + '" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🧾 Invoice</a></td>'
       + '</tr>';
   });

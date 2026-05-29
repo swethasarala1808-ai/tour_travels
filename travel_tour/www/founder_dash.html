@@ -467,6 +467,27 @@ function rLeads(){
   g('ltb').innerHTML=html;
 }
 
+
+function rBk(){
+  var q=(gv('bq')||'').toLowerCase();
+  var rows=D.bookings.filter(function(b){return(b.name+b.tour_package+(b.customer||'')).toLowerCase().includes(q);});
+  if(!rows.length){g('btb').innerHTML=em('No bookings found');return;}
+  var html='';
+  rows.forEach(function(b,i){
+    var ab='<button class="tb tb-e" data-idx="'+i+'" onclick="eB(D.bookings[parseInt(this.dataset.idx)])" style="margin-right:2px">Edit</button>'
+      +'<button class="tb tb-d" data-name="'+x(b.name)+'" onclick="delRecord(this.dataset.name)" style="margin-right:2px">Del</button>'
+      +'<button class="tb" style="background:#e8f5f1;color:#1a7a5e;margin-right:2px" data-name="'+x(b.name)+'" onclick="sendWaBk(this.dataset.name)">📱</button>'
+      +'<a class="tb" style="background:#e8f0fe;color:#1a5fa8;text-decoration:none;display:inline-block" href="/api/method/travel_tour.api.whatsapp.get_invoice?booking='+x(b.name)+'" target="_blank">🧾</a>';
+    html+='<tr>'
+      +'<td><b>'+x(b.name)+'</b></td><td>'+x(b.customer||b.customer_mobile)+'</td>'
+      +'<td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td>'
+      +'<td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.base_amount)+'</td>'
+      +'<td>₹'+fmt(b.gst_amount)+'</td><td>₹'+fmt(b.grand_total)+'</td>'
+      +'<td>'+ab+'</td></tr>';
+  });
+  g('btb').innerHTML=html;
+}
+
 function rPay(){g('ptb').innerHTML=D.bookings.length?D.bookings.map(function(b){return '<tr><td><b>'+x(b.name)+'</b></td><td>'+x(b.tour_package)+'</td><td>'+x(b.departure_date)+'</td><td>'+x(b.total_pax)+'</td><td>₹'+fmt(b.base_amount)+'</td><td>₹'+fmt(b.gst_amount)+'</td><td><b>₹'+fmt(b.grand_total)+'</b></td><td><button class="tb tb-e" onclick="sv(\'paybk\',\''+b.name+'\');oPay()">Record</button></td></tr>';}).join(''):em('No bookings');}
 
 function rPkg(){var q=(gv('pq')||'').toLowerCase();var r=D.packages.filter(function(p){return(p.package_name+p.destination).toLowerCase().includes(q);});g('pktb').innerHTML=r.length?r.map(function(p){var priceStr=p.pricing_slabs&&p.pricing_slabs.length?'₹'+fmt(p.pricing_slabs[0].per_person_price)+'/pax':'—';return '<tr><td><b>'+x(p.package_name||p.name)+'</b></td><td>'+bdg(p.tour_type)+'</td><td>'+x(p.destination)+'</td><td>'+x(p.duration_nights)+'</td><td>'+x(p.duration_days)+'</td><td>'+(p.visa_required?'✅':'❌')+'</td><td>'+priceStr+'</td>'+acts('eP('+J(p)+')','Tour Package',p.name)+'</tr>';}).join(''):em('No packages found');}
@@ -567,6 +588,7 @@ function saveCp(){if(!gv('cpn')){toast('err','Policy name required');return;}api
 function saveRs(){if(!gv('rsbk')){toast('err','Booking required');return;}api('travel_tour.api.founder.save_run_sheet',{name:gv('rsid'),booking:gv('rsbk'),departure_date:gv('rsdate'),total_pax:gv('rspax')},function(r){if(r.message&&r.message.success){cm('mo-rs');loadData();toast('ok','Run sheet created!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveGuide(){if(!gv('guser')||!gv('gbk')||!gv('gdep')||!gv('gret')){toast('err','All fields required');return;}api('travel_tour.api.founder.save_guide_allocation',{name:gv('gid'),guide:gv('guser'),booking:gv('gbk'),departure_date:gv('gdep'),return_date:gv('gret'),status:gv('gst')},function(r){if(r.message&&r.message.success){cm('mo-guide');loadData();toast('ok','Guide allocated!');}else toast('err',(r.message&&r.message.error)||'Error');});}
 function saveSett(){api('travel_tour.api.founder.save_settings',{ops_email:gv('se1'),site_url:gv('se2'),razorpay_key_id:gv('se3'),consultant_commission_pct:gv('se4'),website_booking_bonus:gv('se5')},function(r){if(r.message&&r.message.success)toast('ok','Settings saved!');else toast('err',(r.message&&r.message.error)||'Error');});}
+function delRecord(n,dt){ del(dt,n); }
 function del(dt,n){if(!confirm('Delete '+n+'?'))return;api('travel_tour.api.founder.delete_record',{doctype:dt,record_name:n},function(r){if(r.message&&r.message.success){loadData();toast('ok','Deleted!');}else toast('err','Error');});}
 
 // ════ HELPERS ════

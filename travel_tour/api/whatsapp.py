@@ -396,72 +396,7 @@ def razorpay_callback(**kwargs):
 # ══════════════════════════════════════════════════════════════════════════
 #  INVOICE DOWNLOAD
 # ══════════════════════════════════════════════════════════════════════════
-@frappe.whitelist(allow_guest=True)
-def download_invoice(booking=None):
-    """Generate and return a simple HTML payment invoice."""
-    if not booking or not frappe.db.exists('Booking', booking):
-        frappe.throw("Booking not found")
 
-    bk = frappe.get_doc('Booking', booking)
-    full_name = 'Customer'
-    mobile = bk.customer_mobile or ''
-    if bk.customer:
-        full_name = frappe.db.get_value('Customer', bk.customer, 'customer_name') or 'Customer'
-        mobile = mobile or frappe.db.get_value('Customer', bk.customer, 'mobile_no') or ''
-
-    pkg_name = bk.tour_package
-    if bk.tour_package:
-        pkg_name = frappe.db.get_value('Tour Package', bk.tour_package, 'package_name') or bk.tour_package
-
-    html = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Invoice {bk.name}</title>
-<style>
-body{{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#333}}
-.header{{background:#1a7a5e;color:#fff;padding:24px;border-radius:10px;margin-bottom:24px}}
-.header h1{{margin:0;font-size:24px}}
-.header p{{margin:6px 0 0;opacity:.8;font-size:13px}}
-table{{width:100%;border-collapse:collapse;margin:16px 0}}
-th{{background:#f4f6f8;text-align:left;padding:10px 12px;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.05em}}
-td{{padding:10px 12px;border-bottom:1px solid #eee;font-size:14px}}
-.total-row td{{font-weight:700;font-size:16px;background:#e8f5f1;color:#1a7a5e}}
-.footer{{text-align:center;margin-top:32px;color:#999;font-size:12px}}
-@media print{{body{{margin:0}}}}
-</style></head>
-<body>
-<div class="header">
-  <h1>✈️ Tour Travels</h1>
-  <p>Booking Invoice · {bk.name}</p>
-</div>
-<h3>Customer Details</h3>
-<table>
-  <tr><th>Name</th><td>{full_name}</td><th>Mobile</th><td>{mobile}</td></tr>
-  <tr><th>Booking ID</th><td>{bk.name}</td><th>Date</th><td>{str(bk.creation)[:10]}</td></tr>
-</table>
-<h3>Booking Details</h3>
-<table>
-  <tr><th>Tour Package</th><td colspan="3">{pkg_name}</td></tr>
-  <tr><th>Departure Date</th><td>{str(bk.departure_date or '—')}</td><th>Total Pax</th><td>{bk.total_pax or 0}</td></tr>
-</table>
-<h3>Payment Summary</h3>
-<table>
-  <tr><th>Base Amount</th><td>₹{float(bk.base_amount or 0):,.2f}</td></tr>
-  <tr><th>Discount</th><td>- ₹{float(bk.discount_amount or 0):,.2f}</td></tr>
-  <tr><th>GST (5%)</th><td>₹{float(bk.gst_amount or 0):,.2f}</td></tr>
-  <tr><th>TCS</th><td>₹{float(bk.tcs_amount or 0):,.2f}</td></tr>
-  <tr class="total-row"><td>Grand Total</td><td>₹{float(bk.grand_total or 0):,.2f}</td></tr>
-</table>
-<div style="text-align:center;margin:24px 0">
-  <button onclick="window.print()" style="background:#1a7a5e;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;cursor:pointer">🖨️ Print Invoice</button>
-</div>
-<div class="footer">
-  <p>Thank you for choosing Tour Travels! ✈️</p>
-  <p>This is a computer-generated invoice and does not require a signature.</p>
-</div>
-</body></html>"""
-
-    frappe.local.response['type'] = 'page'
-    frappe.local.response['html'] = html
-    return html
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -585,3 +520,88 @@ def convert_lead_to_booking(lead_name, tour_package, departure_date, total_pax):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "convert_lead_to_booking Error")
         return {'success': False, 'error': str(e)}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_invoice(**kwargs):
+    """Return printable HTML invoice - served as raw HTML response."""
+    booking = frappe.form_dict.get('booking') or kwargs.get('booking', '')
+    if not booking:
+        frappe.throw("Booking required")
+    if not frappe.db.exists('Booking', booking):
+        frappe.throw("Booking not found: " + str(booking))
+
+    try:
+        bk = frappe.get_doc('Booking', booking)
+    except Exception as e:
+        frappe.throw("Error loading booking: " + str(e))
+
+    full_name = 'Customer'
+    mobile = bk.customer_mobile or ''
+    if bk.customer:
+        full_name = frappe.db.get_value('Customer', bk.customer, 'customer_name') or 'Customer'
+        if not mobile:
+            mobile = frappe.db.get_value('Customer', bk.customer, 'mobile_no') or ''
+
+    pkg_name = bk.tour_package or '—'
+    if bk.tour_package:
+        pkg_name = frappe.db.get_value('Tour Package', bk.tour_package, 'package_name') or bk.tour_package
+
+    html_content = (
+        "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
+        "<title>Invoice " + bk.name + "</title>"
+        "<style>"
+        "*{box-sizing:border-box;margin:0;padding:0}"
+        "body{font-family:Arial,sans-serif;background:#f4f6f8;padding:20px;color:#333}"
+        ".inv{max-width:680px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}"
+        ".hdr{background:linear-gradient(135deg,#1a7a5e,#22967a);color:#fff;padding:28px 32px}"
+        ".hdr h1{font-size:22px;margin-bottom:4px}"
+        ".hdr p{opacity:.75;font-size:13px}"
+        ".bd{padding:28px 32px}"
+        ".meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;background:#f9fbfa;border-radius:8px;padding:16px}"
+        ".ml{font-size:10px;text-transform:uppercase;color:#888;display:block;margin-bottom:3px}"
+        ".mv{font-size:14px;font-weight:600;color:#0f1923}"
+        "table{width:100%;border-collapse:collapse;margin-bottom:20px}"
+        "th{background:#f4f6f8;padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;color:#666}"
+        "td{padding:11px 14px;border-bottom:1px solid #eee;font-size:13px}"
+        ".tr td{background:#e8f5f1;color:#1a7a5e;font-weight:700;font-size:15px;border:none}"
+        ".act{text-align:center;padding:20px;border-top:1px solid #eee;display:flex;gap:12px;justify-content:center}"
+        ".bp{background:#1a7a5e;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;cursor:pointer}"
+        ".bc{background:#f4f6f8;color:#333;border:1.5px solid #dde2e8;padding:12px 28px;border-radius:8px;font-size:14px;cursor:pointer}"
+        ".ft{text-align:center;padding:16px;background:#f9fbfa;color:#999;font-size:12px}"
+        "@media print{.act{display:none}.inv{box-shadow:none}body{background:#fff;padding:0}}"
+        "</style></head><body>"
+        "<div class='inv'>"
+        "<div class='hdr'><h1>&#9992;&#65039; Tour Travels</h1><p>Booking Invoice &middot; " + bk.name + "</p></div>"
+        "<div class='bd'>"
+        "<div class='meta'>"
+        "<div><span class='ml'>Customer</span><span class='mv'>" + full_name + "</span></div>"
+        "<div><span class='ml'>Mobile</span><span class='mv'>" + (mobile or '—') + "</span></div>"
+        "<div><span class='ml'>Booking ID</span><span class='mv'>" + bk.name + "</span></div>"
+        "<div><span class='ml'>Date</span><span class='mv'>" + str(str(bk.creation)[:10] if bk.creation else '—') + "</span></div>"
+        "</div>"
+        "<table><thead><tr><th>Description</th><th>Amount</th></tr></thead><tbody>"
+        "<tr><td>Tour Package</td><td><b>" + pkg_name + "</b></td></tr>"
+        "<tr><td>Departure Date</td><td>" + str(bk.departure_date or '—') + "</td></tr>"
+        "<tr><td>Total Travellers</td><td>" + str(bk.total_pax or 0) + "</td></tr>"
+        "<tr><td>Base Amount</td><td>&#8377; " + '{:,.2f}'.format(float(bk.base_amount or 0)) + "</td></tr>"
+        "<tr><td>Discount</td><td>- &#8377; " + '{:,.2f}'.format(float(bk.discount_amount or 0)) + "</td></tr>"
+        "<tr><td>GST (5%)</td><td>&#8377; " + '{:,.2f}'.format(float(bk.gst_amount or 0)) + "</td></tr>"
+        "<tr><td>TCS</td><td>&#8377; " + '{:,.2f}'.format(float(bk.tcs_amount or 0)) + "</td></tr>"
+        "<tr class='tr'><td><b>Grand Total</b></td><td><b>&#8377; " + '{:,.2f}'.format(float(bk.grand_total or 0)) + "</b></td></tr>"
+        "</tbody></table>"
+        "<div class='act'>"
+        "<button class='bp' onclick='window.print()'>&#128438; Print Invoice</button>"
+        "<button class='bc' onclick='window.close()'>&#10005; Close</button>"
+        "</div></div>"
+        "<div class='ft'>Thank you for choosing Tour Travels! &#9992;&#65039;</div>"
+        "</div></body></html>"
+    )
+
+    frappe.local.response['http_status_code'] = 200
+    frappe.local.response['content_type'] = 'text/html; charset=utf-8'
+    frappe.local.response['filename'] = 'invoice-' + bk.name + '.html'
+    frappe.local.response['type'] = 'download'
+    frappe.local.response['filecontent'] = html_content.encode('utf-8')
+    return
+
