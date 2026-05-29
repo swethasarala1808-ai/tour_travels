@@ -1,651 +1,816 @@
 {% extends "templates/web.html" %}
-
-{% block title %}Register Your Travel Interest | Travel Tour{% endblock %}
-
+{% block title %}My Travels – Tour Travels Portal{% endblock %}
 {% block head_include %}
-<meta name="description" content="Tell us your dream destination. Register your interest and our consultants will reach out to plan the perfect trip for you.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-deep: #0a0e1a;
-    --bg-card: rgba(255,255,255,0.04);
-    --bg-card-hover: rgba(255,255,255,0.07);
-    --border: rgba(255,255,255,0.10);
-    --border-focus: rgba(99,179,237,0.6);
-    --gold: #f0b429;
-    --gold-light: #ffd764;
-    --teal: #38bdf8;
-    --teal-light: #7dd3fc;
-    --green: #34d399;
-    --text-primary: #f0f4f8;
-    --text-secondary: rgba(240,244,248,0.60);
-    --text-muted: rgba(240,244,248,0.38);
-    --gradient-hero: linear-gradient(135deg, #0a0e1a 0%, #0c1a2e 50%, #0a1628 100%);
-    --gradient-gold: linear-gradient(135deg, #f0b429, #e8870a);
-    --gradient-teal: linear-gradient(135deg, #38bdf8, #0ea5e9);
-    --shadow-card: 0 24px 48px rgba(0,0,0,0.5);
-    --radius: 16px;
-    --radius-sm: 10px;
-  }
+:root{
+  --jade:#1a7a5e;--jade2:#22967a;--jade3:#e8f5f1;
+  --ink:#0f1923;--ink2:#2d3a47;--ink3:#5a6978;
+  --bg:#f4f6f8;--bg2:#ffffff;--br:#dde2e8;
+  --red:#dc3545;--amber:#e8820c;--blue:#1a5fa8;
+  --shadow:0 2px 14px rgba(0,0,0,.07);--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;min-height:100vh}
+input,select,textarea{font-family:inherit;font-size:13px;color:var(--ink);background:var(--bg2);border:1.5px solid var(--br);border-radius:8px;padding:9px 12px;width:100%;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--jade)}
+textarea{resize:vertical;min-height:80px}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+a{color:var(--jade);text-decoration:none}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Layout ── */
+.wrap{display:flex;min-height:100vh}
+.sb{width:240px;background:var(--ink);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s;overflow-y:auto}
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column}
+@media(max-width:800px){.sb{transform:translateX(-100%)}.sb.open{transform:translateX(0)}.main{margin-left:0}.hbg{display:flex!important}.ov{display:block!important}}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+.ov.open{display:block}
 
-  body {
-    font-family: 'Outfit', sans-serif;
-    background: var(--bg-deep);
-    color: var(--text-primary);
-    min-height: 100vh;
-  }
+/* ── Sidebar ── */
+.sb-brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-icon{width:38px;height:38px;background:var(--jade);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sb-txt{font-family:'DM Serif Display',serif;font-size:16px;color:#fff;line-height:1.1}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase}
+.sb-user{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sb-av{width:36px;height:36px;border-radius:50%;background:var(--jade);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
+.sb-un{color:#fff;font-size:13px;font-weight:600;line-height:1.2}
+.sb-mob{color:rgba(255,255,255,.4);font-size:11px}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{padding:12px 16px 3px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28)}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 16px;color:rgba(255,255,255,.65);font-size:13px;cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.ni:hover{background:rgba(255,255,255,.06);color:#fff}
+.ni.on{background:rgba(26,122,94,.25);color:#fff;border-left-color:var(--jade2)}
+.ni .ic{font-size:14px;width:18px;text-align:center}
+.nb{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:auto}
+.sb-ft{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-so{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.45);font-size:12px;cursor:pointer}
+.sb-so:hover{color:#fff}
 
-  /* ── Hero Section ── */
-  .enq-hero {
-    position: relative;
-    min-height: 380px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 80px 24px 60px;
-    overflow: hidden;
-    background: var(--gradient-hero);
-  }
+/* ── Topbar ── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--br);padding:0 22px;height:56px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.hbg{display:none;align-items:center;justify-content:center;width:36px;height:36px;cursor:pointer;color:var(--ink2);font-size:20px;border-radius:8px}
+.hbg:hover{background:var(--bg)}
+.tb-title{font-family:'DM Serif Display',serif;font-size:19px;flex:1}
 
-  .enq-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 60% at 20% 30%, rgba(56,189,248,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 80% 70%, rgba(240,180,41,0.10) 0%, transparent 60%);
-  }
+/* ── Content ── */
+.content{flex:1;padding:24px;max-width:960px;width:100%}
+@media(max-width:600px){.content{padding:14px}}
+.pg{display:none}.pg.on{display:block}
 
-  .hero-orbit {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(56,189,248,0.12);
-    animation: rotate 30s linear infinite;
-  }
-  .hero-orbit:nth-child(1) { width: 500px; height: 500px; top: -200px; right: -150px; }
-  .hero-orbit:nth-child(2) { width: 300px; height: 300px; bottom: -100px; left: -80px; animation-direction: reverse; animation-duration: 20s; }
+/* ── Cards ── */
+.card{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.ch{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--br)}
+.ch h3{font-family:'DM Serif Display',serif;font-size:17px;flex:1}
+.cb{padding:20px}
 
-  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* ── Profile Hero ── */
+.hero{background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 100%);border-radius:var(--radius);padding:24px 28px;display:flex;align-items:center;gap:20px;margin-bottom:20px;color:#fff}
+.hero-av{width:60px;height:60px;border-radius:50%;background:var(--jade);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;flex-shrink:0}
+.hero-name{font-family:'DM Serif Display',serif;font-size:22px;line-height:1.2}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.55);margin-top:3px}
 
-  .hero-content { position: relative; z-index: 2; max-width: 700px; }
+/* ── Info Grid ── */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:600px){.igrid{grid-template-columns:1fr}}
+.ifield{display:flex;flex-direction:column;gap:4px}
+.ifield-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.ifield-val{font-size:14px;color:var(--ink);font-weight:500}
+.status-dot{display:inline-flex;align-items:center;gap:6px}
+.status-dot::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0}
 
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(240,180,41,0.15);
-    border: 1px solid rgba(240,180,41,0.30);
-    border-radius: 100px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--gold-light);
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
-  }
+/* ── Buttons ── */
+.btn{padding:9px 18px;border-radius:9px;font-size:13px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.btn-jade{background:var(--jade);color:#fff;border:none}.btn-jade:hover{background:var(--jade2)}
+.btn-ghost{background:transparent;color:var(--ink2);border:1.5px solid var(--br)}.btn-ghost:hover{border-color:var(--jade);color:var(--jade)}
+.btn-sm{padding:6px 13px;font-size:12px}
 
-  .hero-title {
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    font-weight: 800;
-    line-height: 1.15;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, #f0f4f8 30%, var(--teal-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* ── Table ── */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:400px}
+th{text-align:left;padding:9px 12px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:2px solid var(--br);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--br);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--jade3)}
 
-  .hero-sub {
-    font-size: 1.05rem;
-    color: var(--text-secondary);
-    line-height: 1.7;
-  }
+/* ── Badge ── */
+.bdg{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.bg{background:#e6f4f0;color:#1a7a5e}.ba{background:#fff3e0;color:#c66}
+.bb{background:#e8f0fe;color:#1a5fa8}.br{background:#fdecea;color:#dc3545}.bx{background:#f0f2f5;color:#5a6978}
 
-  /* ── Destinations Strip ── */
-  .dest-strip {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 24px;
-    border-bottom: 1px solid var(--border);
-  }
+/* ── Form ── */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.fg label{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:500px){.fg2{grid-template-columns:1fr}}
 
-  .dest-chip {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 8px 18px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.25s ease;
-  }
+/* ── Empty ── */
+.empty{text-align:center;padding:40px 20px;color:var(--ink3)}
+.empty-ico{font-size:40px;margin-bottom:12px}
+.empty-ttl{font-size:15px;font-weight:600;margin-bottom:6px}
 
-  .dest-chip:hover {
-    background: rgba(56,189,248,0.10);
-    border-color: rgba(56,189,248,0.30);
-    color: var(--teal-light);
-    transform: translateY(-2px);
-  }
+/* ── Alert ── */
+.alert{padding:12px 16px;border-radius:9px;font-size:13px;margin-bottom:14px}
+.alert-ok{background:#e6f4f0;color:#1a7a5e;border:1px solid #b2dfdb}
+.alert-err{background:#fdecea;color:#c62828;border:1px solid #ffcdd2}
 
-  /* ── Main Layout ── */
-  .enq-main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 60px 24px 80px;
-    display: grid;
-    grid-template-columns: 1fr 420px;
-    gap: 48px;
-    align-items: start;
-  }
+/* ── Modal ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:14px}
+.modal.on{display:flex}
+.mbox{background:var(--bg2);border-radius:13px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mhdr{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--br)}
+.mhdr h3{font-family:'DM Serif Display',serif;font-size:17px;flex:1}
+.mcl{width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:15px;color:var(--ink3)}
+.mcl:hover{background:var(--br)}
+.mbody{padding:20px;max-height:75vh;overflow-y:auto}
+.mfoot{padding:14px 20px;border-top:1px solid var(--br);display:flex;justify-content:flex-end;gap:10px}
 
-  @media (max-width: 900px) {
-    .enq-main { grid-template-columns: 1fr; }
-    .enq-sidebar { display: none; }
-  }
-
-  /* ── Form Card ── */
-  .enq-form-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 40px;
-    box-shadow: var(--shadow-card);
-    backdrop-filter: blur(12px);
-  }
-
-  .form-heading {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--text-primary);
-  }
-
-  .form-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
-
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
-
-  .form-group { margin-bottom: 20px; }
-  .form-group.full { grid-column: 1 / -1; }
-
-  .form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    letter-spacing: 0.3px;
-  }
-
-  .form-control {
-    width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 16px;
-    font-size: 14px;
-    font-family: 'Outfit', sans-serif;
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
-  }
-
-  .form-control::placeholder { color: var(--text-muted); }
-
-  .form-control:focus {
-    border-color: var(--border-focus);
-    background: rgba(56,189,248,0.05);
-    box-shadow: 0 0 0 3px rgba(56,189,248,0.10);
-  }
-
-  select.form-control option { background: #131c30; }
-
-  textarea.form-control { resize: vertical; min-height: 100px; }
-
-  /* ── Interest Tags ── */
-  .interest-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 4px;
-  }
-
-  .interest-tag {
-    cursor: pointer;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 7px 16px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    user-select: none;
-  }
-
-  .interest-tag:hover { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.25); }
-  .interest-tag.selected {
-    background: rgba(56,189,248,0.15);
-    border-color: rgba(56,189,248,0.50);
-    color: var(--teal-light);
-  }
-
-  /* ── Submit Button ── */
-  .btn-submit {
-    width: 100%;
-    padding: 16px 24px;
-    background: var(--gradient-gold);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: 'Outfit', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: #1a1000;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 8px;
-    letter-spacing: 0.3px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn-submit::after {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-    transition: left 0.5s ease;
-  }
-
-  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(240,180,41,0.40); }
-  .btn-submit:hover::after { left: 100%; }
-  .btn-submit:active { transform: translateY(0); }
-
-  .btn-submit.loading { opacity: 0.8; pointer-events: none; }
-
-  /* ── Divider ── */
-  .form-divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 24px 0;
-    color: var(--text-muted);
-    font-size: 13px;
-  }
-  .form-divider::before, .form-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .login-link-row {
-    text-align: center;
-    font-size: 14px;
-    color: var(--text-secondary);
-  }
-  .login-link-row a {
-    color: var(--teal);
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s;
-  }
-  .login-link-row a:hover { color: var(--teal-light); }
-
-  /* ── Sidebar ── */
-  .enq-sidebar { display: flex; flex-direction: column; gap: 20px; }
-
-  .info-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 28px;
-    transition: background 0.25s, transform 0.25s;
-  }
-
-  .info-card:hover { background: var(--bg-card-hover); transform: translateY(-3px); }
-
-  .info-icon {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    margin-bottom: 16px;
-  }
-
-  .info-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
-  .info-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
-
-  .steps-card { padding: 28px; }
-  .steps-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 20px; }
-
-  .step-item {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    margin-bottom: 20px;
-  }
-
-  .step-num {
-    min-width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(240,180,41,0.15);
-    border: 1px solid rgba(240,180,41,0.30);
-    color: var(--gold);
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .step-text strong { display: block; font-size: 14px; margin-bottom: 3px; }
-  .step-text span { font-size: 12px; color: var(--text-muted); }
-
-  /* ── Success State ── */
-  .success-state {
-    display: none;
-    text-align: center;
-    padding: 48px 24px;
-  }
-
-  .success-icon {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: rgba(52,211,153,0.15);
-    border: 2px solid rgba(52,211,153,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    margin: 0 auto 24px;
-    animation: pulseGreen 1.5s ease infinite;
-  }
-
-  @keyframes pulseGreen {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.3); }
-    50% { box-shadow: 0 0 0 16px rgba(52,211,153,0); }
-  }
-
-  .success-state h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
-  .success-state p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
-  .success-ref {
-    display: inline-block;
-    margin: 16px auto;
-    background: rgba(52,211,153,0.1);
-    border: 1px solid rgba(52,211,153,0.25);
-    border-radius: 8px;
-    padding: 8px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--green);
-  }
-
-  .alert-msg {
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-bottom: 16px;
-    display: none;
-  }
-  .alert-msg.error {
-    background: rgba(248,113,113,0.12);
-    border: 1px solid rgba(248,113,113,0.3);
-    color: #fca5a5;
-  }
+/* ── Toast ── */
+.tw2{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--ink);color:#fff;padding:11px 16px;border-radius:9px;font-size:13px;box-shadow:var(--shadow);animation:su .3s ease;max-width:300px}
+.tok{background:#1a7a5e}.terr{background:var(--red)}
+@keyframes su{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 </style>
 {% endblock %}
 
 {% block page_content %}
-<!-- Hero -->
-<section class="enq-hero">
-  <div class="hero-orbit"></div>
-  <div class="hero-orbit"></div>
-  <div class="hero-content">
-    <div class="hero-badge">✈️ Your Journey Begins Here</div>
-    <h1 class="hero-title">Tell Us Your Dream Destination</h1>
-    <p class="hero-sub">
-      Register your travel interest — no account needed. Our consultants will craft a personalised plan just for you.
-    </p>
-  </div>
-</section>
+<div class="ov" id="ov" onclick="closeSb()"></div>
+<div class="wrap">
 
-<!-- Destinations Strip -->
-<div class="dest-strip">
-  <div class="dest-chip">🗼 Paris</div>
-  <div class="dest-chip">🏝️ Bali</div>
-  <div class="dest-chip">🏔️ Switzerland</div>
-  <div class="dest-chip">🗽 New York</div>
-  <div class="dest-chip">🦁 Kenya Safari</div>
-  <div class="dest-chip">🍜 Thailand</div>
-  <div class="dest-chip">🌸 Japan</div>
-  <div class="dest-chip">🏟️ Dubai</div>
-</div>
-
-<!-- Main -->
-<div class="enq-main">
-  <!-- Form -->
-  <div class="enq-form-card" id="formWrapper">
-    <div class="alert-msg error" id="errorMsg"></div>
-
-    <div id="formView">
-      <h2 class="form-heading">Register Your Interest</h2>
-      <p class="form-sub">Fill the form below. No login required — we'll contact you shortly.</p>
-
-      <form id="enquiryForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="fullName">Full Name *</label>
-            <input class="form-control" type="text" id="fullName" placeholder="e.g. Ramesh Kumar" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="mobileNo">Mobile Number *</label>
-            <input class="form-control" type="tel" id="mobileNo" placeholder="+91 98765 43210" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="emailId">Email Address *</label>
-            <input class="form-control" type="email" id="emailId" placeholder="you@email.com" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="paxCount">Number of Travellers *</label>
-            <input class="form-control" type="number" id="paxCount" min="1" max="50" placeholder="e.g. 2" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="tourPackage">Interested Package</label>
-            <select class="form-control" id="tourPackage">
-              <option value="">-- Select if you have one in mind --</option>
-              {% for pkg in packages %}
-              <option value="{{ pkg.name }}">{{ pkg.package_name }} ({{ pkg.tour_type }})</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="travelMonth">Preferred Travel Month</label>
-            <select class="form-control" id="travelMonth">
-              <option value="">-- Select Month --</option>
-              <option>January</option><option>February</option><option>March</option>
-              <option>April</option><option>May</option><option>June</option>
-              <option>July</option><option>August</option><option>September</option>
-              <option>October</option><option>November</option><option>December</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">What are you looking for?</label>
-          <div class="interest-grid">
-            <div class="interest-tag" data-val="Beach & Relaxation">🏖️ Beach & Relax</div>
-            <div class="interest-tag" data-val="Adventure & Trekking">🧗 Adventure</div>
-            <div class="interest-tag" data-val="Cultural & Heritage">🏛️ Culture</div>
-            <div class="interest-tag" data-val="Honeymoon">💑 Honeymoon</div>
-            <div class="interest-tag" data-val="Family Trip">👨‍👩‍👧 Family</div>
-            <div class="interest-tag" data-val="Visa Assistance">🛂 With Visa Help</div>
-            <div class="interest-tag" data-val="Budget Travel">💰 Budget</div>
-            <div class="interest-tag" data-val="Luxury Travel">✨ Luxury</div>
-          </div>
-          <input type="hidden" id="interestTags">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="message">Additional Message</label>
-          <textarea class="form-control" id="message" placeholder="Tell us more — any special requirements, destinations dreamed of, budget range..."></textarea>
-        </div>
-
-        <button type="submit" class="btn-submit" id="submitBtn">
-          <span>✈️ Submit My Interest</span>
-        </button>
-      </form>
-
-      <div class="form-divider">Already have a booking?</div>
-      <div class="login-link-row">
-        <a href="/login?redirect-to=/my-portal">Login to Your Customer Portal →</a>
-      </div>
-    </div>
-
-    <!-- Success State -->
-    <div class="success-state" id="successView">
-      <div class="success-icon">✅</div>
-      <h3>You're on our radar!</h3>
-      <p>Your travel interest has been registered. Our consultant will reach out within 24 hours to plan your perfect trip.</p>
-      <div class="success-ref" id="leadRef"></div>
-      <p style="margin-top:12px; font-size:13px;">
-        Once your booking is confirmed, you'll receive login credentials to access the
-        <a href="/my-portal" style="color: var(--teal); font-weight:600;">Customer Portal</a>.
-      </p>
+<!-- ── SIDEBAR ── -->
+<div class="sb" id="sb">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <div class="sb-icon">✈️</div>
+      <div><div class="sb-txt">Tour Travels</div><div class="sb-sub">Customer Portal</div></div>
     </div>
   </div>
-
-  <!-- Sidebar -->
-  <aside class="enq-sidebar">
-    <div class="info-card steps-card">
-      <h4>🗺️ How It Works</h4>
-      <div class="step-item">
-        <div class="step-num">1</div>
-        <div class="step-text">
-          <strong>Submit Interest</strong>
-          <span>Fill this form — takes 2 minutes, no account needed.</span>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num">2</div>
-        <div class="step-text">
-          <strong>Consultant Calls</strong>
-          <span>Our expert will call you within 24 hours to understand your needs.</span>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num">3</div>
-        <div class="step-text">
-          <strong>Get a Tailored Quote</strong>
-          <span>We curate an itinerary and pricing just for your group.</span>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num">4</div>
-        <div class="step-text">
-          <strong>Confirm & Portal Access</strong>
-          <span>After booking, you get access to your personal portal to track everything.</span>
-        </div>
-      </div>
+  <div class="sb-user">
+    <div class="sb-av" id="sb-av">T</div>
+    <div>
+      <div class="sb-un" id="sb-un">Loading...</div>
+      <div class="sb-mob" id="sb-mob">+91</div>
     </div>
-
-    <div class="info-card">
-      <div class="info-icon" style="background: rgba(56,189,248,0.12);">🛂</div>
-      <h4>Visa Assistance</h4>
-      <p>We handle visa applications for 40+ countries. Track your visa status end-to-end through your portal once confirmed.</p>
-    </div>
-
-    <div class="info-card">
-      <div class="info-icon" style="background: rgba(240,180,41,0.12);">🔒</div>
-      <h4>Your Data is Safe</h4>
-      <p>We only use your information to plan your trip and will never share it with third parties without consent.</p>
-    </div>
-  </aside>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <div class="ni on" data-p="dashboard"><span class="ic">🏠</span>Dashboard</div>
+    <div class="sb-sec">My Travel</div>
+    <div class="ni" data-p="bookings"><span class="ic">🗓️</span>My Bookings<span class="nb" id="bk-badge" style="display:none">0</span></div>
+    <div class="ni" data-p="itinerary"><span class="ic">🗺️</span>Itinerary</div>
+    <div class="ni" data-p="visadocs"><span class="ic">🛂</span>Visa &amp; Docs</div>
+    <div class="ni" data-p="payments"><span class="ic">💳</span>Payments</div>
+    <div class="sb-sec">Support</div>
+    <div class="ni" data-p="enquiry"><span class="ic">✉️</span>New Enquiry</div>
+    <div class="ni" data-p="profile"><span class="ic">👤</span>My Profile</div>
+  </nav>
+  <div class="sb-ft"><div class="sb-so" onclick="doLogout()">🚪 Sign Out</div></div>
 </div>
-{% endblock %}
 
-{% block script %}
+<!-- ── MAIN ── -->
+<div class="main">
+  <div class="topbar">
+    <div class="hbg" onclick="toggleSb()">☰</div>
+    <span class="tb-title" id="ptitle">Dashboard</span>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="pg on" id="pg-dashboard">
+      <div class="hero" id="hero-card">
+        <div class="hero-av" id="hero-av">T</div>
+        <div>
+          <div class="hero-name" id="hero-name">Welcome!</div>
+          <div class="hero-sub" id="hero-sub">+91 · Loading your travel details...</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
+        <div class="card" style="cursor:pointer" onclick="goPage('bookings')">
+          <div class="cb" style="display:flex;align-items:center;gap:14px">
+            <div style="font-size:28px">📋</div>
+            <div><div style="font-size:22px;font-family:'DM Serif Display',serif;font-weight:700" id="dash-bk">0</div><div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">My Bookings</div></div>
+          </div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="goPage('visadocs')">
+          <div class="cb" style="display:flex;align-items:center;gap:14px">
+            <div style="font-size:28px">🛂</div>
+            <div><div style="font-size:22px;font-family:'DM Serif Display',serif;font-weight:700" id="dash-visa">0</div><div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Visa Applications</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><h3>My Travel Status</h3></div>
+        <div class="cb">
+          <div class="igrid" id="dash-info">
+            <div class="ifield"><div class="ifield-label">Lead Status</div><div class="ifield-val" id="di-status">—</div></div>
+            <div class="ifield"><div class="ifield-label">Preferred Month</div><div class="ifield-val" id="di-month">—</div></div>
+            <div class="ifield"><div class="ifield-label">Pax Count</div><div class="ifield-val" id="di-pax">—</div></div>
+            <div class="ifield"><div class="ifield-label">Assigned Consultant</div><div class="ifield-val" id="di-consultant">Not assigned</div></div>
+            <div class="ifield"><div class="ifield-label">Interested Package</div><div class="ifield-val" id="di-package">—</div></div>
+            <div class="ifield"><div class="ifield-label">Interest Tags</div><div class="ifield-val" id="di-tags">—</div></div>
+          </div>
+          <div style="margin-top:16px" id="di-remarks-wrap">
+            <div class="ifield"><div class="ifield-label">Remarks / Notes</div><div class="ifield-val" id="di-remarks" style="white-space:pre-wrap">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY BOOKINGS -->
+    <div class="pg" id="pg-bookings">
+      <div class="card">
+        <div class="ch"><h3>My Bookings</h3></div>
+        <div class="cb tw">
+          <table><thead><tr><th>Booking ID</th><th>Package</th><th>Departure</th><th>Pax</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="bk-tb"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITINERARY -->
+    <div class="pg" id="pg-itinerary">
+      <div class="card">
+        <div class="ch"><h3>My Itinerary</h3></div>
+        <div class="cb" id="itin-content">
+          <div class="empty"><div class="empty-ico">🗺️</div><div class="empty-ttl">No itinerary yet</div><p>Your itinerary will appear here once a booking is confirmed.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISA & DOCS -->
+    <div class="pg" id="pg-visadocs">
+      <div class="card">
+        <div class="ch"><h3>Visa &amp; Documents</h3></div>
+        <div class="cb tw">
+          <table><thead><tr><th>Application ID</th><th>Applicant</th><th>Booking</th><th>Country</th><th>Type</th><th>Departure</th><th>Status</th></tr></thead>
+          <tbody id="visa-tb"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="pg" id="pg-payments">
+      <div class="card">
+        <div class="ch"><h3>Payment Summary</h3></div>
+        <div class="cb tw">
+          <table><thead><tr><th>Booking ID</th><th>Package</th><th>Departure</th><th>Pax</th><th>Base Amount</th><th>GST</th><th>Grand Total</th><th>Pay</th><th>Invoice</th></tr></thead>
+          <tbody id="pay-tb"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW ENQUIRY -->
+    <div class="pg" id="pg-enquiry">
+      <div class="card">
+        <div class="ch"><h3>Plan Your Next Trip ✈️</h3></div>
+        <div class="cb">
+          <p style="color:var(--ink3);margin-bottom:20px;font-size:13px">Fill in your requirements and our team will get back to you shortly.</p>
+          <div id="enq-alert" style="display:none"></div>
+          <div class="fg2">
+            <div class="fg"><label>Destination *</label><input id="enq-dest" placeholder="e.g. Goa, Kerala, Bali"></div>
+            <div class="fg"><label>Tour Type *</label><select id="enq-type"><option value="">Select</option><option>FIT</option><option>Group</option><option>Honeymoon</option><option>Family</option><option>Corporate</option></select></div>
+          </div>
+          <div class="fg2">
+            <div class="fg"><label>Preferred Travel Month *</label><select id="enq-month">
+              <option value="">Select Month</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select></div>
+            <div class="fg"><label>Number of Travellers *</label><input type="number" id="enq-pax" placeholder="2" min="1"></div>
+          </div>
+          <div class="fg2">
+            <div class="fg"><label>Budget Per Person (₹)</label><input type="number" id="enq-budget" placeholder="20000"></div>
+            <div class="fg"><label>Preferred Package (optional)</label><select id="enq-pkg"><option value="">— Any Package —</option></select></div>
+          </div>
+          <div class="fg"><label>Special Requirements</label><textarea id="enq-remarks" placeholder="Dietary needs, accessibility, special requests..." rows="3"></textarea></div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-jade" onclick="submitEnquiry()">Submit Enquiry →</button>
+            <span id="enq-status" style="font-size:12px;color:var(--ink3)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY PROFILE -->
+    <div class="pg" id="pg-profile">
+      <div class="hero">
+        <div class="hero-av" id="prof-av">T</div>
+        <div>
+          <div class="hero-name" id="prof-name">My Profile</div>
+          <div class="hero-sub" id="prof-sub">Customer Portal</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+        <!-- Personal Info -->
+        <div class="card">
+          <div class="ch"><h3>Personal Information</h3><button class="btn btn-ghost btn-sm" onclick="toggleEditProfile()">Edit ✏️</button></div>
+          <div class="cb" id="prof-view">
+            <div class="igrid">
+              <div class="ifield"><div class="ifield-label">Full Name</div><div class="ifield-val" id="pv-name">—</div></div>
+              <div class="ifield"><div class="ifield-label">Mobile</div><div class="ifield-val" id="pv-mob">—</div></div>
+              <div class="ifield"><div class="ifield-label">Email</div><div class="ifield-val" id="pv-email">—</div></div>
+              <div class="ifield"><div class="ifield-label">Lead Status</div><div class="ifield-val" id="pv-status">—</div></div>
+              <div class="ifield"><div class="ifield-label">Consultant</div><div class="ifield-val" id="pv-consultant">Not assigned</div></div>
+              <div class="ifield"><div class="ifield-label">Tour Preference</div><div class="ifield-val" id="pv-tags">—</div></div>
+              <div class="ifield"><div class="ifield-label">Interested Destination</div><div class="ifield-val" id="pv-pkg">—</div></div>
+              <div class="ifield"><div class="ifield-label">Preferred Month</div><div class="ifield-val" id="pv-month">—</div></div>
+            </div>
+          </div>
+          <!-- Edit form (hidden by default) -->
+          <div class="cb" id="prof-edit" style="display:none">
+            <div class="fg2">
+              <div class="fg"><label>Full Name</label><input id="pe-name"></div>
+              <div class="fg"><label>Mobile</label><input id="pe-mob"></div>
+            </div>
+            <div class="fg2">
+              <div class="fg"><label>Preferred Month</label><input id="pe-month" placeholder="e.g. June 2026"></div>
+              <div class="fg"><label>Pax Count</label><input type="number" id="pe-pax" min="1"></div>
+            </div>
+            <div class="fg2">
+              <div class="fg"><label>Interested Package</label><select id="pe-pkg"><option value="">—</option></select></div>
+              <div class="fg"><label>Interest Tags</label><input id="pe-tags" placeholder="beaches, adventure..."></div>
+            </div>
+            <div class="fg"><label>Remarks</label><textarea id="pe-remarks" rows="2"></textarea></div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-jade btn-sm" onclick="saveProfile()">Save Changes</button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleEditProfile()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card">
+          <div class="ch"><h3>Change Password</h3></div>
+          <div class="cb">
+            <div id="pwd-alert" style="display:none;margin-bottom:12px"></div>
+            <div class="fg"><label>Current Password</label><input type="password" id="pwd-cur" placeholder="••••••"></div>
+            <div class="fg"><label>New Password</label><input type="password" id="pwd-new" placeholder="Min. 6 characters"></div>
+            <div class="fg"><label>Confirm New Password</label><input type="password" id="pwd-cnf" placeholder="Repeat new password"></div>
+            <button class="btn btn-jade btn-sm" onclick="changePwd()">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /wrap -->
+
+
+<!-- Payment Modal -->
+<div class="modal" id="mo-pay" style="z-index:600">
+  <div class="mbox">
+    <div class="mhdr"><h3>💳 Pay for Booking</h3><button class="mcl" onclick="event.stopPropagation();document.getElementById('mo-pay').classList.remove('on')">✕</button></div>
+    <div class="mbody">
+      <div id="pay-info" style="background:var(--jade3);border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px"></div>
+      <div style="text-align:center;padding:10px 0">
+        <p style="color:var(--ink3);font-size:13px;margin-bottom:16px">Choose your payment method:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <button class="btn btn-jade" style="justify-content:center;padding:14px" onclick="payRazorpay()">
+            💳 Pay Online<br><small style="font-weight:400;opacity:.8">Card / UPI / Net Banking</small>
+          </button>
+          <button class="btn btn-ghost" style="justify-content:center;padding:14px" onclick="payOffline()">
+            🏦 Bank Transfer<br><small style="font-weight:400;color:var(--ink3)">Manual payment</small>
+          </button>
+        </div>
+        <p style="font-size:11px;color:var(--ink3)">🔒 Secured by Razorpay · 256-bit SSL encrypted</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tw2" id="tw2"></div>
+
 <script>
-  // Interest tags
-  document.querySelectorAll('.interest-tag').forEach(tag => {
-    tag.addEventListener('click', () => {
-      tag.classList.toggle('selected');
-      updateInterestTags();
+
+// Check for payment success redirect
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('payment') === 'success') {
+    document.addEventListener('DOMContentLoaded', function() {
+      toast('ok', '✅ Payment successful! Your booking is confirmed.');
+      goPage('payments');
+      // Remove param from URL
+      history.replaceState({}, '', '/travel_enquiry');
     });
+  }
+})();
+
+// ════ STATE ════
+var D = {lead: null, bookings: [], visas: [], all_packages: [], all_destinations: []};
+var CUR = 'dashboard';
+var CSRF = '';
+var LEAD_NAME = '';
+var EDIT_PROFILE = false;
+
+// ════ CSRF ════
+function getCsrf(cb) {
+  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  if (m && m[1] && m[1] !== 'None' && m[1].length > 8) {
+    CSRF = decodeURIComponent(m[1]);
+    if (cb) cb();
+    return;
+  }
+  fetch('/api/method/frappe.auth.get_logged_user', {credentials: 'same-origin'})
+  .then(function() {
+    var m2 = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+    if (m2 && m2[1] && m2[1] !== 'None') CSRF = decodeURIComponent(m2[1]);
+    if (cb) cb();
+  }).catch(function() { if (cb) cb(); });
+}
+
+// ════ API ════
+function api(method, args, cb, errcb) {
+  if (!CSRF) {
+    var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+    if (m && m[1] && m[1] !== 'None') CSRF = decodeURIComponent(m[1]);
+  }
+  fetch('/api/method/' + method, {
+    method: 'POST', credentials: 'same-origin',
+    headers: {'Content-Type': 'application/json', 'Accept': 'application/json',
+               'X-Frappe-CSRF-Token': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+    body: JSON.stringify(args || {})
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.exc_type) {
+      var msg = 'Error';
+      try { msg = JSON.parse(JSON.parse(d._server_messages)[0]).message || d.exception; } catch(e) { msg = d.exception || 'Error'; }
+      msg = msg.replace(/<[^>]*>/g, '').substr(0, 200);
+      if (errcb) errcb(d); else toast('err', msg);
+    } else if (cb) cb(d);
+  }).catch(function(e) { if (errcb) errcb(e); else toast('err', 'Network error'); });
+}
+
+// ════ INIT ════
+document.addEventListener('DOMContentLoaded', function() {
+  getCsrf(function() { loadPortalData(); });
+
+  document.getElementById('snav') && document.getElementById('sb').querySelector('.sb-nav').addEventListener('click', function(e) {
+    var ni = e.target.closest('.ni');
+    if (ni && ni.dataset.p) goPage(ni.dataset.p, ni);
   });
 
-  function updateInterestTags() {
-    const selected = [...document.querySelectorAll('.interest-tag.selected')]
-      .map(t => t.dataset.val).join(', ');
-    document.getElementById('interestTags').value = selected;
+  // Nav click delegation
+  document.querySelector('.sb-nav').addEventListener('click', function(e) {
+    var ni = e.target.closest('.ni');
+    if (ni && ni.dataset.p) goPage(ni.dataset.p, ni);
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) e.target.classList.remove('on');
+  });
+});
+
+function loadPortalData() {
+  api('travel_tour.www.travel_enquiry.get_portal_data', {}, function(r) {
+    if (!r.message) { showGuestPrompt(); return; }
+    var m = r.message;
+    if (!m.lead) { showNoLeadMessage(); return; }
+    D.lead = m.lead;
+    D.bookings = m.bookings || [];
+    D.visas = m.visas || [];
+    D.all_packages = m.all_packages || [];
+    D.all_destinations = m.all_destinations || [];
+    LEAD_NAME = D.lead.name;
+    renderAll();
+  }, function() { showGuestPrompt(); });
+}
+
+function showGuestPrompt() {
+  document.querySelector('.content').innerHTML = '<div class="empty" style="padding:60px 20px"><div class="empty-ico">🔐</div><div class="empty-ttl">Please log in</div><p>You need to be logged in to view your portal.</p><br><a href="/my_portal" class="btn btn-jade" style="display:inline-flex;margin-top:10px">Go to Login →</a></div>';
+}
+
+function showNoLeadMessage() {
+  document.getElementById('hero-name').textContent = 'Welcome!';
+  document.getElementById('hero-sub').textContent = 'No travel profile found for your account.';
+  document.getElementById('sb-un').textContent = 'Guest';
+}
+
+// ════ NAV ════
+var PT = {dashboard:'Dashboard', bookings:'My Bookings', itinerary:'Itinerary', visadocs:'Visa & Docs', payments:'Payments', enquiry:'New Enquiry', profile:'My Profile'};
+
+function goPage(p, el) {
+  CUR = p;
+  document.querySelectorAll('.pg').forEach(function(x) { x.classList.remove('on'); });
+  var pg = document.getElementById('pg-' + p);
+  if (pg) pg.classList.add('on');
+  document.querySelectorAll('.ni').forEach(function(x) { x.classList.remove('on'); });
+  if (el) el.classList.add('on');
+  else {
+    var nav = document.querySelector('.ni[data-p="'+p+'"]');
+    if (nav) nav.classList.add('on');
+  }
+  document.getElementById('ptitle').textContent = PT[p] || p;
+  closeSb();
+  if (p === 'enquiry') populateEnquiryDropdowns();
+  if (p === 'profile') populateProfileEdit();
+}
+
+function toggleSb() { document.getElementById('sb').classList.toggle('open'); document.getElementById('ov').classList.toggle('open'); }
+function closeSb() { document.getElementById('sb').classList.remove('open'); document.getElementById('ov').classList.remove('open'); }
+
+// ════ RENDER ALL ════
+function renderAll() {
+  var l = D.lead;
+  if (!l) return;
+
+  // Sidebar user
+  var nm = l.full_name || '—';
+  document.getElementById('sb-av').textContent = nm.charAt(0).toUpperCase();
+  document.getElementById('sb-un').textContent = nm;
+  document.getElementById('sb-mob').textContent = l.mobile_no || l.email_id || '';
+
+  // Booking badge
+  if (D.bookings.length > 0) {
+    var bb = document.getElementById('bk-badge');
+    bb.textContent = D.bookings.length;
+    bb.style.display = 'inline';
   }
 
-  // Form submit
-  document.getElementById('enquiryForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const errorEl = document.getElementById('errorMsg');
+  // Dashboard hero
+  document.getElementById('hero-av').textContent = nm.charAt(0).toUpperCase();
+  document.getElementById('hero-name').textContent = 'Hi, ' + (nm.split(' ')[0] || nm) + '!';
+  document.getElementById('hero-sub').textContent = (l.mobile_no || '') + (l.email_id ? ' · ' + l.email_id : '');
 
-    btn.classList.add('loading');
-    btn.innerHTML = '<span>Submitting...</span>';
-    errorEl.style.display = 'none';
+  // Dashboard stats
+  document.getElementById('dash-bk').textContent = D.bookings.length;
+  document.getElementById('dash-visa').textContent = D.visas.length;
 
-    const payload = {
-      full_name:       document.getElementById('fullName').value.trim(),
-      mobile_no:       document.getElementById('mobileNo').value.trim(),
-      email_id:        document.getElementById('emailId').value.trim(),
-      pax_count:       parseInt(document.getElementById('paxCount').value) || 1,
-      suggested_package: document.getElementById('tourPackage').value,
-      preferred_month: document.getElementById('travelMonth').value,
-      interest_tags:   document.getElementById('interestTags').value,
-      message:         document.getElementById('message').value.trim(),
-      source:          'Website',
-    };
+  // Dashboard info
+  document.getElementById('di-status').innerHTML = bdg(l.status);
+  document.getElementById('di-month').textContent = l.preferred_month || '—';
+  document.getElementById('di-pax').textContent = l.pax_count || '—';
+  document.getElementById('di-consultant').textContent = l.consultant_name || 'Not assigned';
+  document.getElementById('di-package').textContent = l.package_name || l.suggested_package || '—';
+  document.getElementById('di-tags').textContent = l.interest_tags || '—';
+  document.getElementById('di-remarks').textContent = l.remarks || '—';
 
-    try {
-      const res = await fetch('/api/method/travel_tour.api.portal.submit_enquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Frappe-CSRF-Token': frappe.csrf_token },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+  // Profile view
+  document.getElementById('prof-av').textContent = nm.charAt(0).toUpperCase();
+  document.getElementById('prof-name').textContent = nm;
+  document.getElementById('prof-sub').textContent = l.email_id || l.mobile_no || '';
+  document.getElementById('pv-name').textContent = l.full_name || '—';
+  document.getElementById('pv-mob').textContent = l.mobile_no || '—';
+  document.getElementById('pv-email').textContent = l.email_id || '—';
+  document.getElementById('pv-status').innerHTML = bdg(l.status);
+  document.getElementById('pv-consultant').textContent = l.consultant_name || 'Not assigned';
+  document.getElementById('pv-tags').textContent = l.interest_tags || '—';
+  document.getElementById('pv-pkg').textContent = l.package_name || l.suggested_package || '—';
+  document.getElementById('pv-month').textContent = l.preferred_month || '—';
 
-      if (data.message && data.message.status === 'success') {
-        document.getElementById('formView').style.display = 'none';
-        document.getElementById('successView').style.display = 'block';
-        document.getElementById('leadRef').textContent = '🎫 Ref: ' + data.message.lead_id;
-      } else {
-        throw new Error(data.message?.msg || 'Submission failed. Please try again.');
-      }
-    } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
-      btn.classList.remove('loading');
-      btn.innerHTML = '<span>✈️ Submit My Interest</span>';
+  renderBookings();
+  renderVisas();
+  renderPayments();
+}
+
+function renderBookings() {
+  var tb = document.getElementById('bk-tb');
+  if (!D.bookings.length) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ink3)"><div style="font-size:36px;margin-bottom:10px">📋</div>No bookings yet</td></tr>';
+    return;
+  }
+  tb.innerHTML = D.bookings.map(function(b) {
+    return '<tr><td><b>' + x(b.name) + '</b></td><td>' + x(b.package_name || b.tour_package) + '</td><td>' + x(b.departure_date) + '</td><td>' + x(b.total_pax) + '</td><td>₹' + fmt(b.grand_total) + '</td><td>' + bdg('Confirmed') + '</td></tr>';
+  }).join('');
+}
+
+function renderVisas() {
+  var tb = document.getElementById('visa-tb');
+  if (!D.visas.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink3)"><div style="font-size:36px;margin-bottom:10px">🛂</div>No visa applications yet</td></tr>';
+    return;
+  }
+  tb.innerHTML = D.visas.map(function(v) {
+    return '<tr><td>' + x(v.name) + '</td><td><b>' + x(v.applicant_name) + '</b></td><td>' + x(v.booking) + '</td><td>' + x(v.destination_country) + '</td><td>' + x(v.visa_type) + '</td><td>' + x(v.departure_date) + '</td><td>' + bdg(v.status) + '</td></tr>';
+  }).join('');
+}
+
+function renderPayments() {
+  var tb = document.getElementById('pay-tb');
+  if (!D.bookings.length) {
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--ink3)"><div style="font-size:36px;margin-bottom:10px">💳</div>No payment records yet</td></tr>';
+    return;
+  }
+  var html = '';
+  D.bookings.forEach(function(b, i) {
+    var invUrl = '/api/method/travel_tour.api.whatsapp.get_invoice?booking=' + encodeURIComponent(b.name);
+    html += '<tr>'
+      + '<td><b>' + x(b.name) + '</b></td>'
+      + '<td>' + x(b.package_name || b.tour_package) + '</td>'
+      + '<td>' + x(b.departure_date) + '</td>'
+      + '<td>' + x(b.total_pax) + '</td>'
+      + '<td>₹' + fmt(b.base_amount) + '</td>'
+      + '<td>₹' + fmt(b.gst_amount) + '</td>'
+      + '<td><b>₹' + fmt(b.grand_total) + '</b></td>'
+      + '<td><button class="btn btn-jade btn-sm" data-idx="' + i + '" data-amt="' + (b.grand_total||0) + '" onclick="event.preventDefault();event.stopPropagation();payNow(D.bookings[parseInt(this.dataset.idx)].name,parseFloat(this.dataset.amt));return false;">💳 Pay</button></td>'
+      + '<td><a href="' + invUrl + '" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🧾 Invoice</a></td>'
+      + '</tr>';
+  });
+  tb.innerHTML = html;
+}
+
+// ════ ENQUIRY ════
+function populateEnquiryDropdowns() {
+  var ps = document.getElementById('enq-pkg');
+  ps.innerHTML = '<option value="">— Any Package —</option>' + D.all_packages.map(function(p) {
+    return '<option value="' + p.name + '">' + (p.package_name || p.name) + ' (' + p.tour_type + ', ' + (p.duration_days || '?') + 'D)</option>';
+  }).join('');
+}
+
+function submitEnquiry() {
+  var dest = document.getElementById('enq-dest').value.trim();
+  var type = document.getElementById('enq-type').value;
+  var month = document.getElementById('enq-month').value;
+  var pax = document.getElementById('enq-pax').value;
+
+  if (!dest || !month || !pax) {
+    showEnqAlert('err', '⚠️ Please fill in destination, month and number of travellers.');
+    return;
+  }
+
+  var remarks = 'Destination: ' + dest + '\nTour Type: ' + (type || 'Any') +
+    '\nBudget/person: ₹' + (document.getElementById('enq-budget').value || 'Any') +
+    '\n' + (document.getElementById('enq-remarks').value || '');
+
+  document.getElementById('enq-status').textContent = 'Submitting...';
+
+  api('travel_tour.www.travel_enquiry.submit_new_enquiry', {
+    suggested_package: document.getElementById('enq-pkg').value,
+    preferred_month: month,
+    pax_count: pax,
+    interest_tags: dest + (type ? ', ' + type : ''),
+    remarks: remarks
+  }, function(r) {
+    if (r.message && r.message.success) {
+      showEnqAlert('ok', '✅ Enquiry submitted! Our team will contact you shortly.');
+      document.getElementById('enq-status').textContent = '';
+      // Reset form
+      ['enq-dest','enq-budget','enq-remarks'].forEach(function(id) { var e = document.getElementById(id); if(e) e.value = ''; });
+      ['enq-type','enq-month','enq-pkg'].forEach(function(id) { var e = document.getElementById(id); if(e) e.value = ''; });
+      loadPortalData(); // Refresh data
+    } else {
+      showEnqAlert('err', '❌ Failed to submit. Please try again.');
+      document.getElementById('enq-status').textContent = '';
+    }
+  }, function() {
+    showEnqAlert('err', '❌ Network error. Please try again.');
+    document.getElementById('enq-status').textContent = '';
+  });
+}
+
+function showEnqAlert(type, msg) {
+  var a = document.getElementById('enq-alert');
+  a.className = 'alert ' + (type === 'ok' ? 'alert-ok' : 'alert-err');
+  a.textContent = msg;
+  a.style.display = 'block';
+  setTimeout(function() { a.style.display = 'none'; }, 5000);
+}
+
+// ════ PROFILE EDIT ════
+function toggleEditProfile() {
+  EDIT_PROFILE = !EDIT_PROFILE;
+  document.getElementById('prof-view').style.display = EDIT_PROFILE ? 'none' : 'block';
+  document.getElementById('prof-edit').style.display = EDIT_PROFILE ? 'block' : 'none';
+  if (EDIT_PROFILE) populateProfileEdit();
+}
+
+function populateProfileEdit() {
+  var l = D.lead;
+  if (!l) return;
+  document.getElementById('pe-name').value = l.full_name || '';
+  document.getElementById('pe-mob').value = l.mobile_no || '';
+  document.getElementById('pe-month').value = l.preferred_month || '';
+  document.getElementById('pe-pax').value = l.pax_count || '';
+  document.getElementById('pe-tags').value = l.interest_tags || '';
+  document.getElementById('pe-remarks').value = l.remarks || '';
+  var ps = document.getElementById('pe-pkg');
+  ps.innerHTML = '<option value="">—</option>' + D.all_packages.map(function(p) {
+    return '<option value="' + p.name + '" ' + (p.name === l.suggested_package ? 'selected' : '') + '>' + (p.package_name || p.name) + '</option>';
+  }).join('');
+}
+
+function saveProfile() {
+  if (!LEAD_NAME) { toast('err', 'Lead not found'); return; }
+  api('travel_tour.www.travel_enquiry.update_lead_enquiry', {
+    lead_name: LEAD_NAME,
+    full_name: document.getElementById('pe-name').value,
+    mobile_no: document.getElementById('pe-mob').value,
+    preferred_month: document.getElementById('pe-month').value,
+    pax_count: document.getElementById('pe-pax').value,
+    suggested_package: document.getElementById('pe-pkg').value,
+    interest_tags: document.getElementById('pe-tags').value,
+    remarks: document.getElementById('pe-remarks').value,
+  }, function(r) {
+    if (r.message && r.message.success) {
+      toast('ok', 'Profile updated!');
+      toggleEditProfile();
+      loadPortalData();
+    } else {
+      toast('err', (r.message && r.message.error) || 'Error saving');
     }
   });
+}
+
+// ════ CHANGE PASSWORD ════
+function changePwd() {
+  var cur = document.getElementById('pwd-cur').value;
+  var nw = document.getElementById('pwd-new').value;
+  var cnf = document.getElementById('pwd-cnf').value;
+  if (!cur || !nw || !cnf) { showPwdAlert('err', 'All fields required'); return; }
+  if (nw.length < 6) { showPwdAlert('err', 'New password must be at least 6 characters'); return; }
+  if (nw !== cnf) { showPwdAlert('err', 'Passwords do not match'); return; }
+  api('frappe.client.set_value', {
+    doctype: 'User', name: '{{ user }}',
+    fieldname: 'new_password', value: nw
+  }, function(r) {
+    showPwdAlert('ok', '✅ Password updated successfully!');
+    ['pwd-cur','pwd-new','pwd-cnf'].forEach(function(id) { document.getElementById(id).value = ''; });
+  }, function() {
+    // Try alternate method
+    api('frappe.core.doctype.user.user.update_password', {
+      new_password: nw, old_password: cur
+    }, function(r) {
+      showPwdAlert('ok', '✅ Password updated!');
+    }, function() {
+      showPwdAlert('err', 'Failed to update password. Check current password.');
+    });
+  });
+}
+
+function showPwdAlert(type, msg) {
+  var a = document.getElementById('pwd-alert');
+  a.className = 'alert ' + (type === 'ok' ? 'alert-ok' : 'alert-err');
+  a.textContent = msg;
+  a.style.display = 'block';
+  setTimeout(function() { a.style.display = 'none'; }, 4000);
+}
+
+// ════ HELPERS ════
+function x(s) { return String(s || '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(n) { return parseFloat(n || 0).toLocaleString('en-IN'); }
+function bdg(s) {
+  var map = {Open:'ba',Interested:'bb',converted:'bg',Lost:'br','Pending Documents':'ba','Documents Collected':'bb',Submitted:'bb',Approved:'bg',Rejected:'br',Delivered:'bx',Confirmed:'bg',Pending:'ba'};
+  return '<span class="bdg '+(map[s]||'bx')+'">'+x(s||'—')+'</span>';
+}
+function toast(type, msg) {
+  var w = document.getElementById('tw2');
+  var t = document.createElement('div');
+  t.className = 'toast ' + (type==='ok'?'tok':type==='err'?'terr':'');
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 3500);
+}
+
+// ════ PAYMENT ════
+var curPayBooking = null;
+var curPayAmount = 0;
+
+function payNow(bookingName, amount) {
+  curPayBooking = bookingName;
+  curPayAmount = amount;
+  var info = document.getElementById('pay-info');
+  if (info) {
+    var bk = D.bookings.find(function(b){ return b.name === bookingName; });
+    info.innerHTML = '<b>Booking:</b> ' + bookingName
+      + (bk ? ' · <b>Package:</b> ' + x(bk.package_name || bk.tour_package) : '')
+      + '<br><b>Amount:</b> ₹' + parseFloat(amount||0).toLocaleString('en-IN');
+  }
+  document.getElementById('mo-pay').classList.add('on');
+}
+
+function payRazorpay() {
+  if (!curPayBooking) return;
+  // Show loading
+  document.getElementById('pay-info').innerHTML += '<br><br>⏳ Creating payment link...';
+  api('travel_tour.api.whatsapp.send_booking_confirmation', {booking_name: curPayBooking}, function(r) {
+    document.getElementById('mo-pay').classList.remove('on');
+    if (r.message && r.message.success && r.message.payment_link && r.message.payment_link.startsWith('http')) {
+      // Open Razorpay payment link
+      window.open(r.message.payment_link, '_blank');
+      toast('ok', '💳 Payment page opened!');
+    } else {
+      // Razorpay not configured — show bank details
+      toast('err', 'Online payment not configured. Please use bank transfer or contact us.');
+      payOffline();
+    }
+  }, function() {
+    document.getElementById('mo-pay').classList.remove('on');
+    toast('err', 'Could not create payment link. Please contact us.');
+  });
+}
+
+function payOffline() {
+  document.getElementById('mo-pay').classList.remove('on');
+  toast('ok', 'Please transfer ₹' + parseFloat(curPayAmount||0).toLocaleString('en-IN') + ' to our bank account. Share UTR to confirm booking.');
+}
+
+function doLogout() {
+  fetch('/api/method/logout', {method:'POST',credentials:'same-origin',headers:{'X-Frappe-CSRF-Token':CSRF}})
+  .then(function() { window.location.href = '/my_portal'; })
+  .catch(function() { window.location.href = '/my_portal'; });
+}
 </script>
 {% endblock %}

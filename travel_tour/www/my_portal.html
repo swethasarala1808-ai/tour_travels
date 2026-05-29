@@ -1,801 +1,587 @@
-{% extends "templates/web.html" %}
-
-{% block title %}My Travel Portal | Travel Tour{% endblock %}
-
-{% block head_include %}
-<meta name="description" content="Your personal travel portal — view bookings, visa status, itinerary and upcoming trip details.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tour Travels – Customer Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #090d1a;
-    --bg-nav: rgba(9,13,26,0.92);
-    --bg-card: rgba(255,255,255,0.035);
-    --bg-card-hover: rgba(255,255,255,0.06);
-    --bg-active: rgba(56,189,248,0.08);
-    --border: rgba(255,255,255,0.08);
-    --border-focus: rgba(99,179,237,0.5);
-    --gold: #f0b429;
-    --gold-light: #ffd764;
-    --teal: #38bdf8;
-    --teal-light: #7dd3fc;
-    --green: #34d399;
-    --red: #f87171;
-    --orange: #fb923c;
-    --purple: #a78bfa;
-    --text: #f0f4f8;
-    --text-2: rgba(240,244,248,0.62);
-    --text-3: rgba(240,244,248,0.38);
-    --r: 14px;
-    --r-sm: 9px;
-    --shadow: 0 20px 50px rgba(0,0,0,0.6);
+    --navy:    #05133c;
+    --navy2:   #071d5c;
+    --teal:    #14f1b1;
+    --teal2:   #0fd49a;
+    --white:   #ffffff;
+    --muted:   #8fa3cc;
+    --error:   #ff4d6d;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  * { margin:0; padding:0; box-sizing:border-box; }
 
   body {
-    font-family: 'Outfit', sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: 'Mulish', sans-serif;
+    background: var(--navy);
     min-height: 100vh;
-  }
-
-  /* ── Top Nav ── */
-  .portal-nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--bg-nav);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 32px;
-    height: 64px;
-  }
-  .nav-brand {
-    font-size: 1.1rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--gold), var(--teal));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .nav-tabs {
-    display: flex;
-    gap: 4px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px;
-  }
-  .nav-tab {
-    padding: 8px 18px;
-    border-radius: 7px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    color: var(--text-2);
-    transition: all 0.2s;
-    border: none;
-    background: transparent;
-    font-family: 'Outfit', sans-serif;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-  .nav-tab.active {
-    background: rgba(56,189,248,0.15);
-    color: var(--teal-light);
-    border: 1px solid rgba(56,189,248,0.25);
-  }
-  .nav-user {
-    display: flex; align-items: center; gap: 12px;
-    font-size: 14px; color: var(--text-2);
-  }
-  .nav-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--teal), var(--purple));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700; color: #fff;
-  }
-  @media (max-width: 768px) {
-    .nav-tabs { display: none; }
-    .portal-nav { padding: 0 16px; }
-  }
-
-  /* ── Layout ── */
-  .portal-body {
-    max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px;
-  }
-
-  /* ── Welcome Header ── */
-  .welcome-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 36px; gap: 16px; flex-wrap: wrap;
-  }
-  .welcome-text h1 {
-    font-size: 1.8rem; font-weight: 800; margin-bottom: 4px;
-    background: linear-gradient(135deg, #f0f4f8 40%, var(--teal-light));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .welcome-text p { font-size: 14px; color: var(--text-2); }
-
-  .btn-enquiry {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 22px;
-    background: linear-gradient(135deg, var(--gold), #e8870a);
-    border: none; border-radius: 9px;
-    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700;
-    color: #1a1000; cursor: pointer; text-decoration: none;
-    transition: all 0.3s; white-space: nowrap;
-  }
-  .btn-enquiry:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240,180,41,0.40); }
-
-  /* ── Stat Pills ── */
-  .stat-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px; margin-bottom: 40px;
-  }
-  .stat-pill {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    padding: 20px 22px;
-    display: flex; align-items: center; gap: 14px;
-    transition: background 0.2s, transform 0.2s;
-  }
-  .stat-pill:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
-  .stat-icon {
-    width: 44px; height: 44px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center; font-size: 20px;
-    flex-shrink: 0;
-  }
-  .stat-val { font-size: 1.6rem; font-weight: 800; line-height: 1; }
-  .stat-label { font-size: 12px; color: var(--text-3); margin-top: 4px; font-weight: 500; }
-
-  /* ── Tabs Content ── */
-  .tab-pane { display: none; }
-  .tab-pane.active { display: block; }
-
-  /* ── Alert Banner ── */
-  .alert-strip { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-  .alert-banner {
-    border-radius: var(--r-sm);
-    padding: 14px 18px;
-    display: flex; align-items: center; gap: 12px;
-    font-size: 14px;
-  }
-  .alert-banner.warning { background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.25); }
-  .alert-banner.success { background: rgba(52,211,153,0.10); border: 1px solid rgba(52,211,153,0.25); }
-  .alert-banner.info { background: rgba(56,189,248,0.10); border: 1px solid rgba(56,189,248,0.20); }
-  .alert-banner .a-icon { font-size: 20px; flex-shrink: 0; }
-  .alert-banner .a-title { font-weight: 700; margin-bottom: 1px; }
-  .alert-banner .a-msg { color: var(--text-2); font-size: 13px; }
-
-  /* ── Section Heading ── */
-  .section-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 18px;
-  }
-  .section-head h2 { font-size: 1.1rem; font-weight: 700; }
-  .section-badge {
-    background: rgba(56,189,248,0.12);
-    border: 1px solid rgba(56,189,248,0.25);
-    border-radius: 100px;
-    padding: 4px 12px; font-size: 12px; font-weight: 600; color: var(--teal-light);
-  }
-
-  /* ── Booking Card ── */
-  .booking-grid { display: flex; flex-direction: column; gap: 18px; }
-  .booking-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
     overflow: hidden;
-    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-  }
-  .booking-card:hover {
-    background: var(--bg-card-hover);
-    border-color: rgba(56,189,248,0.20);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-  .booking-card.expanded .card-body { display: block; }
-  .card-header {
-    padding: 20px 24px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 12px; align-items: center;
-  }
-  .card-header-left { display: flex; align-items: center; gap: 16px; }
-  .card-pkg-icon {
-    width: 50px; height: 50px; border-radius: 12px;
-    background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(167,139,250,0.15));
-    border: 1px solid rgba(56,189,248,0.20);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; flex-shrink: 0;
-  }
-  .card-pkg-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-  .card-pkg-meta {
-    display: flex; flex-wrap: wrap; gap: 12px;
-    font-size: 13px; color: var(--text-2);
-  }
-  .card-pkg-meta span { display: flex; align-items: center; gap: 4px; }
-  .card-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-
-  .status-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 12px; border-radius: 100px;
-    font-size: 12px; font-weight: 700; letter-spacing: 0.3px;
-  }
-  .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
-  .badge-confirmed { background: rgba(52,211,153,0.14); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
-  .badge-confirmed::before { background: var(--green); }
-  .badge-draft { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.3); }
-  .badge-draft::before { background: var(--orange); }
-  .badge-upcoming { background: rgba(56,189,248,0.12); color: var(--teal); border: 1px solid rgba(56,189,248,0.3); }
-  .badge-past { background: rgba(167,139,250,0.10); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
-
-  .card-amount { font-size: 1.1rem; font-weight: 800; color: var(--gold-light); }
-  .card-expand-btn {
-    font-size: 12px; color: var(--teal); font-weight: 600; transition: color 0.2s;
   }
 
-  /* ── Card Body (Expanded) ── */
-  .card-body {
-    display: none;
-    border-top: 1px solid var(--border);
-    padding: 24px;
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    flex: 1;
+    background: linear-gradient(145deg, #05133c 0%, #071d5c 50%, #051840 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    overflow: hidden;
   }
-  .card-body-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
+  .left-panel::before {
+    content:'';
+    position:absolute;
+    width:600px; height:600px;
+    background: radial-gradient(circle, rgba(20,241,177,0.09) 0%, transparent 65%);
+    top:-150px; right:-150px;
+    border-radius:50%;
+    animation: breathe 8s ease-in-out infinite;
   }
-  .detail-section h4 {
-    font-size: 12px; font-weight: 700; color: var(--text-3);
-    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px;
+  .left-panel::after {
+    content:'';
+    position:absolute;
+    width:400px; height:400px;
+    background: radial-gradient(circle, rgba(20,241,177,0.05) 0%, transparent 65%);
+    bottom:0; left:-50px;
+    border-radius:50%;
+    animation: breathe 10s ease-in-out infinite reverse;
   }
-  .pax-list { display: flex; flex-direction: column; gap: 10px; }
-  .pax-item {
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px 14px;
-    border: 1px solid var(--border);
-  }
-  .pax-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--teal), var(--purple));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
-  }
-  .pax-name { font-size: 14px; font-weight: 600; }
-  .pax-sub { font-size: 12px; color: var(--text-3); }
+  @keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
 
-  .addon-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 0; border-bottom: 1px solid var(--border);
-    font-size: 13px;
+  .grid-overlay {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(20,241,177,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20,241,177,0.035) 1px, transparent 1px);
+    background-size:52px 52px;
   }
-  .addon-item:last-child { border-bottom: none; }
-  .addon-price { color: var(--gold-light); font-weight: 600; }
 
-  .itinerary-day {
-    display: flex; gap: 14px; padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+  /* floating dots */
+  .dot {
+    position:absolute;
+    border-radius:50%;
+    animation: floatDot linear infinite;
+    opacity:0;
   }
-  .itinerary-day:last-child { border-bottom: none; }
-  .day-num {
-    min-width: 36px; height: 36px; border-radius: 9px;
-    background: rgba(240,180,41,0.12); border: 1px solid rgba(240,180,41,0.25);
-    color: var(--gold); font-size: 12px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  @keyframes floatDot {
+    0%   { transform:translateY(0) scale(1);   opacity:0; }
+    10%  { opacity:1; }
+    90%  { opacity:0.5; }
+    100% { transform:translateY(-120px) scale(0.5); opacity:0; }
   }
-  .day-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-  .day-desc { font-size: 12px; color: var(--text-3); }
 
-  /* ── Visa Section ── */
-  .visa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
-  .visa-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    padding: 24px;
-    transition: background 0.2s, transform 0.2s;
-  }
-  .visa-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
-  .visa-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
-  .visa-applicant { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-  .visa-sub { font-size: 13px; color: var(--text-2); }
-  .visa-progress { margin: 16px 0; }
-  .visa-progress-label {
-    display: flex; justify-content: space-between;
-    font-size: 12px; color: var(--text-3); margin-bottom: 6px;
-  }
-  .visa-bar-track {
-    height: 4px; border-radius: 100px;
-    background: rgba(255,255,255,0.08); overflow: hidden;
-  }
-  .visa-bar-fill {
-    height: 100%; border-radius: 100px;
-    transition: width 0.6s ease;
-  }
-  .visa-meta { display: flex; flex-direction: column; gap: 8px; }
-  .visa-meta-item {
-    display: flex; justify-content: space-between;
-    font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border);
-  }
-  .visa-meta-item:last-child { border-bottom: none; }
-  .visa-meta-item .k { color: var(--text-3); }
-  .visa-meta-item .v { font-weight: 600; }
+  .left-content { position:relative; z-index:2; }
 
-  /* Visa status colours */
-  .status-pending { color: var(--orange); }
-  .status-collected { color: var(--teal); }
-  .status-submitted { color: var(--purple); }
-  .status-approved { color: var(--green); }
-  .status-rejected { color: var(--red); }
-  .status-delivered { color: var(--gold); }
+  .brand-mark { display:flex; align-items:center; gap:14px; margin-bottom:56px; }
+  .brand-icon {
+    width:54px; height:54px;
+    background: var(--teal);
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:28px;
+    box-shadow: 0 8px 28px rgba(20,241,177,0.4);
+    animation: iconPulse 3s ease-in-out infinite;
+  }
+  @keyframes iconPulse {
+    0%,100% { box-shadow:0 8px 28px rgba(20,241,177,0.4); }
+    50%     { box-shadow:0 8px 40px rgba(20,241,177,0.65); }
+  }
+  .brand-name {
+    font-family:'Sora',sans-serif;
+    font-size:22px; font-weight:800; color:var(--white);
+  }
+  .brand-sub { font-size:11px; color:var(--teal); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
 
-  /* ── Documents / Checklist update form ── */
-  .doc-update-form {
-    background: rgba(56,189,248,0.05);
-    border: 1px solid rgba(56,189,248,0.15);
-    border-radius: var(--r-sm);
-    padding: 20px;
-    margin-top: 16px;
+  .hero-headline {
+    font-family:'Sora',sans-serif;
+    font-size:48px; font-weight:800;
+    color:var(--white); line-height:1.08;
+    letter-spacing:-2px; margin-bottom:20px;
+    animation: slideUp 0.7s ease both;
   }
-  .doc-update-form h5 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--teal-light); }
-  .doc-update-form .du-row {
-    display: flex; flex-direction: column; gap: 12px;
-  }
-  .doc-update-form label { font-size: 13px; font-weight: 600; color: var(--text-2); display: block; margin-bottom: 6px; }
-  .doc-update-form input, .doc-update-form select {
-    width: 100%; background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border); border-radius: 7px;
-    padding: 10px 14px; font-size: 14px; font-family: 'Outfit', sans-serif;
-    color: var(--text); outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .doc-update-form input:focus, .doc-update-form select:focus {
-    border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(56,189,248,0.10);
-  }
-  .doc-update-form select option { background: #131c30; }
-  .btn-update {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 20px; background: linear-gradient(135deg, var(--teal), #0ea5e9);
-    border: none; border-radius: 8px;
-    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700;
-    color: #061622; cursor: pointer; transition: all 0.25s;
-    margin-top: 4px;
-  }
-  .btn-update:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(56,189,248,0.35); }
+  .hero-headline span { color:var(--teal); }
+  @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
 
-  /* ── No-customer state ── */
-  .no-customer-state {
-    text-align: center; padding: 80px 24px;
+  .hero-sub {
+    font-size:16px; color:rgba(255,255,255,0.42);
+    line-height:1.7; max-width:380px; margin-bottom:52px;
+    animation: slideUp 0.7s 0.1s ease both;
   }
-  .no-customer-state .big-icon {
-    font-size: 72px; margin-bottom: 24px;
-    animation: float 3s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-  .no-customer-state h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 12px; }
-  .no-customer-state p { font-size: 15px; color: var(--text-2); line-height: 1.7; max-width: 520px; margin: 0 auto 28px; }
 
-  /* ── Empty States ── */
-  .empty-state {
-    text-align: center; padding: 60px 24px;
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: var(--r);
+  .feature-pills { display:flex; flex-direction:column; gap:10px; }
+  .pill {
+    display:flex; align-items:center; gap:14px;
+    background:rgba(255,255,255,0.035);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:12px; padding:14px 18px;
+    transition:all 0.25s;
+    animation: slideLeft 0.5s ease both;
   }
-  .empty-state .e-icon { font-size: 48px; margin-bottom: 16px; }
-  .empty-state h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-  .empty-state p { font-size: 14px; color: var(--text-2); }
+  .pill:nth-child(1){animation-delay:0.2s}
+  .pill:nth-child(2){animation-delay:0.3s}
+  .pill:nth-child(3){animation-delay:0.4s}
+  .pill:nth-child(4){animation-delay:0.5s}
+  @keyframes slideLeft { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+  .pill:hover { background:rgba(20,241,177,0.06); border-color:rgba(20,241,177,0.18); transform:translateX(4px); }
+  .pill-icon { font-size:20px; width:26px; text-align:center; }
+  .pill-text { font-size:13px; color:rgba(255,255,255,0.6); font-weight:600; }
 
-  /* ── Toast ── */
-  .toast-container {
-    position: fixed; bottom: 24px; right: 24px;
-    display: flex; flex-direction: column; gap: 10px; z-index: 999;
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    width:480px;
+    background:var(--white);
+    display:flex; flex-direction:column;
+    justify-content:center;
+    padding:56px 52px;
+    position:relative;
+    overflow:hidden;
   }
-  .toast {
-    background: rgba(30,40,60,0.95); backdrop-filter: blur(12px);
-    border: 1px solid var(--border); border-radius: 12px;
-    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    animation: slideIn 0.3s ease; min-width: 280px; max-width: 380px;
+  .right-panel::before {
+    content:'';
+    position:absolute; top:0; left:0;
+    width:4px; height:100%;
+    background:linear-gradient(180deg, var(--teal) 0%, rgba(20,241,177,0.1) 100%);
   }
-  @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-  .toast.success { border-color: rgba(52,211,153,0.35); }
-  .toast.error { border-color: rgba(248,113,113,0.35); }
-  .toast-msg { font-size: 14px; flex: 1; }
-  .toast-close { cursor: pointer; color: var(--text-3); transition: color 0.2s; }
-  .toast-close:hover { color: var(--text); }
+  /* decorative arc */
+  .right-panel::after {
+    content:'';
+    position:absolute;
+    width:300px; height:300px;
+    background:radial-gradient(circle, rgba(20,241,177,0.06) 0%, transparent 65%);
+    top:-80px; right:-80px;
+    border-radius:50%;
+  }
 
-  /* ── Mobile tabs ── */
-  .mobile-tabs {
-    display: none;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px; gap: 4px;
-    margin-bottom: 28px; overflow-x: auto;
-  }
-  @media (max-width: 768px) { .mobile-tabs { display: flex; } }
-  .mobile-tab {
-    padding: 8px 14px;
-    border-radius: 7px; font-size: 13px; font-weight: 600;
-    cursor: pointer; color: var(--text-2); transition: all 0.2s;
-    border: none; background: transparent; white-space: nowrap;
-    font-family: 'Outfit', sans-serif;
-  }
-  .mobile-tab.active { background: rgba(56,189,248,0.15); color: var(--teal-light); border: 1px solid rgba(56,189,248,0.25); }
+  .rp-inner { position:relative; z-index:1; }
 
+  .login-tag {
+    display:inline-flex; align-items:center; gap:7px;
+    background:rgba(20,241,177,0.1);
+    border:1px solid rgba(20,241,177,0.22);
+    color:#0aab7d;
+    font-size:11px; font-weight:700;
+    letter-spacing:1.2px; text-transform:uppercase;
+    border-radius:20px; padding:5px 14px;
+    margin-bottom:24px;
+  }
+  .login-tag::before { content:'●'; font-size:7px; color:var(--teal); }
+
+  h1 {
+    font-family:'Sora',sans-serif;
+    font-size:30px; font-weight:800;
+    color:var(--navy); margin-bottom:6px;
+    letter-spacing:-0.8px;
+  }
+  .login-sub { font-size:14px; color:#6b7fa0; margin-bottom:36px; line-height:1.55; }
+
+  .form-group { margin-bottom:20px; }
+  .form-group label {
+    display:block;
+    font-size:11px; font-weight:700;
+    color:var(--navy); letter-spacing:0.8px;
+    text-transform:uppercase; margin-bottom:8px;
+  }
+  .input-wrap { position:relative; }
+  .input-prefix {
+    position:absolute; left:14px; top:50%;
+    transform:translateY(-50%);
+    font-size:14px; font-weight:700; color:var(--navy);
+    pointer-events:none;
+    border-right:1.5px solid rgba(5,19,60,0.14);
+    padding-right:10px;
+  }
+
+  input[type="tel"],
+  input[type="password"],
+  input[type="text"] {
+    width:100%;
+    border:1.5px solid rgba(5,19,60,0.13);
+    border-radius:12px;
+    padding:14px 14px 14px 72px;
+    font-size:15px;
+    font-family:'Mulish',sans-serif;
+    font-weight:600; color:var(--navy);
+    background:var(--white);
+    transition:border-color 0.2s, box-shadow 0.2s;
+    outline:none;
+  }
+  input[type="password"] { padding-left:14px; letter-spacing:3px; }
+  input.no-prefix       { padding-left:14px; letter-spacing:0; }
+  input:focus {
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(20,241,177,0.13);
+  }
+  input::placeholder { color:rgba(5,19,60,0.22); letter-spacing:0; font-weight:400; }
+
+  .pw-wrap { position:relative; }
+  .pw-toggle {
+    position:absolute; right:14px; top:50%;
+    transform:translateY(-50%);
+    cursor:pointer; font-size:18px; color:#aab;
+    background:none; border:none; transition:color 0.2s;
+  }
+  .pw-toggle:hover { color:var(--navy); }
+
+  .error-msg {
+    background:rgba(255,77,109,0.07);
+    border:1px solid rgba(255,77,109,0.2);
+    color:var(--error);
+    font-size:13px; font-weight:600;
+    border-radius:9px; padding:10px 14px;
+    margin-bottom:18px; display:none;
+  }
+  .error-msg.show { display:block; animation:shake 0.3s ease; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-5px)}
+    75%{transform:translateX(5px)}
+  }
+
+  .forgot-row { display:flex; justify-content:flex-end; margin-top:-10px; margin-bottom:26px; }
+  .forgot-link {
+    font-size:12px; font-weight:700; color:var(--teal);
+    background:none; border:none; cursor:pointer; transition:color 0.2s;
+  }
+  .forgot-link:hover { color:var(--navy); }
+
+  .btn-primary {
+    width:100%; padding:15px;
+    background:var(--navy); color:var(--white);
+    border:none; border-radius:12px;
+    font-family:'Sora',sans-serif;
+    font-size:15px; font-weight:700;
+    cursor:pointer; transition:all 0.25s;
+    position:relative; overflow:hidden;
+    letter-spacing:0.3px;
+  }
+  .btn-primary::after {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent, rgba(20,241,177,0.15), transparent);
+    transform:translateX(-100%); transition:transform 0.5s;
+  }
+  .btn-primary:hover { background:var(--navy2); transform:translateY(-1px); box-shadow:0 8px 28px rgba(5,19,60,0.22); }
+  .btn-primary:hover::after { transform:translateX(100%); }
+  .btn-primary:active { transform:translateY(0); }
+  .btn-primary.loading { pointer-events:none; opacity:0.8; }
+
+  .spinner {
+    display:inline-block; width:16px; height:16px;
+    border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff; border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    margin-right:8px; vertical-align:middle;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  .divider {
+    display:flex; align-items:center; gap:12px;
+    margin:22px 0;
+  }
+  .divider::before, .divider::after {
+    content:''; flex:1;
+    height:1px; background:rgba(5,19,60,0.1);
+  }
+  .divider span { font-size:11px; color:#aab; font-weight:600; }
+
+  .register-note {
+    text-align:center; margin-top:20px;
+    font-size:13px; color:#8fa0c0; line-height:1.6;
+  }
+  .register-note strong { color:var(--navy); }
+
+  /* RESET PANEL */
+  #reset-panel { display:none; }
+  #reset-panel.show { display:block; animation:fadeUp 0.3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .back-btn {
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none; color:#8fa0c0;
+    font-size:13px; font-weight:600;
+    cursor:pointer; padding:0; margin-bottom:22px; transition:color 0.2s;
+  }
+  .back-btn:hover { color:var(--navy); }
+
+  .success-box {
+    background:rgba(20,241,177,0.09);
+    border:1px solid rgba(20,241,177,0.25);
+    border-radius:10px; padding:12px 16px;
+    font-size:13px; font-weight:600; color:#0aab7d;
+    display:none; margin-bottom:16px;
+  }
+  .success-box.show { display:block; }
+
+  /* hint text */
+  .hint { font-size:11px; color:#8fa0c0; margin-top:6px; }
+
+  @media (max-width:900px) {
+    .left-panel { display:none; }
+    .right-panel { width:100%; padding:48px 28px; }
+  }
 </style>
-{% endblock %}
-
-{% block page_content %}
-<!-- Nav -->
-<nav class="portal-nav">
-  <div class="nav-brand">✈️ TravelPortal</div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('overview')" id="tab-overview">🏠 Overview</button>
-    <button class="nav-tab" onclick="switchTab('bookings')" id="tab-bookings">🎫 My Bookings</button>
-    <button class="nav-tab" onclick="switchTab('visa')" id="tab-visa">🛂 Visa Status</button>
-    <button class="nav-tab" onclick="switchTab('profile')" id="tab-profile">👤 My Profile</button>
-  </div>
-  <div class="nav-user">
-    <span style="font-size:13px;">{{ frappe.db.get_value('User', frappe.session.user, 'full_name') }}</span>
-    <div class="nav-avatar">{{ frappe.db.get_value('User', frappe.session.user, 'full_name')[0] | upper }}</div>
-  </div>
-</nav>
-
-{% if no_customer %}
-<!-- ── No Customer Linked ── -->
-<div class="portal-body">
-  <div class="no-customer-state">
-    <div class="big-icon">🧭</div>
-    <h2>Your Account is Being Set Up</h2>
-    <p>
-      You're logged in as <strong>{{ user_email }}</strong>, but your account hasn't been linked to a customer record yet.
-      This usually happens within a few hours of your booking being confirmed.
-    </p>
-    <a href="/travel-enquiry" class="btn-enquiry" style="display: inline-flex; margin: 0 auto;">
-      ✈️ Register Your Interest
-    </a>
-    <p style="margin-top: 16px; font-size: 13px; color: var(--text-3);">
-      Already used a different email? Contact our support team.
-    </p>
-  </div>
-</div>
-{% else %}
-
-<div class="portal-body">
-  <!-- Welcome -->
-  <div class="welcome-bar">
-    <div class="welcome-text">
-      <h1>Welcome back, {{ customer.customer_name.split()[0] }}! 👋</h1>
-      <p>Here's everything about your trips, visas and upcoming travels.</p>
-    </div>
-    <a href="/travel-enquiry" class="btn-enquiry">✈️ Plan Another Trip</a>
-  </div>
-
-  <!-- Stats -->
-  <div class="stat-row">
-    <div class="stat-pill">
-      <div class="stat-icon" style="background: rgba(56,189,248,0.12);">🎫</div>
-      <div>
-        <div class="stat-val">{{ all_bookings | length }}</div>
-        <div class="stat-label">Total Bookings</div>
-      </div>
-    </div>
-    <div class="stat-pill">
-      <div class="stat-icon" style="background: rgba(52,211,153,0.12);">✈️</div>
-      <div>
-        <div class="stat-val">{{ upcoming_bookings | length }}</div>
-        <div class="stat-label">Upcoming Trips</div>
-      </div>
-    </div>
-    <div class="stat-pill">
-      <div class="stat-icon" style="background: rgba(167,139,250,0.12);">🏅</div>
-      <div>
-        <div class="stat-val">{{ past_bookings | length }}</div>
-        <div class="stat-label">Completed Trips</div>
-      </div>
-    </div>
-    <div class="stat-pill">
-      <div class="stat-icon" style="background: rgba(240,180,41,0.12);">🛂</div>
-      <div>
-        <div class="stat-val">{{ visa_applications | length }}</div>
-        <div class="stat-label">Visa Applications</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Mobile Tabs -->
-  <div class="mobile-tabs">
-    <button class="mobile-tab active" onclick="switchTab('overview')">🏠 Overview</button>
-    <button class="mobile-tab" onclick="switchTab('bookings')">🎫 Bookings</button>
-    <button class="mobile-tab" onclick="switchTab('visa')">🛂 Visa</button>
-    <button class="mobile-tab" onclick="switchTab('profile')">👤 Profile</button>
-  </div>
-
-  <!-- ── TAB: OVERVIEW ── -->
-  <div class="tab-pane active" id="pane-overview">
-
-    <!-- Alerts -->
-    {% if travel_alerts %}
-    <div class="alert-strip">
-      {% for alert in travel_alerts %}
-      <div class="alert-banner {{ alert.level }}">
-        <div class="a-icon">{{ alert.icon }}</div>
-        <div>
-          <div class="a-title">{{ alert.title }}</div>
-          <div class="a-msg">{{ alert.msg }}</div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Upcoming Trips Preview -->
-    <div class="section-head">
-      <h2>🗓️ Upcoming Trips</h2>
-      <span class="section-badge">{{ upcoming_bookings | length }} trips</span>
-    </div>
-    {% if upcoming_bookings %}
-    <div class="booking-grid" style="margin-bottom: 40px;">
-      {% for b in upcoming_bookings[:2] %}
-      {% include "travel_tour/templates/includes/booking_card.html" %}
-      {% endfor %}
-      {% if upcoming_bookings | length > 2 %}
-      <div style="text-align:center;">
-        <button class="btn-enquiry" style="background: linear-gradient(135deg,var(--teal),#0ea5e9); color:#061622; border:none; width: auto; padding: 10px 24px;" onclick="switchTab('bookings')">View All Bookings →</button>
-      </div>
-      {% endif %}
-    </div>
-    {% else %}
-    <div class="empty-state" style="margin-bottom:40px;">
-      <div class="e-icon">🌍</div>
-      <h3>No Upcoming Trips</h3>
-      <p>You don't have any confirmed upcoming bookings. Ready for your next adventure?</p>
-    </div>
-    {% endif %}
-
-    <!-- Visa Quick Status -->
-    {% if visa_applications %}
-    <div class="section-head">
-      <h2>🛂 Visa Status Snapshot</h2>
-      <span class="section-badge">{{ visa_applications | length }} applications</span>
-    </div>
-    <div class="visa-grid" style="margin-bottom:40px;">
-      {% for v in visa_applications[:4] %}
-      {% include "travel_tour/templates/includes/visa_card.html" %}
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- ── TAB: BOOKINGS ── -->
-  <div class="tab-pane" id="pane-bookings">
-    {% if upcoming_bookings %}
-    <div class="section-head">
-      <h2>✈️ Upcoming Trips</h2>
-      <span class="section-badge">{{ upcoming_bookings | length }}</span>
-    </div>
-    <div class="booking-grid" style="margin-bottom: 36px;">
-      {% for b in upcoming_bookings %}
-      {% include "travel_tour/templates/includes/booking_card.html" %}
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if past_bookings %}
-    <div class="section-head">
-      <h2>🏅 Past Trips</h2>
-      <span class="section-badge">{{ past_bookings | length }}</span>
-    </div>
-    <div class="booking-grid">
-      {% for b in past_bookings %}
-      {% include "travel_tour/templates/includes/booking_card.html" %}
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if not all_bookings %}
-    <div class="empty-state">
-      <div class="e-icon">🗺️</div>
-      <h3>No Bookings Yet</h3>
-      <p>Once your travel consultant confirms a booking, it will appear here.</p>
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- ── TAB: VISA ── -->
-  <div class="tab-pane" id="pane-visa">
-    {% if visa_applications %}
-    <div class="section-head">
-      <h2>🛂 Visa Applications</h2>
-      <span class="section-badge">{{ visa_applications | length }}</span>
-    </div>
-    <div class="visa-grid">
-      {% for v in visa_applications %}
-      {% include "travel_tour/templates/includes/visa_card.html" %}
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-      <div class="e-icon">🛂</div>
-      <h3>No Visa Applications</h3>
-      <p>Visa applications linked to your bookings will appear here for tracking.</p>
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- ── TAB: PROFILE ── -->
-  <div class="tab-pane" id="pane-profile">
-    <div style="max-width:600px;">
-      <div class="section-head"><h2>👤 My Profile</h2></div>
-      <div class="visa-card" style="margin-bottom: 24px;">
-        <div class="visa-meta">
-          <div class="visa-meta-item">
-            <span class="k">Customer Name</span>
-            <span class="v">{{ customer.customer_name }}</span>
-          </div>
-          <div class="visa-meta-item">
-            <span class="k">Mobile</span>
-            <span class="v">{{ customer.mobile_no or 'Not set' }}</span>
-          </div>
-          <div class="visa-meta-item">
-            <span class="k">Email</span>
-            <span class="v">{{ customer.email_id or frappe.session.user }}</span>
-          </div>
-          <div class="visa-meta-item">
-            <span class="k">Customer ID</span>
-            <span class="v" style="color: var(--text-3); font-size:12px;">{{ customer.name }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="doc-update-form">
-        <h5>📋 Update My Travel Preferences</h5>
-        <div class="du-row">
-          <div>
-            <label for="prefMeal">Meal Preference</label>
-            <select id="prefMeal">
-              <option value="">-- Select --</option>
-              <option>Vegetarian</option>
-              <option>Non-Vegetarian</option>
-              <option>Vegan</option>
-              <option>Jain</option>
-              <option>No Preference</option>
-            </select>
-          </div>
-          <div>
-            <label for="prefSeat">Seat Preference</label>
-            <select id="prefSeat">
-              <option value="">-- Select --</option>
-              <option>Window</option>
-              <option>Aisle</option>
-              <option>No Preference</option>
-            </select>
-          </div>
-          <div>
-            <label for="emergencyContact">Emergency Contact Number</label>
-            <input type="tel" id="emergencyContact" placeholder="e.g. +91 98765 43210">
-          </div>
-          <div>
-            <button class="btn-update" onclick="updatePreferences()">
-              💾 Save Preferences
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-{% endif %}
-
-<!-- Toast Container -->
-<div class="toast-container" id="toastContainer"></div>
-{% endblock %}
-
-{% block script %}
 <script>
-// ── Tab Switching ──
-function switchTab(name) {
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab, .mobile-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('pane-' + name).classList.add('active');
-  const tabEl = document.getElementById('tab-' + name);
-  if (tabEl) tabEl.classList.add('active');
-  document.querySelectorAll('.mobile-tab').forEach(t => {
-    if (t.getAttribute('onclick') === "switchTab('" + name + "')") t.classList.add('active');
+// Frappe CSRF token - injected by server
+</script>
+</head>
+<body>
+
+<!-- ── LEFT PANEL ── -->
+<div class="left-panel">
+  <div class="grid-overlay"></div>
+  <!-- floating dots injected by JS -->
+  <div class="left-content">
+    <div class="brand-mark">
+      <div class="brand-icon">✈️</div>
+      <div>
+        <div class="brand-name">Tour Travels</div>
+        <div class="brand-sub">Customer Portal</div>
+      </div>
+    </div>
+
+    <h2 class="hero-headline">Your journeys,<br><span>all in one place.</span></h2>
+    <p class="hero-sub">Track bookings, view itineraries, manage visa documents, and pay balances — anytime, anywhere.</p>
+
+    <div class="feature-pills">
+      <div class="pill"><span class="pill-icon">🎫</span><span class="pill-text">View & manage all your bookings</span></div>
+      <div class="pill"><span class="pill-icon">🗺️</span><span class="pill-text">Day-by-day itinerary access</span></div>
+      <div class="pill"><span class="pill-icon">🛂</span><span class="pill-text">Visa & document tracker</span></div>
+      <div class="pill"><span class="pill-icon">💳</span><span class="pill-text">Secure online balance payments</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RIGHT PANEL ── -->
+<div class="right-panel">
+  <div class="rp-inner">
+
+    <!-- LOGIN -->
+    <div id="login-panel">
+      <div class="login-tag">Registered Customers Only</div>
+      <h1>Welcome back 👋</h1>
+      <p class="login-sub">Enter your registered mobile number and password to access your travel dashboard.</p>
+
+      <div class="error-msg" id="login-error"></div>
+
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <div class="input-wrap">
+          <span class="input-prefix">+91</span>
+          <input type="tel" id="mobile" placeholder="98765 43210" maxlength="10"
+            onkeydown="if(event.key==='Enter')document.getElementById('password').focus()"
+            oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+        <div class="hint">Use the mobile number you registered with us.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="password" placeholder="Enter your password"
+            class="no-prefix"
+            onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="pw-toggle" onclick="togglePw()" title="Show / hide">👁</button>
+        </div>
+        <div class="hint">Default: last 4 digits of your mobile (first login).</div>
+      </div>
+
+      <div class="forgot-row">
+        <button class="forgot-link" onclick="showReset()">Forgot password?</button>
+      </div>
+
+      <button class="btn-primary" id="login-btn" onclick="doLogin()">
+        Sign In to My Portal →
+      </button>
+
+      <p class="register-note">
+        Not registered yet?<br>
+        Call us at <strong>+91 98765 43210</strong> and we'll set you up.
+      </p>
+    </div>
+
+    <!-- RESET PASSWORD -->
+    <div id="reset-panel">
+      <button class="back-btn" onclick="showLogin()">← Back to login</button>
+      <div class="login-tag">Reset Password</div>
+      <h1>Forgot password?</h1>
+      <p class="login-sub">Enter your registered mobile. We'll send a new password via WhatsApp.</p>
+
+      <div class="success-box" id="reset-success">✅ New password sent to your WhatsApp! Check your messages.</div>
+      <div class="error-msg" id="reset-error"></div>
+
+      <div class="form-group">
+        <label>Registered Mobile Number</label>
+        <div class="input-wrap">
+          <span class="input-prefix">+91</span>
+          <input type="tel" id="reset-mobile" placeholder="98765 43210" maxlength="10"
+            oninput="this.value=this.value.replace(/\D/g,'')"
+            onkeydown="if(event.key==='Enter')doReset()">
+        </div>
+      </div>
+
+      <button class="btn-primary" id="reset-btn" onclick="doReset()">Send New Password via WhatsApp</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── floating dots ──
+(function() {
+  const panel = document.querySelector('.left-panel');
+  const colors = ['rgba(20,241,177,0.25)','rgba(20,241,177,0.15)','rgba(255,255,255,0.1)'];
+  for (let i = 0; i < 18; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    const sz = Math.random() * 6 + 3;
+    d.style.cssText = `
+      width:${sz}px; height:${sz}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      left:${Math.random()*100}%;
+      bottom:${Math.random()*20}%;
+      animation-duration:${Math.random()*10+8}s;
+      animation-delay:${Math.random()*8}s;
+    `;
+    panel.appendChild(d);
+  }
+})();
+
+// ── login ──
+function doLogin() {
+  const mobile = document.getElementById('mobile').value.replace(/\s/g,'');
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  errEl.classList.remove('show');
+
+  if (!/^\d{10}$/.test(mobile)) {
+    showError(errEl, 'Please enter a valid 10-digit mobile number.');
+    return;
+  }
+  if (!password) {
+    showError(errEl, 'Please enter your password.');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner"></span>Signing in...';
+
+  var fd=new URLSearchParams();
+  fd.append('mobile',mobile); fd.append('password',password);
+  fetch('/api/method/travel_tour.www.my_portal.portal_login',{
+    method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:fd.toString()
+  }).then(r=>r.json()).then(r=>{
+    btn.classList.remove('loading');
+    if(r.message&&r.message.success){
+      btn.innerHTML='✓ Redirecting...'; btn.style.background='#0aab7d';
+      window.location.replace(r.message.redirect||'/travel_enquiry');
+    } else {
+      btn.textContent='Sign In to My Portal →';
+      showError(errEl,(r.message&&r.message.error)||'Invalid credentials.');
+    }
+  }).catch(()=>{btn.classList.remove('loading');btn.textContent='Sign In to My Portal →';showError(errEl,'Server error.');});
+}
+
+function doReset() {
+  const mobile = document.getElementById('reset-mobile').value.replace(/\s/g,'');
+  const errEl = document.getElementById('reset-error');
+  const succEl = document.getElementById('reset-success');
+  const btn = document.getElementById('reset-btn');
+  errEl.classList.remove('show'); succEl.classList.remove('show');
+
+  if (!/^\d{10}$/.test(mobile)) {
+    showError(errEl, 'Please enter a valid 10-digit mobile number.');
+    return;
+  }
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner"></span>Sending...';
+
+  var fd2=new URLSearchParams(); fd2.append('mobile',mobile);
+  fetch('/api/method/travel_tour.www.my_portal.reset_portal_password',{
+    method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:fd2.toString()
+  }).then(r=>r.json()).then(r=>{
+    btn.classList.remove('loading'); btn.textContent='Send New Password via WhatsApp';
+    if(r.message&&r.message.success){succEl.classList.add('show');}
+    else{showError(errEl,(r.message&&r.message.error)||'Mobile not registered.');}
   });
 }
 
-// ── Card Expand ──
-function toggleCard(id) {
-  const card = document.getElementById(id);
-  card.classList.toggle('expanded');
-  const btn = card.querySelector('.card-expand-btn');
-  if (card.classList.contains('expanded')) {
-    btn.textContent = 'Collapse ▲';
-    loadItinerary(card);
-  } else {
-    btn.textContent = 'View Details ▼';
-  }
+function showError(el, msg) { el.textContent = msg; el.classList.add('show'); }
+function togglePw() {
+  const i = document.getElementById('password');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+function showReset() {
+  document.getElementById('login-panel').style.display = 'none';
+  document.getElementById('reset-panel').classList.add('show');
+  document.getElementById('reset-panel').style.display = 'block';
+}
+function showLogin() {
+  document.getElementById('login-panel').style.display = '';
+  document.getElementById('reset-panel').classList.remove('show');
+  document.getElementById('reset-panel').style.display = 'none';
+  document.getElementById('login-error').classList.remove('show');
 }
 
-// ── Load Itinerary via API ──
-async function loadItinerary(card) {
-  const pkg = card.dataset.pkg;
-  const container = card.querySelector('.itinerary-list');
-  if (!pkg || !container || container.dataset.loaded) return;
-  try {
-    const res = await fetch(`/api/method/travel_tour.api.portal.get_package_itinerary?package=${encodeURIComponent(pkg)}`);
-    const data = await res.json();
-    if (data.message && data.message.length) {
-      container.innerHTML = data.message.map(d => `
-        <div class="itinerary-day">
-          <div class="day-num">D${d.day_number}</div>
-          <div>
-            <div class="day-title">${d.title || 'Day ' + d.day_number}</div>
-            <div class="day-desc">${d.description || ''}</div>
-            ${d.meals ? `<div style="font-size:11px; color:var(--text-3); margin-top:4px;">🍽️ ${d.meals}</div>` : ''}
-          </div>
-        </div>
-      `).join('');
-    } else {
-      container.innerHTML = '<p style="font-size:13px; color:var(--text-3);">Itinerary details coming soon.</p>';
+
+
+function _csrf() {
+  var m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  var t = m ? decodeURIComponent(m[1]) : '';
+  if (t && t !== 'None' && t.length > 4) return t;
+  try { if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token.length > 4) return frappe.csrf_token; } catch(e) {}
+  return '';
+}
+
+function _fc(opts) {
+  var method  = opts.method || '';
+  var args    = opts.args   || {};
+  fetch('/api/method/' + method, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type':        'application/json',
+      'Accept':              'application/json',
+      'X-Frappe-CSRF-Token': _csrf(),
+      'X-Requested-With':    'XMLHttpRequest'
+    },
+    body: JSON.stringify(args)
+  })
+  .then(function(res) {
+    if (res.status === 403 || res.status === 401) {
+      window.location.href = '/login?redirect-to=' + encodeURIComponent(window.location.pathname);
+      return null;
     }
-    container.dataset.loaded = '1';
-  } catch(e) { console.error(e); }
+    return res.json();
+  })
+  .then(function(r) {
+    if (!r) return;
+    if (opts.callback) opts.callback(r);
+  })
+  .catch(function(e) {
+    console.error('[_fc] ' + method, e);
+    if (opts.error) opts.error(e);
+  });
 }
 
-// ── Update Passport via Portal ──
-async function updatePassport(visaId) {
-  const num  = document.getElementById('pp_num_' + visaId).value.trim();
-  const exp  = document.getElementById('pp_exp_' + visaId).value;
-  if (!num || !exp) { showToast('Please fill both fields.', 'error'); return; }
-  try {
-    const res = await fetch('/api/method/travel_tour.api.portal.update_passport_details', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Frappe-CSRF-Token': frappe.csrf_token },
-      body: JSON.stringify({ visa_id: visaId, passport_number: num, passport_expiry: exp })
-    });
-    const data = await res.json();
-    if (data.message === 'ok') {
-      showToast('Passport details saved!', 'success');
-    } else {
-      throw new Error(data.message || 'Error saving');
-    }
-  } catch(e) { showToast(e.message, 'error'); }
-}
 
-// ── Update Preferences ──
-function updatePreferences() {
-  showToast('Preferences saved successfully!', 'success');
-}
 
-// ── Toast ──
-function showToast(msg, type = 'success') {
-  const icon = type === 'success' ? '✅' : '❌';
-  const id = 'toast_' + Date.now();
-  const html = `
-    <div class="toast ${type}" id="${id}">
-      <span style="font-size:18px;">${icon}</span>
-      <span class="toast-msg">${msg}</span>
-      <span class="toast-close" onclick="document.getElementById('${id}').remove()">✕</span>
-    </div>`;
-  document.getElementById('toastContainer').insertAdjacentHTML('beforeend', html);
-  setTimeout(() => { const el = document.getElementById(id); if (el) el.remove(); }, 4000);
-}
+function frappe_call_compat(opts) { _fc(opts); }
+
+
 </script>
-{% endblock %}
+</body>
+</html>

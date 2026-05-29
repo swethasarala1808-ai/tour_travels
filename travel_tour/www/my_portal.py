@@ -1,150 +1,196 @@
+"""
+travel_tour/www/my_portal.py  — v3 SAFE
+Mobile + password login. Does NOT crash if any field is missing.
+"""
 import frappe
-from frappe.utils import now
+import hashlib
+import random
+import string
+
 
 def get_context(context):
-    """Customer Portal — requires login. Shows bookings, visa, upcoming trips."""
-    if frappe.session.user == 'Guest':
-        frappe.local.flags.redirect_location = '/login?redirect-to=/my-portal'
-        raise frappe.Redirect
-
     context.no_cache = 1
+    context.show_sidebar = False
+    if frappe.session.user and frappe.session.user != "Guest":
+        try:
+            mobile = frappe.db.get_value("User", frappe.session.user, "mobile_no") or ""
+            lead = _find_lead_by_email_or_mobile(frappe.session.user, mobile)
+            if lead:
+                frappe.local.flags.redirect_location = "/travel_enquiry"
+                raise frappe.Redirect
+        except frappe.Redirect:
+            raise
+        except Exception:
+            pass
 
-    # Find customer linked to this user
-    customer = frappe.db.get_value(
-        'Customer',
-        {'email_id': frappe.session.user},
-        ['name', 'customer_name', 'mobile_no', 'email_id'],
-        as_dict=True
-    )
 
-    if not customer:
-        # Try fallback by portal user link
-        customer = frappe.db.get_value(
-            'Contact',
-            {'email_id': frappe.session.user, 'is_primary_contact': 1},
-            ['customer'],
-            as_dict=True
+def _find_lead_by_mobile(mobile):
+    for field in ["mobile_no", "phone", "mobile", "contact_mobile"]:
+        try:
+            r = frappe.db.get_value("Travel Lead", {field: mobile}, "name")
+            if r:
+                return r
+        except Exception:
+            continue
+    try:
+        r = frappe.db.sql(
+            "SELECT name FROM `tabTravel Lead` WHERE mobile_no=%s OR phone=%s LIMIT 1",
+            (mobile, mobile)
         )
+        return r[0][0] if r else None
+    except Exception:
+        return None
 
-    context.customer = customer
 
-    if not customer:
-        context.no_customer = True
-        context.user_email = frappe.session.user
-        context.user_name = frappe.db.get_value('User', frappe.session.user, 'full_name')
-        return
+def _find_lead_by_email_or_mobile(email, mobile):
+    try:
+        r = frappe.db.get_value("Travel Lead", {"email_id": email}, "name")
+        if r:
+            return r
+    except Exception:
+        pass
+    if mobile:
+        return _find_lead_by_mobile(mobile)
+    return None
 
-    cname = customer.name
 
-    # Active / upcoming bookings
-    bookings = frappe.get_all(
-        'Booking',
-        filters={'customer': cname, 'docstatus': ['!=', 2]},
-        fields=['name', 'tour_package', 'departure_date', 'total_pax',
-                'grand_total', 'docstatus', 'creation'],
-        order_by='departure_date asc'
-    )
-
-    today = frappe.utils.today()
-    for b in bookings:
-        b.status_label = 'Confirmed' if b.docstatus == 1 else 'Draft'
-        b.is_upcoming = b.departure_date and str(b.departure_date) >= today
-        b.is_past = b.departure_date and str(b.departure_date) < today
-
-        # Load pax details
-        b.pax_list = frappe.get_all(
-            'Booking Pax',
-            filters={'parent': b.name},
-            fields=['pax_name', 'pax_age', 'pax_gender', 'passport_number', 'passport_expiry']
+def _get_lead_doc_safe(lead_name):
+    try:
+        row = frappe.db.sql(
+            "SELECT * FROM `tabTravel Lead` WHERE name=%s LIMIT 1",
+            lead_name, as_dict=True
         )
+        return row[0] if row else None
+    except Exception:
+        return None
 
-        # Load addons
-        b.addons_list = frappe.get_all(
-            'Booking Addon',
-            filters={'parent': b.name},
-            fields=['addon_name', 'qty', 'amount']
+
+def _get_or_create_portal_user(mobile, full_name, email):
+    try:
+        existing = frappe.db.get_value("User", {"mobile_no": mobile}, "name")
+        if existing:
+            frappe.db.set_value("User", existing, "enabled", 1)
+            return existing
+    except Exception:
+        pass
+    try:
+        if frappe.db.exists("User", email):
+            frappe.db.set_value("User", email, "enabled", 1)
+            return email
+    except Exception:
+        pass
+    try:
+        parts = str(full_name or "Customer").split()
+        user = frappe.get_doc({
+            "doctype": "User", "email": email,
+            "first_name": parts[0],
+            "last_name": " ".join(parts[1:]) if len(parts) > 1 else "",
+            "mobile_no": mobile, "user_type": "Website User",
+            "enabled": 1, "send_welcome_email": 0,
+            "new_password": frappe.generate_hash(length=20),
+        })
+        user.flags.ignore_permissions = True
+        user.insert()
+        frappe.db.commit()
+        return user.name
+    except Exception as e:
+        frappe.log_error(str(e), "Portal user creation")
+        return None
+
+
+def _hash_pw(password):
+    return hashlib.sha256(("tt_portal_salt_2024_" + str(password)).encode()).hexdigest()
+
+
+@frappe.whitelist(allow_guest=True)
+def portal_login(mobile, password):
+    try:
+        mobile   = str(mobile   or "").strip().replace(" ", "")
+        password = str(password or "").strip()
+
+        if not mobile or not password:
+            return {"success": False, "error": "Mobile and password are required."}
+
+        lead_name = _find_lead_by_mobile(mobile)
+        if not lead_name:
+            return {"success": False, "error": "Mobile number not registered. Please contact us."}
+
+        lead = _get_lead_doc_safe(lead_name)
+        if not lead:
+            return {"success": False, "error": "Account not found."}
+
+        stored_hash = str(lead.get("portal_password_hash") or "").strip()
+        if not stored_hash:
+            if password != mobile[-4:]:
+                return {"success": False, "error": "Incorrect password. Default is last 4 digits of your mobile number."}
+        else:
+            if _hash_pw(password) != stored_hash:
+                return {"success": False, "error": "Incorrect password."}
+
+        display_name = (lead.get("lead_name") or lead.get("full_name") or
+                        lead.get("customer_name") or "Customer")
+        email = lead.get("email_id") or lead.get("email") or f"portal_{mobile}@tourtravel.internal"
+
+        user = _get_or_create_portal_user(mobile, display_name, email)
+        if not user:
+            return {"success": False, "error": "Could not create account. Please contact support."}
+
+        frappe.local.login_manager.login_as(user)
+        return {"success": True, "redirect": "/travel_enquiry"}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "portal_login error")
+        return {"success": False, "error": "Server error. Please try again."}
+
+
+@frappe.whitelist(allow_guest=True)
+def reset_portal_password(mobile):
+    try:
+        mobile = str(mobile or "").strip().replace(" ", "")
+        lead_name = _find_lead_by_mobile(mobile)
+        if not lead_name:
+            return {"success": False, "error": "Mobile number not registered."}
+        lead = _get_lead_doc_safe(lead_name)
+        display_name = (lead or {}).get("lead_name") or (lead or {}).get("full_name") or "Customer"
+        new_pw = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        try:
+            frappe.db.set_value("Travel Lead", lead_name, "portal_password_hash", _hash_pw(new_pw))
+            frappe.db.commit()
+        except Exception:
+            pass
+        frappe.log_error(
+            f"Password Reset\nMobile: {mobile}\nName: {display_name}\nNew Password: {new_pw}",
+            "Portal Password Reset",
         )
-
-        # Package details
-        if b.tour_package:
-            pkg = frappe.db.get_value(
-                'Tour Package',
-                b.tour_package,
-                ['package_name', 'tour_type', 'destination', 'duration_nights', 'duration_days', 'visa_required'],
-                as_dict=True
-            )
-            b.package_info = pkg
-
-    context.upcoming_bookings = [b for b in bookings if b.is_upcoming]
-    context.past_bookings = [b for b in bookings if not b.is_upcoming]
-    context.all_bookings = bookings
-
-    # Visa applications
-    booking_names = [b.name for b in bookings]
-    visa_apps = []
-    if booking_names:
-        visa_apps = frappe.get_all(
-            'Visa Application',
-            filters={'booking': ['in', booking_names]},
-            fields=['name', 'booking', 'applicant_name', 'visa_type', 'destination_country',
-                    'departure_date', 'status', 'submission_deadline', 'all_docs_collected',
-                    'passport_number', 'passport_expiry'],
-            order_by='creation desc'
-        )
-
-    for v in visa_apps:
-        v.status_class = {
-            'Pending Documents': 'status-pending',
-            'Documents Collected': 'status-collected',
-            'Submitted': 'status-submitted',
-            'Approved': 'status-approved',
-            'Rejected': 'status-rejected',
-            'Delivered': 'status-delivered'
-        }.get(v.status, 'status-pending')
-
-    context.visa_applications = visa_apps
-
-    # Travel checklist / alerts for upcoming trips
-    context.travel_alerts = build_travel_alerts(context.upcoming_bookings, visa_apps)
+        return {"success": True}
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "reset_portal_password error")
+        return {"success": False, "error": "Server error. Please try again."}
 
 
-def build_travel_alerts(upcoming_bookings, visa_apps):
-    """Build actionable items for the customer."""
-    alerts = []
-    today = frappe.utils.today()
-    days_30 = frappe.utils.add_days(today, 30)
-
-    for b in upcoming_bookings:
-        dep = str(b.departure_date) if b.departure_date else ''
-        if dep and dep <= str(days_30):
-            days_left = (frappe.utils.getdate(dep) - frappe.utils.getdate(today)).days
-            alerts.append({
-                'type': 'trip_soon',
-                'icon': '✈️',
-                'title': f'Trip in {days_left} days!',
-                'msg': f'Your {b.tour_package} is {days_left} days away. Ensure all documents are ready.',
-                'booking': b.name,
-                'level': 'warning' if days_left <= 7 else 'info'
-            })
-
-    for v in visa_apps:
-        if v.status == 'Pending Documents':
-            alerts.append({
-                'type': 'visa_docs',
-                'icon': '📄',
-                'title': f'Documents Needed for {v.applicant_name}',
-                'msg': f'Visa application for {v.destination_country or "your destination"} is waiting for documents.',
-                'booking': v.booking,
-                'level': 'warning'
-            })
-        if v.status == 'Approved':
-            alerts.append({
-                'type': 'visa_approved',
-                'icon': '✅',
-                'title': f'Visa Approved!',
-                'msg': f'{v.applicant_name}\'s visa for {v.destination_country} has been approved.',
-                'booking': v.booking,
-                'level': 'success'
-            })
-
-    return alerts
+@frappe.whitelist()
+def change_portal_password(old_password, new_password):
+    try:
+        if frappe.session.user == "Guest":
+            return {"success": False, "error": "Not logged in."}
+        mobile = frappe.db.get_value("User", frappe.session.user, "mobile_no") or ""
+        lead_name = _find_lead_by_email_or_mobile(frappe.session.user, mobile)
+        if not lead_name:
+            return {"success": False, "error": "Account not found."}
+        lead = _get_lead_doc_safe(lead_name)
+        stored = str((lead or {}).get("portal_password_hash") or "").strip()
+        if not stored:
+            stored = _hash_pw(mobile[-4:] if mobile else "0000")
+        if _hash_pw(old_password) != stored:
+            return {"success": False, "error": "Current password is incorrect."}
+        if len(str(new_password)) < 6:
+            return {"success": False, "error": "New password must be at least 6 characters."}
+        try:
+            frappe.db.set_value("Travel Lead", lead_name, "portal_password_hash", _hash_pw(new_password))
+            frappe.db.commit()
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": f"Could not save: {e}"}
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "change_portal_password error")
+        return {"success": False, "error": "Server error."}

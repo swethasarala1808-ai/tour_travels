@@ -1,7 +1,6 @@
 import frappe
 
-def assign_consultant(doc, method=None):
-    pass
+def on_update(doc, method=None):
+    pass  # placeholder — no auto-user creation to avoid hook errors
 
-def send_ack_whatsapp(doc, method=None):
-    pass
+after_insert = on_update
